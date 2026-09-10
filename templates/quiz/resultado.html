@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Seu resultado{% endblock %}
+
+{% block content %}
+<section>
+    <p>Resultado do seu perfil</p>
+    <h1>
+        {% if tentativa.respondido_por %}{{ tentativa.respondido_por }}, esses{% else %}Esses{% endif %}
+        sao os cursos que mais combinam com voce
+    </h1>
+
+    {% if tentativa.confidence_level == "baixa" %}
+    <p>
+        Sua afinidade com os cursos disponiveis ficou baixa. Vale refazer o teste
+        com calma ou conversar com a secretaria antes de decidir.
+    </p>
+    {% endif %}
+
+    {% if curso_pendente %}
+    <div>
+        <p>Voce queria salvar <strong>{{ curso_pendente.nome_curso }}</strong>.</p>
+        <form method="post" action="{% url 'interesse-salvar' %}">
+            {% csrf_token %}
+            <input type="hidden" name="curso_id" value="{{ curso_pendente.id }}">
+            <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
+            <button type="submit">Salvar agora</button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if destaque %}
+    <article>
+        <div>
+            <span>Melhor combinacao</span>
+            <div style="--valor: {{ destaque.match }}">
+                <span>{{ destaque.match }}<small>%</small></span>
+                <span>de afinidade</span>
+            </div>
+        </div>
+
+        <h2>{{ destaque.curso.nome_curso }}</h2>
+        <p>{{ destaque.curso.descricao }}</p>
+
+        <ul>
+            <li>{{ destaque.curso.area_principal.nome }}</li>
+            <li>{{ destaque.curso.duracao }} horas</li>
+        </ul>
+
+        <div>
+            <h3>Por que este curso</h3>
+            {% for area in destaque.areas %}
+            <div>
+                <div>
+                    <span>{{ area.area_name }}</span>
+                    <span>{{ area.percentual }}%</span>
+                </div>
+                <div>
+                    <div style="width: {{ area.percentual }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <form method="post" action="{% url 'interesse-salvar' %}">
+            {% csrf_token %}
+            <input type="hidden" name="curso_id" value="{{ destaque.curso.id }}">
+            <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
+            <button type="submit">
+                {% if destaque.curso.id in interesses_salvos %}Remover da minha lista{% else %}Salvar na minha lista{% endif %}
+            </button>
+        </form>
+    </article>
+
+    <h2>Tambem combinam com voce</h2>
+    <div>
+        {% for item in outros %}
+        <article>
+            <div>
+                <span>{{ item.rank }}</span>
+                <h3>{{ item.curso.nome_curso }}</h3>
+                <span>{{ item.match }}%</span>
+            </div>
+            <div>
+                <div style="width: {{ item.match }}%"></div>
+            </div>
+            <p>{{ item.curso.descricao }}</p>
+            <ul>
+                <li>{{ item.curso.duracao }} h</li>
+                {% for area in item.areas %}
+                <li>{{ area.area_name }}</li>
+                {% endfor %}
+            </ul>
+            <form method="post" action="{% url 'interesse-salvar' %}">
+                {% csrf_token %}
+                <input type="hidden" name="curso_id" value="{{ item.curso.id }}">
+                <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
+                <button type="submit">
+                    {% if item.curso.id in interesses_salvos %}Remover{% else %}Salvar{% endif %}
+                </button>
+            </form>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Nao encontramos recomendacoes para esta tentativa.</p>
+    {% endif %}
+
+    <div>
+        <a href="{% url 'quiz-inicio' %}">Refazer o teste</a>
+    </div>
+</section>
+{% endblock %}

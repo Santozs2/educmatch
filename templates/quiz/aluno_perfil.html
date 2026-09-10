@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Meu perfil{% endblock %}
+
+{% block content %}
+<section>
+    <p>Meu perfil</p>
+
+    <div>
+        <span aria-hidden="true">
+            <i class="fa-solid fa-user"></i>
+        </span>
+            {% if user.is_authenticated %}
+        <div>
+            <h1>
+                {{ user.first_name }} {{ user.last_name }}
+            </h1>
+        </div>
+            {% endif %}
+    </div>
+
+    <h2>Historico de resultados</h2>
+    <div>
+        {% for tentativa in historico %}
+        <article>
+            <div>
+                <span>{{ forloop.counter }}</span>
+    
+                <h3>{{ tentativa.curso.nome_curso }}</h3>
+                <span>{{ tentativa.match }}%</span>
+            </div>
+            <p>{{ tentativa.data|date:"d/m/Y" }} às {{ tentativa.data|date:"H:i" }}</p>
+        </article>
+        {% empty %}
+        <p>Voce ainda nao tem tentativas registradas.</p>
+        {% endfor %}
+    </div>
+
+    <div>
+        <a href="{% url 'quiz-inicio' %}">Refazer o teste</a>
+    </div>
+</section>
+{% endblock %}

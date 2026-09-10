@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Meus testes{% endblock %}
+
+{% block content %}
+<a class="botao" href="{% url 'quiz-inicio' %}">
+    <span aria-hidden="true">
+        <i class="fa-solid fa-arrow-left-long"></i>
+    </span>
+    VOLTAR
+</a>
+<section>
+    <h1>Meus testes</h1>
+    
+
+    {% if tentativas %}
+    <div>
+        {% for tentativa in tentativas %}
+        <article>
+            <div>
+                <h3>Teste de {{ tentativa.criado_em|date:"d/m/Y" }}</h3>
+            </div>
+            <p>Respondido as {{ tentativa.criado_em|date:"H:i" }}</p>
+            <a href="{% url 'quiz-resultado' tentativa.pk %}">
+                Ver resultado <span aria-hidden="true">&rarr;</span>
+            </a>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Voce ainda nao respondeu ao teste estando logado.</p>
+    <div>
+        <a href="{% url 'quiz-inicio' %}">Fazer o teste</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
