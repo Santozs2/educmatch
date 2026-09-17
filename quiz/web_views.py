@@ -44,6 +44,7 @@ def pagina_quiz(request):
             {
                 "questoes": questoes,
                 "respondido_por": respondido_por or request.session.get("quiz_respondido_por", ""),
+                "quiz_iniciado": bool(respondido_por or etapa),
             },
         )
     

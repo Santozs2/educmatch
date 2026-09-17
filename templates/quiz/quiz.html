@@ -2,8 +2,8 @@
 {% block title %}Quiz de orientacao{% endblock %}
 
 {% block content %}
-{% if not erro %}
-<form class="quiz-form quiz-intro-form" method="get" action="{% url 'quiz-inicio' %}#questao-1">
+{% if not erro and not quiz_iniciado %}
+<form class="quiz-form quiz-intro-form" method="get" action="{% url 'quiz-inicio' %}?etapa=1#questao-1">
     <section class="quiz-passo quiz-intro" id="inicio" data-passo>
         <p class="sobretitulo">Leva menos de 2 minutos</p>
         <h1>Descubra o curso <em>certo</em> para o seu perfil</h1>
