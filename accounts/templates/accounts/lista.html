@@ -3,12 +3,13 @@
 {% block title %}Minha lista{% endblock %}
 
 {% block content %}
+{% if ultima_tentativa %}
 <a class="botao" href="{% url 'quiz-resultado' ultima_tentativa.pk %}">
     <span aria-hidden="true">
-        <i class="fa-solid fa-arrow-left-long"></i>
+        <i class="fa-solid fa-arrow-left-long"> VOLTAR</i>
     </span>
-    VOLTAR
 </a>
+{% endif %}
 <section>
     <p>Sua conta</p>
     <h1>Minha lista</h1>

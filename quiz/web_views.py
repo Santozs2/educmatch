@@ -22,7 +22,19 @@ def areas_da_recomendacao(recomendacao):
             return []
     if not isinstance(explicacao, dict):
         return []
-    return explicacao.get("top_areas", [])
+
+    areas = explicacao.get("top_areas", [])
+    if not isinstance(areas, list):
+        return []
+
+    areas_norm = []
+    for area in areas:
+        if not isinstance(area, dict):
+            continue
+        area_norm = dict(area)
+        area_norm["area_name"] = area_norm.get("area_name") or area_norm.get("area_nome") or area_norm.get("area")
+        areas_norm.append(area_norm)
+    return areas_norm
 
 def pagina_quiz(request):
     questoes = perguntas_ativas()

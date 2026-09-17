@@ -57,13 +57,14 @@ class Tentativa_de_resposta(models.Model):
     )
     respondido_por = models.TextField(blank=True)
     score = models.FloatField(default=0.0, validators=[MinValueValidator(0.0), MaxValueValidator(5)])   
-    diferenca = models.FloatField(null=True, blank=True, help_text="Diferença entre o primeiro e o segunto colocado.")
+    diferenca = models.FloatField(null=True, blank=True, help_text="Diferença entre o primeiro e o segundo colocado.")
     CONFIDENCE_CHOICE_NIVEIS = [
         ("alta", "Alta"),
         ("media", "Média"),
         ("baixa", "Baixa"),
     ]
-    confidence_level = models.CharField(max_length=10, choices=CONFIDENCE_CHOICE_NIVEIS, default="")
+    confidence_band = models.CharField(max_length=10, choices=CONFIDENCE_CHOICE_NIVEIS, default="")
+    tie_set = models.JSONField(default=list, blank=True)
     
     class Meta:
         ordering = ["-criado_em"]

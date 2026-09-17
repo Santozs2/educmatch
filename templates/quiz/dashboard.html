@@ -11,7 +11,6 @@
             <p>Interesses e respostas do questionario, sem identificar estudantes.</p>
         </div>
         <div class="dashboard__acoes">
-            {% if questionario_url %}<a class="botao botao--ghost" href="{{ questionario_url }}">Ver link ativo</a>{% endif %}
             <form method="post" action="{% url 'gerar-questionario-link' %}">
                 {% csrf_token %}
                 <button class="botao" type="submit">Gerar link da pesquisa</button>
@@ -20,7 +19,7 @@
     </div>
 
     <div class="dashboard__metricas">
-        <article><span>Manifestacoes de interesse</span><strong>{{ total_manifestacoes }}</strong><small>em todos os cursos</small></article>
+        <article><span>Pessoas que completaram o quiz</span><strong>{{ total_quiz_completos }}</strong><small>tentativas concluídas</small></article>
         <article><span>Respostas da pesquisa</span><strong>{{ total_respostas }}</strong><small>anonimas</small></article>
         <article><span>Cursos com interesse</span><strong>{{ cursos_com_interesse }}</strong><small>com ao menos uma manifestacao</small></article>
     </div>

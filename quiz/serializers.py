@@ -37,7 +37,7 @@ class EnvioSerializer(serializers.Serializer):
     respondido_por = serializers.CharField(max_length=100, required=False, allow_blank=True)
     respostas = RespostaSerializer(many=True)
     
-    def validar_resposta(self, resposta):
+    def validate_resposta(self, resposta):
         questao = resposta['questao']
         choice = resposta['choice']
         

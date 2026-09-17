@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Painel{% endblock %}
+
+{% block conteudo %}
+<section class="painel">
+    <p class="olho">Visao agregada</p>
+    <h1 class="titulo">Painel</h1>
+
+    <nav class="painel__periodo">
+        {% for chave, dias in periodos.items %}
+            <a class="botao {% if periodo == chave %}botao--principal{% else %}botao--fantasma{% endif %}"
+               href="?periodo={{ chave }}">{{ dias }} dias</a>
+        {% endfor %}
+        <a class="botao {% if periodo == 'tudo' %}botao--principal{% else %}botao--fantasma{% endif %}"
+           href="?periodo=tudo">Tudo</a>
+    </nav>
+
+    <p class="painel__numerao">{{ total_de_tentativas }}</p>
+    <p class="campo__dica">tentativas no periodo</p>
+
+    {% if not tem_massa %}
+        <p class="alerta" role="status">
+            Menos de {{ k_minimo }} tentativas neste periodo. Para preservar o anonimato
+            dos respondentes, so o total e exibido. Escolha um periodo maior.
+        </p>
+    {% else %}
+
+    <h2 class="painel__secao">Cursos mais indicados em 1o lugar</h2>
+    <table class="tabela">
+        <thead><tr><th>Curso</th><th>Tentativas</th></tr></thead>
+        <tbody>
+        {% for linha in top_primeiro %}
+            <tr>
+                <td>{{ linha.curso__nome_curso }}</td>
+                <td>
+                    {% if linha.suprimido %}&mdash;{% else %}
+                        <span class="barra" style="--n: {{ linha.total }}"></span>
+                        {{ linha.total }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="2">Nenhuma tentativa no periodo.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 class="painel__secao">Conversao: recomendado &rarr; salvo na lista</h2>
+    <table class="tabela">
+        <thead><tr><th>Curso</th><th>Recomendado</th><th>Salvaram</th><th>Taxa</th></tr></thead>
+        <tbody>
+        {% for linha in conversao %}
+            <tr>
+                <td>{{ linha.nome_curso }}</td>
+                <td>{{ linha.recomendado }}</td>
+                <td>{% if linha.suprimido %}&mdash;{% else %}{{ linha.interessados }}{% endif %}</td>
+                <td>
+                    {% if linha.suprimido or linha.taxa is None %}&mdash;
+                    {% else %}{{ linha.taxa|floatformat:1 }}%{% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 class="painel__secao">Cursos ativos que nunca foram recomendados</h2>
+    {% if orfaos %}
+        <ul class="lista">
+        {% for curso in orfaos %}<li>{{ curso.nome_curso }}</li>{% endfor %}
+        </ul>
+        <p class="campo__dica">
+            Curso que nunca aparece costuma indicar area sem questao no quiz,
+            nao curso ruim. Ver a cobertura de areas abaixo.
+        </p>
+    {% else %}
+        <p>Todos os cursos ativos ja apareceram em alguma recomendacao.</p>
+    {% endif %}
+
+    <h2 class="painel__secao">Cobertura de areas pelo quiz</h2>
+    <table class="tabela">
+        <thead><tr><th>Area</th><th>Alternativas que pontuam nela</th></tr></thead>
+        <tbody>
+        {% for area in cobertura %}
+            <tr class="{% if not area.alternativas %}linha--alerta{% endif %}">
+                <td>{{ area.nome }}</td>
+                <td>{{ area.alternativas }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="campo__dica">
+        Numeros agregados por tentativa, incluindo respostas anonimas. Celulas com
+        menos de {{ k_minimo }} respondentes aparecem como &mdash;. Este painel nao
+        exibe nome, e-mail nem resposta individual.
+    </p>
+    {% endif %}
+</section>
+{% endblock %}

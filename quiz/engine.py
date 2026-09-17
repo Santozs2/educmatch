@@ -48,11 +48,13 @@ def explicacao(profile, vetor_curso, nome_areas):
     maiores = sorted(contribuicoes.items(), key=lambda item: item[1], reverse=True)[:TOP3]
     return {
         "top_areas": [
-            {"area": slug,
-             "area_nome": nome_areas.get(slug, slug),
-             "contribuicao": round(valor, 2),
-             "percentual": round(valor / total * 100, 1) if total else 0.0
-             }
+            {
+                "area": slug,
+                "area_name": nome_areas.get(slug, slug),
+                "area_nome": nome_areas.get(slug, slug),
+                "contribuicao": round(valor, 2),
+                "percentual": round(valor / total * 100, 1) if total else 0.0,
+            }
             for slug, valor in maiores
         ]
     }
@@ -72,13 +74,24 @@ def banda(afinidade):
         return "medio"
     else:
         return "alto"
-    
+
+
 def confianca(ranking):
     if not ranking:
-        return {"confianca": 0.0, "gap_top1_top2": 0.0}
-    media = sum(score for _, score, _ in ranking) / len(ranking)
-    gap = ranking[0][1] - ranking[1][1] if len(ranking) > 1 else ranking[0][1]
-    return {"confianca": media, "gap_top1_top2": gap}
+        return "baixa"
+
+    primeiro = ranking[0][1]
+    segundo = ranking[1][1] if len(ranking) > 1 else 0.0
+
+    if primeiro <= 0:
+        return "baixa"
+
+    separacao = (primeiro - segundo) / primeiro
+    if separacao >= 0.15:
+        return "alta"
+    if separacao >= 0.05:
+        return "media"
+    return "baixa"
 
 
 @transaction.atomic
@@ -89,19 +102,23 @@ def recomedacao(tentativa, limit=None):
     perfil = perfil_vetor(alternativas)
     nome_areas = dict(Area.objects.values_list("slug", "nome"))
     ranking = rank_cursos(perfil, Curso.objects.all(), nome_areas)[:limit]
-    dados = confianca(ranking)
-    tentativa.diferenca = dados["gap_top1_top2"]
-    tentativa.confidence = dados["confianca"]
-    tentativa.save(update_fields=["confidence_level", "diferenca"])
+
+    primeiro = ranking[0][1] if ranking else 0.0
+    segundo = ranking[1][1] if len(ranking) > 1 else 0.0
+
+    tentativa.diferenca = primeiro - segundo
+    tentativa.confidence_band = confianca(ranking)
+    tentativa.save(update_fields=["confidence_band", "diferenca"])
+
     tentativa.recomendacoes.all().delete()
     return Recomendacao.objects.bulk_create(
         [
             Recomendacao(
                 tentativa=tentativa,
                 curso=curso,
-                score = round(score, 4),
-                rank = posicao,
-                explicacao=explicacao
+                score=round(score, 4),
+                rank=posicao,
+                explicacao=explicacao,
             )
             for posicao, (curso, score, explicacao) in enumerate(ranking, start=1)
         ]

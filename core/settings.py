@@ -17,9 +17,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'quiz',
     'catalogo',
     'accounts',
+    'painel',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -103,6 +105,5 @@ MAILERS = {
 }
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-RECOMMENDATION_LIMIT = 5
-QUIZ_RECOMENDACAO_LIMIT = RECOMMENDATION_LIMIT  
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'    
+QUIZ_RECOMENDACAO_LIMIT = 5

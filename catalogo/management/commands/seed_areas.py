@@ -12,6 +12,8 @@ AREAS = [
     ("metalurgia", "Metalurgia", "Tratamento de metais, soldagem e fundição."),
     ("rh", "Recursos Humanos", "Gestão de pessoas, recrutamento e desenvolvimento organizacional."),
     ("financas", "Finanças", "Contabilidade, análise financeira e planejamento estratégico."),
+    ("marketing", "Marketing", "Comunicação, relacionamento e estratégias de posicionamento."),
+    ("design", "Design", "Criatividade, visual e identidade de produtos e marcas."),
 ]
 
 

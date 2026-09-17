@@ -163,7 +163,7 @@ class Command(BaseCommand):
             desconhecidas = usadas - set(areas)
             if desconhecidas:
                 raise CommandError(
-                    f"Curso '{data['nome_curso']}' usa áreas inexistentes: {sorted(desconhecidas)}"
+                    f"Curso '{data['nome']}' usa áreas inexistentes: {sorted(desconhecidas)}"
                 )
 
             curso, created = Curso.objects.update_or_create(
