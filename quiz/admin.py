@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import (Alternativa, Tentativa_de_resposta, Questao, Recomendacao, Resposta, Peso_alternativa)
 
+
 class AlternativaInline(admin.TabularInline):
     model = Alternativa
     extra = 7
@@ -38,3 +39,4 @@ class QuizTentativaAdmin(admin.ModelAdmin):
     list_display = ['id', 'respondido_por', 'user', 'criado_em']
     readonly_fields = ['criado_em']
     inlines = [RespostaInline, RecomendacaoInline]
+    

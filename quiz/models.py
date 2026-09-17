@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -46,6 +48,13 @@ class Tentativa_de_resposta(models.Model):
         blank=True,
         related_name="tentativas",
     )
+    questionario_link = models.ForeignKey(
+        "quiz.QuestionarioLink",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tentativas",
+    )
     respondido_por = models.TextField(blank=True)
     score = models.FloatField(default=0.0, validators=[MinValueValidator(0.0), MaxValueValidator(5)])   
     diferenca = models.FloatField(null=True, blank=True, help_text="Diferença entre o primeiro e o segunto colocado.")
@@ -62,6 +71,25 @@ class Tentativa_de_resposta(models.Model):
     def __str__(self):
         nome_usuario = self.user.username if self.user else "anônimo"
         return f"Tentativa de {nome_usuario} em {self.criado_em.strftime('%Y-%m-%d %H:%M:%S')} - Nota: {self.score}"
+
+
+class QuestionarioLink(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    criado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="links_de_questionario",
+    )
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        return f"Questionário {self.token}"
 
 class Resposta(models.Model):
     tentativa = models.ForeignKey(Tentativa_de_resposta, on_delete=models.CASCADE, related_name="respostas")

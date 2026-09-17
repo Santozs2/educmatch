@@ -28,6 +28,7 @@
                             <a href="{% url 'lista_interesse' %}">Minha lista</a>
                             <a href="{% url 'minhas-tentativas' %}">Meus testes</a>
                             <a href="{% url 'aluno-perfil' %}">Meu perfil</a>
+                            {% if user.is_superuser %}<a href="{% url 'dashboard' %}">Dashboard</a>{% endif %}
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
                                 <button type="submit">Sair</button>

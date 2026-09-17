@@ -5,7 +5,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from urllib.parse import urlencode
-from quiz.models import  Questao, Resposta, Tentativa_de_resposta
+from quiz.models import Questao, QuestionarioLink, Resposta, Tentativa_de_resposta
 from catalogo.models import Curso
 from accounts.models import Interesse
 from quiz.engine import recomedacao
@@ -75,8 +75,15 @@ def pagina_quiz(request):
         return redirect(f"{reverse('quiz-inicio')}?{query}#questao-{proxima}")
     
     usuario = request.user if request.user.is_authenticated else None
+    questionario_link = QuestionarioLink.objects.filter(
+        token=request.session.get("questionario_link_token"), ativo=True
+    ).first()
     with transaction.atomic():
-        tentativa = Tentativa_de_resposta.objects.create(respondido_por=respondido_por, user=usuario)
+        tentativa = Tentativa_de_resposta.objects.create(
+            respondido_por=respondido_por,
+            user=usuario,
+            questionario_link=questionario_link,
+        )
         Resposta.objects.bulk_create(
             [
                 Resposta(tentativa=tentativa, questao=questao, alternativa=escolha)
@@ -91,6 +98,14 @@ def pagina_quiz(request):
     request.session.modified = True
     
     return redirect("quiz-resultado", pk=tentativa.pk)
+
+
+def acessar_questionario(request, token):
+    link = get_object_or_404(QuestionarioLink, token=token, ativo=True)
+    request.session["questionario_link_token"] = str(link.token)
+    request.session.pop("quiz_respostas", None)
+    request.session.pop("quiz_respondido_por", None)
+    return redirect("quiz-inicio")
 
 def resultado_pagina(request,pk):
     tentativa = get_object_or_404(Tentativa_de_resposta, pk=pk)

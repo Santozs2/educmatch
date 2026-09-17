@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard">
+    <div class="dashboard__cabecalho">
+        <div>
+            <p>Visao agregada</p>
+            <h1>Dashboard</h1>
+            <p>Interesses e respostas do questionario, sem identificar estudantes.</p>
+        </div>
+        <div class="dashboard__acoes">
+            {% if questionario_url %}<a class="botao botao--ghost" href="{{ questionario_url }}">Ver link ativo</a>{% endif %}
+            <form method="post" action="{% url 'gerar-questionario-link' %}">
+                {% csrf_token %}
+                <button class="botao" type="submit">Gerar link da pesquisa</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="dashboard__metricas">
+        <article><span>Manifestacoes de interesse</span><strong>{{ total_manifestacoes }}</strong><small>em todos os cursos</small></article>
+        <article><span>Respostas da pesquisa</span><strong>{{ total_respostas }}</strong><small>anonimas</small></article>
+        <article><span>Cursos com interesse</span><strong>{{ cursos_com_interesse }}</strong><small>com ao menos uma manifestacao</small></article>
+    </div>
+
+    <div class="dashboard__bloco">
+        <h2>Manifestacoes de interesse por curso</h2>
+        <div class="dashboard__tabela">
+            {% for curso in cursos %}
+            <div class="dashboard__linha"><span>{{ forloop.counter }}</span><strong>{{ curso.nome_curso }}</strong><span>{{ curso.area_principal.nome }}</span><b>{{ curso.total_interesses }}</b></div>
+            {% empty %}<p>Nenhum curso cadastrado.</p>{% endfor %}
+        </div>
+    </div>
+
+    <div class="dashboard__bloco">
+        <h2>Resultados da pesquisa</h2>
+        {% for pergunta in perguntas %}
+        <div class="dashboard__pergunta">
+            <h3>{{ forloop.counter }}. {{ pergunta.texto }}</h3>
+            {% for alternativa in pergunta.resultados %}
+            <div class="dashboard__resultado"><span>{{ alternativa.texto }}</span><b>{{ alternativa.total_respostas }}</b></div>
+            {% endfor %}
+        </div>
+        {% empty %}<p>Nenhuma pergunta ativa.</p>{% endfor %}
+    </div>
+</section>
+{% endblock %}
