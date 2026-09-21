@@ -34,7 +34,7 @@ export interface AreaExplicada {
 export interface Recomendacao {
   rank: number
   score: number
-  match: number // 0–100, já arredondado pelo servidor
+  match: number
   curso: Curso
   explicacao: { top_areas: AreaExplicada[] }
 }
@@ -43,6 +43,7 @@ export interface Tentativa {
   tentativa_id: number
   confidence_band: 'alta' | 'media' | 'baixa'
   diferenca: number
+  respondido_por?: string
   recomendacoes: Recomendacao[]
 }
 
@@ -58,4 +59,14 @@ export interface Interesse {
   curso: Curso
   status: 'interessado' | 'contatado' | 'descartado'
   criado_em: string
+}
+export interface RespostaEnviada {
+  questao: number
+  alternativa: number
+}
+
+export interface EnvioQuiz {
+  respondido_por: string
+  questionario_link: string | null
+  respostas: RespostaEnviada[]
 }
