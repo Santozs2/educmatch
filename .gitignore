@@ -58,3 +58,6 @@ htmlcov/
 # Misc
 *.manifest
 *.spec
+
+# Configuração local do Claude Code (contém token): nunca versionar
+.claude/settings.local.json
