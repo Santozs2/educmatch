@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Entrar{% endblock %}
+
+{% block content %}
+<section>
+    <p>Bem-vindo de volta</p>
+    <h1>Entrar</h1>
+    <p>Acesse sua conta para ver os cursos que voce salvou.</p>
+
+    {% if form.non_field_errors %}
+    <div>
+        {% for erro in form.non_field_errors %}<p>{{ erro }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        <label for="{{ form.username.id_for_label }}">
+            <span>{{ form.username.label }}</span>
+            {{ form.username }}
+            {% for erro in form.username.errors %}<p>{{ erro }}</p>{% endfor %}
+        </label>
+
+        <label for="{{ form.password.id_for_label }}">
+            <span>Senha</span>
+            {{ form.password }}
+            {% for erro in form.password.errors %}<p>{{ erro }}</p>{% endfor %}
+        </label>
+
+        <div>
+            <a href="{% url 'cadastro_usuario' %}{% if next %}?next={{ next }}{% endif %}">Criar conta</a>
+            <button type="submit">
+                Entrar <span aria-hidden="true">&rarr;</span>
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}
