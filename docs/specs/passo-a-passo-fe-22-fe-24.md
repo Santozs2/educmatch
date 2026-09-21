@@ -362,7 +362,7 @@ if not DEBUG:
 ```
 
 > [!warning] Confira a versão do `whitenoise` antes de fixar
-> `6.9.0` é a referência desta nota; rode `pip index versions whitenoise` e fixe a mais recente compatível com o Django 6.1. O `STORAGES` substituiu o antigo `STATICFILES_STORAGE` no Django 4.2 — não use o nome velho.
+> `6.9.0` é a referência desta nota; rode `pip index versions whitenoise` e fixe a mais recente compatível com o Django 5.2. O `STORAGES` substituiu o antigo `STATICFILES_STORAGE` no Django 4.2 — não use o nome velho.
 
 ### Backend — `core/urls.py`
 

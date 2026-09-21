@@ -52,7 +52,7 @@ pnpm build        # gera frontend/dist/
 
 ## Tecnologias
 
-- **Backend:** Python, Django 6.1, Django REST Framework, MySQL
+- **Backend:** Python, Django 5.2 LTS, Django REST Framework, MySQL
 - **Frontend:** React 19, Vite, TypeScript, Tailwind CSS 4, React Router, TanStack Query, Recharts
 - **Gerenciadores:** pip e pnpm (use só o pnpm no front: o lockfile é `pnpm-lock.yaml`)
 

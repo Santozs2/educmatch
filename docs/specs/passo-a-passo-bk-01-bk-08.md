@@ -16,7 +16,7 @@ criado: 2026-09-21
 > Escrito contra o repositório em `~/Documents/vscode/educmatch/backend` (então `EducMatch/`), lido em 2026-09-21 (último commit do backend `3a6773e`).
 
 > [!success] O que já foi verificado (2026-09-21)
-> O código desta nota foi aplicado numa **cópia** do repositório, com SQLite no lugar do MySQL e **Django 6.1.1 + DRF 3.18.1** (as versões do `requirements.txt`):
+> O código desta nota foi aplicado numa **cópia** do repositório, com SQLite no lugar do MySQL e **Django 6.1.1 e depois 5.2.17 + DRF 3.18.1** — os 20 testes passam nas duas:
 > - `manage.py check` sem erros; `makemigrations` gera o `RenameField` (não drop + add) e depois `--check` fica limpo;
 > - a migração `0002_explicacao_jsonfield` converteu uma linha no formato antigo (`str(dict)`, aspas simples) e uma linha vazia;
 > - os **20 testes** da seção 8 passam;
@@ -51,12 +51,13 @@ python -c "import django, rest_framework; print(django.__version__, rest_framewo
 ```
 
 > [!danger] O venv está com o Django errado — resolva isto primeiro
-> Em 2026-09-21 o `.venv` tinha **Django 4.2.30**, enquanto o `requirements.txt` fixa **6.1.1**. Duas quebras concretas, as duas reproduzidas:
+> Em 2026-09-21 o `.venv` tinha **Django 4.2.30**, enquanto o `requirements.txt` fixava **6.1.1** — e as duas pontas estavam erradas. Três quebras concretas, todas reproduzidas:
 > 1. **DRF 3.18.1 exige Django ≥ 5.0**: qualquer `ModelSerializer` sobre `Interesse` estoura com `AttributeError: 'UniqueConstraint' object has no attribute 'nulls_distinct'` (o `nulls_distinct` nasceu no Django 5.0). É o `POST /interesses/` da BK-07.
 > 2. **Django 4.2 não suporta Python 3.14** (o Python do venv): o test client quebra ao renderizar qualquer template com `AttributeError: 'super' object has no attribute 'dicts'` — inclusive a página de erro. É por isso que parte da suíte "já estava quebrada".
+> 3. **Django 6.x exige MySQL 8.4+**, e o MySQL local é **8.0.46**: com 6.1.1, o `manage.py check` já para em `NotSupportedError: MySQL 8.4 or later is required`. Por isso o `requirements.txt` fixa **Django 5.2.17** — LTS, suporta MySQL 8.0 e Python 3.14, e é ≥ 5.0 como o DRF 3.18 pede. Se o MySQL for atualizado para 8.4, dá para subir para o 6.x depois.
 >
 > ```bash
-> pip install -r requirements.txt     # sobe para Django 6.1.1
+> pip install -r requirements.txt     # Django 5.2.17 LTS
 > python manage.py migrate            # confira que nada estranho aparece
 > ```
 
@@ -1106,7 +1107,7 @@ DB_PORT=3306
 
 ```text
 asgiref==3.12.1
-Django==6.1.1
+Django==5.2.17
 djangorestframework==3.18.1
 mysqlclient==2.2.8
 sqlparse==0.6.0
