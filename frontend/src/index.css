@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Space Grotesk', sans-serif;
+
+  /* Vermelho como cor secundária / destaque e interações (botões) */
+  --color-red-600: #D9251C; /* Vermelho vibrante */
+  --color-red-700: #B01E16; /* Vermelho escuro para hover */
+  --color-red-900: #6B1210; /* Vermelho profundo para textos */
+  --color-red-500: #E8413A; /* Vermelho claro */
+  --color-red-300: #F0908C; /* Vermelho médio para bordas */
+  --color-red-100: #FDECEA; /* Fundo suave vermelho */
+  --color-red-50: #FEF5F4; /* Fundo suavíssimo vermelho */
+  
+  /* Preto e Branco Predominantes */
+  --color-ink-900: #09090B; /* Preto (Textos principais, Header, alto contraste) */
+  --color-ink-600: #52525B; /* Cinza escuro (Textos secundários) */
+  --color-ink-500: #71717A; /* Cinza médio-escuro */
+  --color-ink-400: #A1A1AA; /* Cinza médio */
+  --color-ink-300: #A1A1AA; /* Cinza médio (Desabilitados, ícones neutros) */
+  --color-ink-100: #F4F4F5; /* Cinza muito claro */
+  --color-ink-50:  #FAFAFA; /* Cinza quase branco */
+  --color-line-200: #E4E4E7; /* Cinza claro (Bordas sutis) */
+
+  --color-bg-50: #F9FAFB; /* Fundo da tela em um branco/gelo levíssimo para dar profundidade aos cartões */
+  --color-white: #FFFFFF; /* Branco puro (Superfície dos cartões e áreas de foco) */
+  
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+  --color-focus: #D9251C;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-50 text-ink-900 font-sans antialiased;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  
+  *:focus-visible {
+    @apply outline-none ring-3 ring-focus ring-offset-2;
+  }
+}
