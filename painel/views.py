@@ -27,6 +27,10 @@ def dashboard(request):
             "top_primeiro": privacidade.suprimir_pequenos(
                 metricas.top_cursos_em_primeiro(inicio)
             ),
+            "top_manifestacoes": privacidade.suprimir_pequenos(
+                metricas.top_cursos_com_manifestacoes(inicio)
+            ),
+            "cursos_ativos": metricas.cursos_ativos(),
             "top_cinco": privacidade.suprimir_pequenos(
                 metricas.top_cursos_no_top5(inicio)
             ),

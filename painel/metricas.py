@@ -26,6 +26,18 @@ def total_de_tentativas(inicio):
     return Tentativa_de_resposta.objects.filter(_no_periodo(inicio)).count()
 
 
+def top_cursos_com_manifestacoes(inicio, limite=3):
+    """Top N cursos com mais manifestações (recomendações rank=1 no período)."""
+    return list(
+        Recomendacao.objects
+        .filter(rank=1)
+        .filter(_no_periodo(inicio, "tentativa__criado_em"))
+        .values("curso_id", "curso__nome_curso")
+        .annotate(total=Count("tentativa_id", distinct=True))
+        .order_by("-total", "curso__nome_curso")[:limite]
+    )
+
+
 def top_cursos_em_primeiro(inicio, limite=10):
     return list(
         Recomendacao.objects
@@ -131,6 +143,10 @@ def distribuicao_de_confianca(inicio):
         .annotate(total=Count("id"))
         .order_by("confidence_level")
     )
+
+
+def cursos_ativos():
+    return Curso.objects.filter(is_active=True).count()
 
 
 def cobertura_de_areas():

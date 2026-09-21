@@ -64,7 +64,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'educmatch',
-        'USER': 'tecmysql',
+        'USER': 'root',
         'PASSWORD': 'devmysql',
         'HOST': 'localhost',
         'PORT': '3306',
