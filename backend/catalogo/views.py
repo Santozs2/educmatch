@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from accounts.models import Interesse
-from accounts.models import Curso
+from catalogo.models import Curso
 
 def curso_detalhe(request, pk):
     curso = get_object_or_404(

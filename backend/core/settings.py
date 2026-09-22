@@ -1,14 +1,32 @@
-
+import os
 from pathlib import Path
-import os 
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-*z=y+!0ola&w4mrc!3xrfzm_0j*d!qc4+%!z-^2hew^u6iuk_6'
 
-DEBUG = True
+def _load_env_file():
+    env_file = BASE_DIR / ".env"
+    if not env_file.exists():
+        return
 
-ALLOWED_HOSTS = []
+    for raw_line in env_file.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = [part.strip() for part in line.split("=", 1)]
+        if value and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+
+        os.environ.setdefault(key, value)
+
+
+_load_env_file()
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-inseguro-troque-em-producao")
+DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
+ALLOWED_HOSTS = [h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
 
 
 INSTALLED_APPS = [
@@ -62,13 +80,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'educmatch',
-        'USER': 'tecmysql',
-        'PASSWORD': 'devmysql',
-        'HOST': 'localhost',
-        'PORT': '3306',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ.get("DB_NAME", "educmatch"),
+        "USER": os.environ.get("DB_USER", "tecmysql"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "devmysql"),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "3306"),
     }
 }
 
@@ -97,14 +115,10 @@ USE_I18N = True
 USE_TZ = True
 
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'    
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 QUIZ_RECOMENDACAO_LIMIT = 5

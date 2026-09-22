@@ -1,0 +1,53 @@
+name: testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  django:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: raiz
+          MYSQL_DATABASE: educmatch
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -praiz"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      DJANGO_SECRET_KEY: so-para-a-ci
+      DB_NAME: educmatch
+      DB_USER: root
+      DB_PASSWORD: raiz
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dependências do sistema para o mysqlclient
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libmysqlclient-dev
+
+      - name: Tabelas de fuso no MySQL do job
+        run: mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -h 127.0.0.1 -uroot -praiz mysql
+
+      - run: pip install -r requirements.txt
+
+      - name: Nenhuma migração esquecida
+        run: python manage.py makemigrations --check --dry-run
+
+      - run: python manage.py test -v 2
