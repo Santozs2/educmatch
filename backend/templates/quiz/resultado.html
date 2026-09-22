@@ -39,7 +39,9 @@
             </div>
         </div>
 
-        <h2>{{ destaque.curso.nome_curso }}</h2>
+        <h2>
+            <a href="{% url 'curso-detalhe' destaque.curso.id %}?tentativa={{ tentativa.pk }}">{{ destaque.curso.nome_curso }}</a>
+        </h2>
         <p>{{ destaque.curso.descricao }}</p>
 
         <ul>
@@ -78,7 +80,9 @@
         <article>
             <div>
                 <span>{{ item.rank }}</span>
-                <h3>{{ item.curso.nome_curso }}</h3>
+                <h3>
+                    <a href="{% url 'curso-detalhe' item.curso.id %}?tentativa={{ tentativa.pk }}">{{ item.curso.nome_curso }}</a>
+                </h3>
                 <span>{{ item.match }}%</span>
             </div>
             <div>

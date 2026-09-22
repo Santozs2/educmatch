@@ -6,6 +6,9 @@
     <title>{% block title %}Descubra seu curso ideal{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    {% block estilos %}{% endblock %}
+</head>
 </head>
 <body>
     <header class="topo">
@@ -28,7 +31,7 @@
                             <a href="{% url 'lista_interesse' %}">Minha lista</a>
                             <a href="{% url 'minhas-tentativas' %}">Meus testes</a>
                             <a href="{% url 'aluno-perfil' %}">Meu perfil</a>
-                            {% if user.is_superuser %}<a href="{% url 'dashboard' %}">Dashboard</a>{% endif %}
+                            {% if user.is_superuser %}<a href="{% url 'dashboard' %}">Painel</a>{% endif %}
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
                                 <button type="submit">Sair</button>

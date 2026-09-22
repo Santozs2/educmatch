@@ -127,31 +127,27 @@ def salvar_interesse(request):
 
 @login_required
 def minhas_tentativas(request):
-    tentativas = Tentativa_de_resposta.objects.filter(user=request.user)
+    tentativas = Tentativa_de_resposta.objects.filter(user=request.user).prefetch_related(
+        "recomendacoes__curso"
+    )
     return render(request, "accounts/tentativas.html", {"tentativas": tentativas})
 
 @login_required
 def aluno_perfil(request):
-    tentativas = Tentativa_de_resposta.objects.filter(user=request.user).prefetch_related("recomendacoes__curso")
-    interesses = Interesse.objects.filter(usuario=request.user).select_related("curso")
+    tentativas = Tentativa_de_resposta.objects.filter(user=request.user).prefetch_related(
+        "recomendacoes__curso"
+    )
     historico = []
     for tentativa in tentativas:
-        destaque = tentativa.recomendacoes.first()
+        destaque = next(iter(tentativa.recomendacoes.all()), None)
         historico.append({
+            "tentativa_id": tentativa.pk,
             "curso": destaque.curso if destaque else None,
-            "match": round(destaque.score * 100) if destaque else 0,
+            "match": round(destaque.score * 100) if destaque else None,
             "data": tentativa.criado_em,
         })
-
     return render(request, "quiz/aluno_perfil.html", {
-        "aluno": request.user,
-        "curso_atual": interesses.first().curso if interesses.exists() else None,
-        "progresso": {"percentual": 0},
-        "estatisticas": {
-            "aulas_concluidas": 0,
-            "horas_estudadas": 0,
-            "exercicios_feitos": 0,
-            "sequencia_dias": 0,
-        },
+        "total_de_testes": len(historico),
+        "total_na_lista": Interesse.objects.filter(usuario=request.user).count(),
         "historico": historico,
     })
