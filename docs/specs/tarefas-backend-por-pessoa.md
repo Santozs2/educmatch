@@ -56,7 +56,17 @@ criado: 2026-09-22
 
 ## Ninguém fica parado: as rodadas
 
-Ordem de **merge** não é ordem de **trabalho**. Cada um cria a sua branch e começa no mesmo dia. Só existe **uma** dependência real: o PR-5 (métricas de demanda e aderência) usa os dados novos do PR-2.
+Ordem de **merge** não é ordem de **trabalho**. Cada um cria a sua branch e começa no mesmo dia. As esperas reais, confirmadas aplicando as quatro specs juntas numa cópia do projeto em 2026-09-22:
+
+| Quem espera | Espera o quê | Por quê | Enquanto isso |
+|---|---|---|---|
+| **B, C e D** | **PR-1 (A)** | Sem o `ALLOWED_HOSTS`, todo teste que abre página dá 400 | A faz o PR-1 **no primeiro dia**; os outros escrevem código e, quando ele entrar, `git pull --rebase origin main` |
+| **C** (só o PR-5) | **PR-2 (B)** | Demanda, aderência e "pelo link" leem os campos novos | C faz o PR-4 inteiro |
+| **C** (CSS do painel) | **D-0** | O painel carrega o CSS pelo `{% block estilos %}` do `base.html` | D faz na primeira hora: são 2 linhas |
+| **D** (3 funções) | **PR-2 (B)** | B mexe em `salvar_interesse`, `_salvar_interesse_pendente` e `areas_da_recomendacao` | D faz detalhe do curso, perfil, histórico e CSS |
+
+> [!note] Um conflito previsível
+> C e D acrescentam, cada uma, uma linha em `core/urls.py` (`painel/` e `cursos/`). Quem mesclar por segundo vê um conflito de uma linha: fique com as duas.
 
 | Rodada | A · Infra | B · Dados e motor | C · Painel | D · Telas |
 |---|---|---|---|---|
