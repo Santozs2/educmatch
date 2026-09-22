@@ -1,10 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from accounts.models import Interesse
-from accounts.models import Curso
+from catalogo.models import Curso
 
 def curso_detalhe(request, pk):
     curso = get_object_or_404(
-        Curso.objects.select_related("area_principal"), pk=pk, is_activate=True
+        Curso.objects.select_related("area_principal"), pk=pk, is_active=True
     )
     tentativa_id = request.GET.get("tentativa", "")
     if not tentativa_id.isdigit():

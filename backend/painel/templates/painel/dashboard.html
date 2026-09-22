@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Painel da coordenação{% endblock %}
+
+{% block estilos %}<link rel="stylesheet" href="{% static 'css/painel.css' %}">{% endblock %}
+
+{% block content %}
+<section class="painel">
+    <header class="painel__topo">
+        <div>
+            <p>Painel da coordenação</p>
+            <h1>O que o catálogo e a demanda estão dizendo</h1>
+        </div>
+        <nav class="painel__periodos" aria-label="Período">
+            {% for chave, dias in periodos.items %}
+            <a href="?periodo={{ chave }}" {% if periodo == chave %}aria-current="page"{% endif %}>{{ dias }} dias</a>
+            {% endfor %}
+            <a href="?periodo=tudo" {% if periodo == "tudo" %}aria-current="page"{% endif %}>Tudo</a>
+        </nav>
+    </header>
+
+    <div class="painel__numeros">
+        <article class="painel__numero">
+            <h2>Testes respondidos</h2>
+            <p>{{ total_de_tentativas }}</p>
+        </article>
+        {% if tem_massa %}
+        <article class="painel__numero">
+            <h2>Pelo link da escola</h2>
+            <p>{{ via_link }}</p>
+        </article>
+        <article class="painel__numero">
+            <h2>Cursos ativos</h2>
+            <p>{{ cursos_ativos }}</p>
+        </article>
+        {% endif %}
+    </div>
+
+    {% if not tem_massa %}
+    <p class="painel__aviso" role="status">
+        Menos de {{ k_minimo }} testes neste período. Para proteger quem respondeu,
+        só o total aparece. Escolha um período maior.
+    </p>
+    {% else %}
+
+    <div class="painel__grade">
+        {% include "painel/_ranking.html" with titulo="Cursos em 1º lugar" linhas=top_primeiro coluna="Testes" %}
+        {% include "painel/_ranking.html" with titulo="Cursos que aparecem no top 5" linhas=top_cinco coluna="Testes" %}
+        {% include "painel/_ranking.html" with titulo="Cursos mais salvos na lista" linhas=top_manifestacoes coluna="Alunos" %}
+
+        <article class="painel__cartao">
+            <h2>Área que mais pesou no 1º lugar</h2>
+            <table>
+                <caption class="visualmente-oculto">Demanda por área</caption>
+                <thead><tr><th scope="col">Área</th><th scope="col">Testes</th></tr></thead>
+                <tbody>
+                    {% for linha in demanda_por_area %}
+                    <tr>
+                        <td>{{ linha.nome }}</td>
+                        <td>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="2">Nenhum dado no período.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </article>
+
+        <article class="painel__cartao">
+            <h2>Confiança do resultado</h2>
+            <table>
+                <caption class="visualmente-oculto">Distribuição da confiança</caption>
+                <thead><tr><th scope="col">Confiança</th><th scope="col">Testes</th></tr></thead>
+                <tbody>
+                    {% for linha in confianca %}
+                    <tr>
+                        <td>{{ linha.confidence_band|default:"sem cálculo"|capfirst }}</td>
+                        <td>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </article>
+
+        <article class="painel__cartao">
+            <h2>Quem salva, salva o 1º lugar?</h2>
+            {% if aderencia.com_snapshot %}
+            <p class="painel__destaque">{% widthratio aderencia.era_principal aderencia.com_snapshot 100 %}%</p>
+            <p>dos cursos salvos eram o 1º lugar do aluno.</p>
+            {% else %}
+            <p>Ninguém salvou curso no período.</p>
+            {% endif %}
+        </article>
+    </div>
+
+    <article class="painel__cartao painel__cartao--largo">
+        <h2>Conversão: recomendado → salvo</h2>
+        <table>
+            <caption class="visualmente-oculto">Conversão por curso</caption>
+            <thead>
+                <tr><th scope="col">Curso</th><th scope="col">Recomendado</th><th scope="col">Salvo</th><th scope="col">Taxa</th></tr>
+            </thead>
+            <tbody>
+                {% for linha in conversao %}
+                <tr>
+                    <td>{{ linha.nome_curso }}</td>
+                    <td>{{ linha.recomendado }}</td>
+                    <td>{% include "painel/_celula.html" with valor=linha.interessados suprimido=linha.suprimido %}</td>
+                    <td>{% if linha.taxa is None %}{% include "painel/_celula.html" with suprimido=True %}{% else %}{{ linha.taxa|floatformat:0 }}%{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </article>
+
+    <div class="painel__grade">
+        <article class="painel__cartao">
+            <h2>Cursos nunca recomendados</h2>
+            <ul>
+                {% for curso in orfaos %}<li>{{ curso.nome_curso }}</li>{% empty %}<li>Todos os cursos já apareceram.</li>{% endfor %}
+            </ul>
+        </article>
+
+        <article class="painel__cartao">
+            <h2>Áreas que o quiz mede</h2>
+            <table>
+                <caption class="visualmente-oculto">Cobertura das áreas pelo quiz</caption>
+                <thead><tr><th scope="col">Área</th><th scope="col">Alternativas</th></tr></thead>
+                <tbody>
+                    {% for area in cobertura %}
+                    <tr {% if not area.alternativas %}class="painel__alerta"{% endif %}>
+                        <td>{{ area.nome }}</td>
+                        <td>{{ area.alternativas }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </article>
+    </div>
+    {% endif %}
+
+    <article class="painel__cartao painel__cartao--largo">
+        <h2>Links de questionário</h2>
+        <form method="post" action="{% url 'painel-gerar-link' %}">
+            {% csrf_token %}
+            <button class="botao" type="submit">Gerar novo link</button>
+        </form>
+        <ul class="painel__links">
+            {% for link in links %}
+            <li>
+                <input type="text" value="{{ link.url }}" readonly aria-label="Link criado em {{ link.criado_em|date:'d/m/Y H:i' }}">
+                <button type="button" class="botao botao--ghost" data-copiar>Copiar</button>
+            </li>
+            {% empty %}
+            <li>Nenhum link ativo.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <p class="painel__rodape">
+        Nenhum nome, e-mail ou resposta individual aparece aqui. Números abaixo de
+        {{ k_minimo }} aparecem como <abbr title="menos de {{ k_minimo }} respondentes">—</abbr>.
+        Para um caso individual, use o <a href="{% url 'admin:index' %}">/admin</a>.
+    </p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Copiar o link: melhora opcional. Sem JS, o campo continua selecionável.
+    document.querySelectorAll("[data-copiar]").forEach(function (botao) {
+        botao.addEventListener("click", function () {
+            var campo = botao.previousElementSibling;
+            navigator.clipboard.writeText(campo.value).then(function () {
+                botao.textContent = "Copiado";
+            });
+        });
+    });
+</script>
+{% endblock %}
