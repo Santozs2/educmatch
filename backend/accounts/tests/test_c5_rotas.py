@@ -20,6 +20,7 @@ class C5AutorizacaoTest(TestCase):
     ]
 
     def setUp(self):
+        super().setUp()
         self.dono = criar_usuario("dono@exemplo.com")
         self.outro = criar_usuario("outro@exemplo.com")
 
@@ -46,11 +47,12 @@ class C5AutorizacaoTest(TestCase):
         resposta = self.client.get(reverse("quiz-resultado", kwargs={"pk": tentativa.pk}))
 
         self.assertEqual(resposta.status_code, 200)
-
+        
+        
     def test_toda_rota_de_escrita_recusa_GET(self):
-        """Salvar interesse e sair sao POST. Link que faz GET e 405, nao acao."""
-        self.client.force_login(self.dono)
-        for nome in ("interesse-salvar", "sair"):
-            with self.subTest(rota=nome):
-                resposta = self.client.get(reverse(nome))
-                self.assertIn(resposta.status_code, (405, 302)) 
+            """Salvar interesse e sair sao POST. Link que faz GET e 405, nao acao."""
+            self.client.force_login(self.dono)
+            for nome in ("interesse-salvar", "logout"):
+                with self.subTest(rota=nome):
+                    resposta = self.client.get(reverse(nome))
+                    self.assertEqual(resposta.status_code, 405)

@@ -8,7 +8,9 @@
     const barraWrapper = form.querySelector("[data-barra-wrapper]");
     const barra = form.querySelector("[data-barra]");
     const contador = form.querySelector("[data-contador]");
-    const totalPerguntas = passos.length - 1;
+    // Transforma o formulario (que funciona sem JS) num wizard de uma pergunta por vez.
+    const totalPerguntas = passos.length - 1; // o primeiro passo e a apresentacao
+    // Se o servidor devolveu erro, comeca na primeira pergunta sem resposta.
 
     form.classList.add("quiz--wizard");
     if (barraWrapper) barraWrapper.hidden = false;
@@ -57,7 +59,9 @@
             const aviso = passo.querySelector("[data-aviso]");
             if (aviso) aviso.hidden = false;
             passo.classList.remove("treme");
-            void passo.offsetWidth;
+            void passo.offsetWidth; // reinicia a animacao
+            // Marcou a resposta: segue sozinho, com uma pausa para o clique ser visto.
+            // Enter avanca em vez de enviar o formulario pela metade.
             passo.classList.add("treme");
             return;
         }

@@ -13,15 +13,7 @@ class C6ClaimTest(BaseEducMatch):
         tentativa = Tentativa_de_resposta.objects.latest("id")
         self.assertIsNone(tentativa.user)
 
-        self.client.post(
-            reverse("criar-conta"),
-            {
-                "first_name": "Ana",
-                "email": "ana@exemplo.com",
-                "password1": "afinidade-2026",
-                "password2": "afinidade-2026",
-            },
-        )
+        self.client.post(reverse("cadastro_usuario"), self.dados_de_cadastro())
 
         tentativa.refresh_from_db()
         self.assertIsNotNone(tentativa.user)
@@ -30,7 +22,7 @@ class C6ClaimTest(BaseEducMatch):
     def test_historico_mostra_a_tentativa_adotada(self):
         """A consequencia verificavel que hoje devolve vazio."""
         self.responder_tudo()
-        self.client.post(reverse("criar-conta"), self.dados_de_cadastro())
+        self.client.post(reverse("cadastro_usuario"), self.dados_de_cadastro())
 
         resposta = self.client.get(reverse("minhas-tentativas"))
 
@@ -42,7 +34,7 @@ class C6ClaimTest(BaseEducMatch):
         outro_navegador.post("/", self.payload_do_quiz())
         alheia = Tentativa_de_resposta.objects.latest("id")
 
-        self.client.post(reverse("criar-conta"), self.dados_de_cadastro())
+        self.client.post(reverse("cadastro_usuario"), self.dados_de_cadastro())
 
         alheia.refresh_from_db()
         self.assertIsNone(alheia.user)
@@ -55,7 +47,7 @@ class C6ClaimTest(BaseEducMatch):
         sessao["minhas_tentativas"] = [tentativa.pk]
         sessao.save()
 
-        self.client.post(reverse("criar-conta"), self.dados_de_cadastro())
+        self.client.post(reverse("cadastro_usuario"), self.dados_de_cadastro())
 
         tentativa.refresh_from_db()
         self.assertEqual(tentativa.user, primeiro)
