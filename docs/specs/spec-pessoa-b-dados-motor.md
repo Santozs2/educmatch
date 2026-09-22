@@ -514,7 +514,13 @@ A função se chama `recomedacao`, com o erro de grafia. Não renomeie: outros a
 
 ### Meça antes de mudar
 
-Salve como `medir.py` **fora** do repositório (não versione):
+Salve como `medir.py` na pasta **acima** do repositório, a que contém a pasta `educmatch`. Assim o Git nunca vê o arquivo:
+
+```
+pasta-de-cima/        ← medir.py fica aqui
+└── educmatch/        ← o repositório (tem o .git)
+    └── backend/      ← daqui você roda o comando
+```
 
 ```python
 from django.db import connection
@@ -532,8 +538,11 @@ t.delete()
 ```
 
 ```bash
-python manage.py shell -c "exec(open('../medir.py', encoding='utf-8').read())"
+python manage.py shell -c "exec(open('../../medir.py', encoding='utf-8').read())"
 ```
+
+> [!warning] `../../`, e não `../`
+> De dentro de `backend/`, `../` é a raiz do repositório: um `medir.py` salvo ali aparece no `git status` e acaba entrando num commit.
 
 Medido em 2026-09-22: **`CONSULTAS: 120`**. É o número "antes" da monografia.
 

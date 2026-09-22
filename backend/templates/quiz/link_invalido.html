@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Link encerrado{% endblock %}
+
+{% block content %}
+<section>
+    <p>Link de questionário</p>
+    <h1>Este link não existe ou foi encerrado</h1>
+    <p>
+        Confira com a sua escola se o endereço está certo. Você também pode fazer
+        o teste por conta própria: o resultado é o mesmo, só não fica ligado à turma.
+    </p>
+    <a class="botao" href="{% url 'quiz-inicio' %}">Fazer o teste mesmo assim</a>
+</section>
+{% endblock %}

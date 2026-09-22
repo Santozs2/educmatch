@@ -716,3 +716,40 @@ input[type="text"] {
 .botao_refazer--ghost:hover {
   background: var(--branco);
 }
+
+/* ---------- Acessibilidade ---------- */
+
+/* Foco sempre visível para quem navega pelo teclado. Nunca "outline: none" sozinho. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+.quiz-passo label:focus-within {
+  outline: 3px solid var(--vermelho-escuro);
+  outline-offset: 3px;
+}
+
+/* Alvos de toque de pelo menos 48px: o público responde pelo celular */
+.botao,
+button,
+.quiz-passo label {
+  min-height: 48px;
+}
+
+/* Quem pediu menos movimento no sistema não vê animação */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.faixa-link {
+  background: var(--gelo);
+  border-left: 4px solid var(--vermelho);
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+}

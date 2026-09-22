@@ -57,6 +57,7 @@ def pagina_quiz(request):
                 "questoes": questoes,
                 "respondido_por": respondido_por or request.session.get("quiz_respondido_por", ""),
                 "quiz_iniciado": bool(respondido_por or etapa),
+                "via_link": bool(request.session.get("questionario_link_token")),
             },
         )
     
@@ -113,8 +114,11 @@ def pagina_quiz(request):
     return redirect("quiz-resultado", pk=tentativa.pk)
 
 
+
 def acessar_questionario(request, token):
-    link = get_object_or_404(QuestionarioLink, token=token, ativo=True)
+    link = QuestionarioLink.objects.filter(token=token, ativo=True).first()
+    if link is None:
+        return render(request, "quiz/link_invalido.html", status=404)
     request.session["questionario_link_token"] = str(link.token)
     request.session.pop("quiz_respostas", None)
     request.session.pop("quiz_respondido_por", None)
