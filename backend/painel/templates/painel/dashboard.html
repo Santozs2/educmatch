@@ -150,7 +150,7 @@
             {% for link in links %}
             <li>
                 <input type="text" value="{{ link.url }}" readonly aria-label="Link criado em {{ link.criado_em|date:'d/m/Y H:i' }}">
-                <button type="button" class="botao botao--ghost" data-copiar>Copiar</button>
+                <button type="button" class="botao botao--texto" data-copiar>Copiar</button>
             </li>
             {% empty %}
             <li>Nenhum link ativo.</li>

@@ -2,6 +2,7 @@
 
 .painel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr); /* sem isto, texto com nowrap alarga a página */
   gap: 1.5rem;
 }
 
@@ -17,6 +18,7 @@
 
 .painel__periodos {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -67,9 +69,11 @@
   margin: 0;
 }
 
-.painel__cartao--largo {
-  grid-column: 1 / -1;
+.painel__cartao {
+  min-width: 0;
+  overflow-x: auto;
 }
+
 
 .painel table {
   width: 100%;
@@ -110,8 +114,8 @@
 }
 
 .painel__aviso {
-  background: #fff8e1;
-  border-left: 4px solid #b26a00;
+  background: var(--marca-clarinho);
+  border-left: 4px solid var(--alerta);
   padding: 1rem;
   border-radius: 8px;
 }
