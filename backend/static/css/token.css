@@ -1,0 +1,53 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+:root {
+    --marca: #d9251c;
+    --marca-hover: #d84942;
+    --tinta: #2d2d2d;
+    --gelo: #ede8e4;
+    --branco: #fffefe;
+    --preto: #09090b;
+    --preto-2: #2d2d31;
+    --titulo: #6b1210;
+    --marca-escuro: #b01e16;
+    --marca-claro: #fdecea;
+    --marca-clarinho: #fef5f4;
+    --texto-2: #52525b;
+    --texto-3: #71717a;
+    --linha: #e4e4e7;
+    --fundo: #f9fafb;
+    --superficie: #ffffff;
+    --sucesso: #16a34a;
+    --alerta: #b45309;
+    --erro: #dc2626;
+    --foco: var(--marca);
+    --vermelho: var(--marca);
+    --vermelho-escuro: var(--marca-escuro);
+    --cinza: var(--texto-3);
+    --fonte: "Space Grotesk", system-ui, sans-serif;
+    --tamanho-base: 17px;
+    --h1: clamp(1.75rem, 4vw, 2.4rem);
+    --h2: clamp(1.25rem, 2.6vw, 1.55rem);
+    --pequeno: 0.85rem;
+    --raio: 12px;
+    --raio-botao: 8px;
+    --raio-pilula: 999px;
+    --sombra: 0 1px 2px rgba(9, 9, 11, 0.06), 0 8px 24px rgba(9, 9, 11, 0.06);
+    --alvo: 48px;
+    --largura: 600px;
+}
+
+:root.fonte-grande {
+        --tamanho-base: 20px;
+    }
+
+:root.alto-contraste {
+        --marca: #b3160f;
+        --marca-hover: #8f110b;
+        --tinta: #000000;
+        --titulo: #000000;
+        --texto-2: #1f1f23;
+        --texto-3: #2d2d2d;
+        --linha: #2d2d2d;
+        --fundo: #ffffff;
+    }

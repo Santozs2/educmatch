@@ -3,55 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Descubra seu curso ideal{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <title>{% block title %}Descubra seu curso ideal{% endblock %} · EducMatch</title>
+    <script>
+        try {
+            if (localStorage.getItem("fonte-grande") === "1") document.documentElement.classList.add("fonte-grande");
+            if (localStorage.getItem("alto-contraste") === "1") document.documentElement.classList.add("alto-contraste");
+        } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/componentes.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     {% block estilos %}{% endblock %}
 </head>
-</head>
 <body>
+    {% block topo %}
     <header class="topo">
         <div class="topo__inner">
-            <a class="marca" href="{% url 'quiz-inicio' %}">
-                <span>Quiz<strong>Pessoal</strong></span>
-            </a>
-            <span class="topo__tagline">Orientacao profissional</span>
+            <a class="marca" href="{% url 'quiz-inicio' %}">QuizPessoal</a>
+            <span class="topo__tagline">Orientação profissional</span>
 
-            <nav class="topo__nav" aria-label="Navegacao principal">
+            <nav class="topo__nav" aria-label="Navegação principal">
+                <button class="topo__icone" type="button" data-alternar="fonte-grande"
+                        aria-pressed="false" title="Aumentar a letra">
+                    <span aria-hidden="true">A<i class="fa-solid fa-magnifying-glass-plus"></i></span>
+                    <span class="visualmente-oculto">Aumentar a letra</span>
+                </button>
+                <button class="topo__icone" type="button" data-alternar="alto-contraste"
+                        aria-pressed="false" title="Alto contraste">
+                    <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+                    <span class="visualmente-oculto">Alto contraste</span>
+                </button>
+
                 {% if user.is_authenticated %}
-                    <details class="usuario-menu">
-                        <summary>
-                            <span class="usuario-menu__avatar" aria-hidden="true">
-                                <i style="color: white;" class="fa-solid fa-user"></i>
-                            </span>
-                            <span>Olá, {{ user.first_name|default:user.email }}</span>
-                        </summary>
-                        <div class="usuario-menu__dropdown">
-                            <a href="{% url 'lista_interesse' %}">Minha lista</a>
-                            <a href="{% url 'minhas-tentativas' %}">Meus testes</a>
-                            <a href="{% url 'aluno-perfil' %}">Meu perfil</a>
-                            {% if user.is_superuser %}<a href="{% url 'dashboard' %}">Painel</a>{% endif %}
-                            <form method="post" action="{% url 'logout' %}">
-                                {% csrf_token %}
-                                <button type="submit">Sair</button>
-                            </form>
-                        </div>
-                    </details>
+                <details class="usuario-menu">
+                    <summary>
+                        <i class="fa-solid fa-user" aria-hidden="true"></i>
+                        <span>Olá, {{ user.first_name|default:user.email }}</span>
+                    </summary>
+                    <div class="usuario-menu__dropdown">
+                        <a href="{% url 'lista_interesse' %}">Minha lista</a>
+                        <a href="{% url 'minhas-tentativas' %}">Meus testes</a>
+                        <a href="{% url 'aluno-perfil' %}">Meu perfil</a>
+                        {% if user.is_staff %}<a href="{% url 'painel-dashboard' %}">Painel</a>{% endif %}
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit">Sair</button>
+                        </form>
+                    </div>
+                </details>
                 {% else %}
-                    <a class="botao" href="{% url 'entrar' %}">Entrar</a>
+                <a class="botao botao--contorno" href="{% url 'entrar' %}">Entrar</a>
                 {% endif %}
             </nav>
         </div>
     </header>
+    {% endblock %}
 
-    <main class="conteudo">
+    <main class="conteudo" id="conteudo">
+        {% if messages %}
+        <ul class="mensagens" role="status">
+            {% for mensagem in messages %}
+            <li class="mensagem mensagem--{{ mensagem.tags }}">{{ mensagem }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
 
+    {% block rodape %}
     <footer class="rodape">
-        <p>Recomendacoes calculadas por similaridade de perfil.</p>
+        <p>Recomendações calculadas por similaridade de perfil · SENAI</p>
     </footer>
-    {% block scripts %} {% endblock %}
+    {% endblock %}
+
+    <script src="{% static 'js/acessibilidade.js' %}" defer></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
