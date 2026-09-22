@@ -1,78 +1,92 @@
 ---
-title: "Spec — Pessoa A · Infra (settings, fuso do MySQL e CI)"
-aliases: ["Spec pessoa A", "Spec infra", "PR-1 infra", "PR-6 CI"]
-tags: [tcc, backend, django, infra, mysql, ci, spec]
+title: "Spec — Pessoa A · Infra (PR-1 settings e fuso · PR-6 CI)"
+aliases: ["Spec pessoa A", "Spec infra", "PR-1 infra", "PR-6 CI", "Passo a passo da infra"]
+tags: [tcc, backend, django, infra, mysql, ci, spec, passo-a-passo]
 status: proposto
 projeto: TCC
 criado: 2026-09-22
 ---
 
-> [!info] Visão geral: [[Projetos/EducMatch(Secretária)/tarefas-backend-por-pessoa|👥 Tarefas por pessoa]] · Código de referência: [[Projetos/EducMatch(Secretária)/passo-a-passo-bk-01-bk-08|🔧 BK-01 a BK-08]] §7 · [[Projetos/EducMatch(Secretária)/passo-a-passo-inf-01-inf-05|🧱 INF-04]] · Colegas: [[Projetos/EducMatch(Secretária)/spec-pessoa-b-dados-motor|🧮 B]] · [[Projetos/EducMatch(Secretária)/spec-pessoa-c-painel|📊 C]] · [[Projetos/EducMatch(Secretária)/spec-pessoa-d-telas|🎨 D]]
+> [!info] Mapa: [[Projetos/EducMatch(Secretária)/tarefas-backend-por-pessoa|👥 Tarefas por pessoa]] · Origem: [[Projetos/EducMatch(Secretária)/passo-a-passo-bk-01-bk-08|🔧 BK-08]] · [[Projetos/EducMatch(Secretária)/passo-a-passo-inf-01-inf-05|🧱 INF-04]] · [[Projetos/EducMatch(Secretária)/passo-a-passo-tst-01-tst-05|🧪 TST-05]] · Colegas: [[Projetos/EducMatch(Secretária)/spec-pessoa-b-dados-motor|🧮 B]] · [[Projetos/EducMatch(Secretária)/spec-pessoa-c-painel|📊 C]] · [[Projetos/EducMatch(Secretária)/spec-pessoa-d-telas|🎨 D]]
 
 # 🧱 Spec — Pessoa A · Infra
 
-> [!abstract] Sua missão em uma frase
-> Deixar o projeto **rodando igual na máquina dos quatro**, com as configurações vindas de variável de ambiente e o MySQL sabendo o fuso de São Paulo, e no fim ligar uma **CI** que roda os testes em todo PR.
+> [!abstract] O que esta nota é
+> O **como** da frente de infra, arquivo por arquivo, com o código no lugar certo. Missão em uma frase: fazer o projeto **rodar igual na máquina dos quatro**, com a configuração vinda de variável de ambiente e o MySQL sabendo o fuso de São Paulo, e no fim ligar uma **CI** que roda os testes em todo PR.
+> Escrita contra o commit `a04c8e9` (branch `chore/remove-react-e-api`), depois da remoção do React e da API REST.
 
-> [!note] O front é de templates do Django
-> O React foi abandonado em 2026-09-22 e a API REST foi removida. O front é HTML, CSS e JS puro servido pelo próprio Django: um processo só, um endereço só (`localhost:8000`). Por isso esta spec **não** tem mais `CSRF_TRUSTED_ORIGINS`, `FRONTEND_URL` nem job de `pnpm` na CI.
+> [!success] O que já foi verificado (2026-09-22)
+> O código do PR-1 foi aplicado numa **cópia** do repositório, no MySQL local:
+> - `manage.py check` sem erros, com banco configurado só por variável de ambiente;
+> - os 3 testes de página que davam **400** passaram a responder certo só com a troca do `ALLOWED_HOSTS`;
+> - o teste de fuso novo fica **vermelho** com as tabelas vazias, como deve.
+>
+> **Não** verificado: o teste de fuso ficando verde, porque carregar as tabelas muda o MySQL da máquina, e isso cada pessoa faz na sua. E a CI (PR-6), que só roda no GitHub.
 
-| PR | Branch | Quando | Tamanho |
+## 🧭 O mapa
+
+| Tarefa | O que faz | Arquivo | PR |
 |---|---|---|---|
-| **PR-1** | `infra/settings-env` | Rodada 1. É o primeiro PR de código a mesclar, logo depois do PR-0 da pessoa D | Pequeno: 1 dia |
-| **PR-6** | `test/ci` | Rodadas 3 e 4. É o último a mesclar | Médio |
+| **A-1** | segredos e banco vindos do ambiente | `core/settings.py` | PR-1 |
+| **A-2** | `ALLOWED_HOSTS` com default | `core/settings.py` | PR-1 |
+| **A-3** | contrato de ambiente versionado | `.env.example` | PR-1 |
+| **A-4** | tabelas de fuso + o teste que avisa | MySQL · `core/tests.py` | PR-1 |
+| **A-5** | README "Como rodar" | `README.md` | PR-1 |
+| **A-6** | CI e proteção da `main` | `.github/workflows/test.yml` | PR-6 |
 
-Na rodada 2 você revisa PRs e testa as telas dos outros no navegador.
-
----
-
-## 1️⃣ Por que isso importa
-
-- **Hoje metade da suíte de testes falha por um motivo só.** `ALLOWED_HOSTS = []` faz toda página responder **400** nos testes. Medido em 2026-09-22: 28 testes, **7 falhas e 15 erros**. Quase todos somem com o seu PR, e isso destrava os testes dos outros três.
-- **A `SECRET_KEY` e a senha do banco estão escritas no código** (`backend/core/settings.py`). Qualquer um que veja o repositório vê as duas. Na banca, isso é falha de segurança básica.
-- **Cada pessoa tem um usuário de MySQL diferente.** Hoje quem usa `tecmysql` precisa editar o `settings.py` e toma cuidado para não commitar. Com variável de ambiente, cada um configura a própria máquina e o arquivo versionado não muda.
-- **O MySQL vem com as tabelas de fuso vazias.** O projeto usa `TIME_ZONE = "America/Sao_Paulo"`, e aí todo filtro por data (`__date`, `TruncDate`, `__month`) **volta vazio, sem erro nenhum**. O painel da pessoa C filtra por período: sem isso, os gráficos dela saem vazios.
-- **A suíte de testes já se perdeu uma vez** porque nada rodava os testes sozinho. A CI é a correção estrutural disso.
+> [!note] Por que esta spec não tem `CSRF_TRUSTED_ORIGINS` nem job de `pnpm`
+> O front React foi abandonado em 2026-09-22. O front é template do Django, servido pelo mesmo processo, no mesmo endereço (`localhost:8000`). Sem segunda origem não existe problema de CSRF entre origens, e sem `package.json` não existe `pnpm`.
 
 ---
 
-## 2️⃣ O que é seu (e o que não é)
-
-| ✅ Você pode mexer | ❌ Não mexa |
-|---|---|
-| `backend/core/settings.py` | `models.py` e migrações → **B** |
-| `backend/.env.example` (novo) | `painel/` → **C** |
-| `backend/core/tests.py` (novo) | `templates/`, `static/`, `web_views.py`, `accounts/views.py` → **D** |
-| `.github/workflows/` (novo) | |
-| `README.md`, seção "Como rodar" | |
-
----
-
-## 3️⃣ Antes de começar
+## 🚦 Antes de abrir o editor
 
 ```bash
 cd educmatch
 git switch main
-git pull                   # já com o PR-0 da pessoa D (React e API REST removidos)
+git pull                       # já com o PR-0 da pessoa D
 git switch -c infra/settings-env
 cd backend
 source .venv/Scripts/activate
 python -c "import django, rest_framework; print(django.__version__, rest_framework.__version__)"
-python manage.py test 2>&1 | tail -5     # a linha de base: anote e mande no grupo
 ```
 
-A primeira linha tem de imprimir `5.2.17 3.18.1`. Se não imprimir: `pip install -r requirements.txt`.
+Tem de imprimir `5.2.17 3.18.1`. Se não imprimir: `pip install -r requirements.txt`.
+
+Anote a linha de base e mande no grupo. É a referência dos quatro:
+
+```bash
+python manage.py test 2>&1 | tail -5
+```
+
+> [!important] A linha de base de 2026-09-22
+> **28 testes: 7 falhas, 15 erros, 3 pulados.** Quase todos os erros das páginas vêm de uma linha só (`ALLOWED_HOSTS = []`), que é a A-2. O seu PR é o que mais derruba esse número.
 
 > [!tip] Primeiro PR em par, pelo Live Share
-> Se for o seu primeiro PR, faça esta seção e a §6 numa sessão de Live Share com a pessoa D. **Você é o anfitrião**, porque a branch é sua. A regra do grupo é: código só se escreve na própria branch; no Live Share, quem hospeda é sempre o dono da branch.
+> Faça este PR numa sessão de Live Share com a pessoa D. **Você é o anfitrião**, porque a branch é sua. Regra do grupo: código só se escreve na própria branch; no Live Share, quem hospeda é sempre o dono da branch.
 
 ---
 
-## 4️⃣ PR-1 — passo a passo
+## 1️⃣ A-1 e A-2 — `core/settings.py`
 
-### Passo 1 · `core/settings.py` lendo do ambiente
+### O estado de hoje
 
-Troque as linhas de `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS` e o bloco `DATABASES` inteiro por:
+```python
+SECRET_KEY = 'django-insecure-*z=y+!0ola&w4mrc!3xrfzm_0j*d!qc4+%!z-^2hew^u6iuk_6'
+DEBUG = True
+ALLOWED_HOSTS = []
+...
+DATABASES = {
+    'default': {
+        ...
+        'USER': 'tecmysql',        # usuário de UMA máquina, commitado no a04c8e9
+        'PASSWORD': 'devmysql',
+        ...
+```
+
+Três problemas numa tela: a chave e a senha estão no Git; o usuário do banco é o de uma pessoa só (quem usa `root` tem de editar o arquivo e tomar cuidado para não commitar); e `ALLOWED_HOSTS` vazio faz toda página responder **400** nos testes.
+
+### O topo do arquivo — substitua até o `ALLOWED_HOSTS` inclusive
 
 ```python
 import os
@@ -80,10 +94,16 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Tudo que muda de uma máquina para outra vem de variável de ambiente.
+# Os defaults servem para desenvolvimento; veja backend/.env.example.
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-inseguro-troque-em-producao")
 DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = [h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
+```
 
+### O bloco `DATABASES` — substitua inteiro
+
+```python
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
@@ -96,19 +116,36 @@ DATABASES = {
 }
 ```
 
-- [ ] Apague o bloco `MAILERS` e coloque no lugar: `EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"`
-- [ ] Deixe **um só** `STATIC_URL = "static/"` (hoje ele aparece duas vezes) e `STATICFILES_DIRS = [BASE_DIR / "static"]`
-- [ ] **Não** apague `TIME_ZONE`, `USE_TZ`, `LOGIN_URL` nem `QUIZ_RECOMENDACAO_LIMIT`
+### O fim do arquivo — substitua do primeiro `STATIC_URL` até o fim
 
-> [!note] Por que os testes voltam a funcionar
-> O executor de testes do Django acrescenta `testserver` ao `ALLOWED_HOSTS` sozinho, e a base de testes usa `localhost`. Com a lista vazia, nem `localhost` passava. Com o default `localhost,127.0.0.1`, passa.
+```python
+STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+QUIZ_RECOMENDACAO_LIMIT = 5
+```
+
+Isso tira o `STATIC_URL` duplicado e o bloco `MAILERS`, que o Django nunca leu (o nome certo da configuração é `EMAIL_BACKEND`).
+
+> [!warning] Não apague `TIME_ZONE`, `USE_TZ`, `LOGIN_URL` nem `QUIZ_RECOMENDACAO_LIMIT`
+> O painel depende do fuso, as páginas protegidas dependem do `LOGIN_URL`, e o motor lê o limite.
+
+> [!note] Por que os testes param de dar 400
+> O executor de testes do Django acrescenta `testserver` ao `ALLOWED_HOSTS` sozinho, e a base de testes (`quiz/tests/base.py`) usa `localhost`. Com a lista vazia, nem `localhost` passava. Com o default `localhost,127.0.0.1`, passa.
 
 > [!note] Por que não usar `python-dotenv`
-> Com `os.environ.get` e um default de desenvolvimento, o projeto roda **sem arquivo nenhum**. É uma dependência a menos para a banca instalar. Quem quiser usar o `.env` exporta no shell: `set -a; source .env; set +a`.
+> Com `os.environ.get` e um default de desenvolvimento, o projeto roda **sem arquivo nenhum**. É uma dependência a menos para a banca instalar.
 
-### Passo 2 · `backend/.env.example` (arquivo novo)
+---
+
+## 2️⃣ A-3 — `backend/.env.example` (arquivo novo)
 
 ```bash
+# Copie para .env e ajuste para a sua máquina. O .env NUNCA vai para o Git.
+# Para carregar no Git Bash:  set -a; source .env; set +a
 DJANGO_SECRET_KEY=troque-por-uma-chave-longa
 DJANGO_DEBUG=1
 DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
@@ -119,23 +156,46 @@ DB_HOST=localhost
 DB_PORT=3306
 ```
 
-- [ ] Confira que `.env` está no `backend/.gitignore`. O `.env.example` **vai** para o Git; o `.env` **nunca**.
+O `.env` já está no `.gitignore` da raiz. Confira antes do commit: `git check-ignore backend/.env` tem de imprimir o caminho.
 
-### Passo 3 · tabelas de fuso do MySQL (INF-04)
+Cada pessoa cria o seu:
 
-Isto é feito **no MySQL**, não no código. No Windows não existe o `mysql_tzinfo_to_sql`, então:
+```bash
+cp .env.example .env          # e edita DB_USER e DB_PASSWORD
+set -a; source .env; set +a   # no terminal onde vai rodar o runserver e os testes
+```
+
+---
+
+## 3️⃣ A-4 — as tabelas de fuso do MySQL
+
+### O problema
+
+O projeto usa `USE_TZ = True` com `TIME_ZONE = "America/Sao_Paulo"`. Com fuso diferente de UTC, o Django converte o fuso **dentro do SQL** com `CONVERT_TZ()`. Um MySQL recém-instalado vem com as tabelas de fuso **vazias**, e aí `CONVERT_TZ` devolve `NULL`:
+
+```sql
+SELECT CONVERT_TZ(NOW(), 'UTC', 'America/Sao_Paulo');   -- NULL
+SELECT COUNT(*) FROM mysql.time_zone_name;              -- 0
+```
+
+> [!danger] Por que isso é uma mina embaixo do painel
+> Com `CONVERT_TZ` devolvendo `NULL`, **todo** filtro e agrupamento que passa por ele volta vazio: `__date`, `__month`, `TruncDate`, `TruncMonth`. **Sem erro nenhum.** O painel da pessoa C filtra por período. Um gráfico vazio por causa disso consome uma tarde e termina em "deve ser problema do Django".
+
+### O conserto — uma vez por máquina, como root do MySQL
+
+No Windows não existe o `mysql_tzinfo_to_sql`. Usa-se o pacote pronto:
 
 1. Baixe o pacote **POSIX** em `https://dev.mysql.com/downloads/timezones.html`
 2. Descompacte e importe:
    ```bash
    mysql -u root -p mysql < timezone_posix.sql
    ```
-3. Confirme no MySQL:
+3. Confira:
    ```sql
-   SELECT CONVERT_TZ(NOW(), 'UTC', 'America/Sao_Paulo');   -- tem de devolver uma data, não NULL
+   SELECT CONVERT_TZ(NOW(), 'UTC', 'America/Sao_Paulo');   -- tem de devolver uma data
    ```
 
-### Passo 4 · o teste que avisa quem clonar (`backend/core/tests.py`, novo)
+### O guarda — `backend/core/tests.py` (arquivo novo)
 
 ```python
 from django.conf import settings
@@ -144,6 +204,10 @@ from django.test import TestCase
 
 
 class FusoDoMySQL(TestCase):
+    """Com TIME_ZONE fora de UTC, o Django converte fuso DENTRO do SQL
+    (CONVERT_TZ). Sem as tabelas de fuso, a conversão devolve NULL e todo
+    filtro por __date, __month ou TruncDate volta vazio, sem erro."""
+
     def test_mysql_conhece_o_fuso_de_sao_paulo(self):
         with connection.cursor() as cursor:
             cursor.execute("select CONVERT_TZ(NOW(), 'UTC', %s)", [settings.TIME_ZONE])
@@ -155,99 +219,204 @@ class FusoDoMySQL(TestCase):
         )
 ```
 
-Rode **antes** do passo 3 e ele fica vermelho; depois, verde. É o seu "teste que falharia antes".
+Rode **antes** de carregar as tabelas: fica vermelho, com a instrução no texto da falha. Depois: verde. É o seu "teste que falharia antes".
 
-### Passo 5 · README, seção "Como rodar"
+> [!important] Um teste vermelho de propósito vale mais do que um aviso no grupo
+> Quem clonar o projeto descobre no primeiro `manage.py test`, não no dia em que um gráfico do painel voltar vazio.
 
-- [ ] Como criar o `.env` a partir do `.env.example` e exportar no shell
-- [ ] A seção **"Tabelas de fuso"**, com os comandos do passo 3. **Cada pessoa** precisa rodar isso uma vez no próprio MySQL
-- [ ] Um só servidor: `python manage.py runserver` e abrir `http://localhost:8000`
-
-### Passo 6 · avisar o grupo
-
-- [ ] A **`SECRET_KEY` antiga e a senha antiga do MySQL estão no histórico do Git**. Tirar do arquivo não apaga do histórico. Cada um troca a senha do próprio MySQL, e ninguém reaproveita aquela chave.
-- [ ] Quem tinha mudado o `USER` do banco direto no `settings.py` (por exemplo, `tecmysql`) desfaz essa mudança e passa a usar `DB_USER` no `.env`.
+> [!warning] Não troque o `TIME_ZONE` para `"UTC"` para fugir disso
+> Funciona, mas toda hora na tela fica três horas adiantada. Na defesa, "18:40" quando eram 15:40 é pergunta da banca na certa (decisão D4 do plano v0.2).
 
 ---
 
-## 5️⃣ PR-1 — pronto quando
+## 4️⃣ A-5 — `README.md`, seção "Como rodar"
 
-- [ ] `python manage.py check` sem erros
-- [ ] `python manage.py runserver` sobe; `/`, `/entrar/` e `/admin/` abrem
-- [ ] `python manage.py test core` verde (depois das tabelas de fuso)
-- [ ] `python manage.py test`: **nenhuma falha nova**, e o total de falhas e erros **cai** em relação à linha de base. Escreva os dois números no PR
-- [ ] `git diff main` sem nenhuma senha ou chave de verdade
+Substitua a parte do backend por:
 
-### Como abrir o PR
+````markdown
+## Como rodar
+
+Um servidor só: o Django serve as páginas e o `/admin`.
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/Scripts/activate        # Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env                 # ajuste DB_USER e DB_PASSWORD
+set -a; source .env; set +a
+python manage.py migrate
+python manage.py seed_areas && python manage.py seed_cursos && python manage.py seed_questoes
+python manage.py runserver           # http://localhost:8000
+```
+
+Confira o catálogo pelo número: `12` áreas, `20` cursos, `73` pesos.
+
+### Tabelas de fuso (uma vez por máquina)
+
+O MySQL vem sem as tabelas de fuso, e sem elas os filtros por data do painel voltam vazios.
+Baixe o pacote POSIX em https://dev.mysql.com/downloads/timezones.html e rode:
+
+```bash
+mysql -u root -p mysql < timezone_posix.sql
+```
+
+O teste `python manage.py test core` diz se deu certo.
+````
+
+---
+
+## 5️⃣ Verificação do PR-1
+
+```bash
+python manage.py check                         # sem erros
+python manage.py test core                     # verde depois das tabelas de fuso
+python manage.py test 2>&1 | tail -5           # compare com a linha de base
+git diff main -- backend/core/settings.py      # nenhuma senha ou chave de verdade
+```
+
+| # | O quê | Sinal de que passou |
+|---|---|---|
+| 1 | `runserver` sem o `.env` carregado | Sobe (usa os defaults) e reclama de acesso ao banco só se o seu usuário não for `root` |
+| 2 | `runserver` com o `.env` carregado | `/`, `/entrar/` e `/admin/` abrem |
+| 3 | A suíte inteira | Os testes de página (`test_rotas_web`) passam; o total de falhas e erros **cai** |
+| 4 | `git status` | O `.env` **não** aparece |
+
+---
+
+## 6️⃣ Commit, push e PR
 
 ```bash
 git add backend/core/settings.py backend/core/tests.py backend/.env.example README.md
-git status --short          # confira: nada de .env, nada de __pycache__
+git status --short
 git commit -m "feat(infra): settings por variavel de ambiente e fuso do MySQL"
 git push -u origin infra/settings-env
 ```
-
-Texto do PR:
 
 ```markdown
 ## O que muda
 - SECRET_KEY, DEBUG, ALLOWED_HOSTS e banco vêm de variável de ambiente (.env.example)
 - ALLOWED_HOSTS com default localhost: os testes de página param de dar 400
 - Teste que falha se o MySQL não tiver as tabelas de fuso
+- README: como rodar com .env e como carregar as tabelas de fuso
 
 ## Testes
-Antes: X falhas e Y erros. Depois: X' falhas e Y' erros. Nenhuma falha nova.
-
-## Como testar
-1. Carregar as tabelas de fuso (README, seção "Tabelas de fuso")
-2. python manage.py test
+Antes: 7 falhas e 15 erros. Depois: X falhas e Y erros. Nenhuma falha nova.
 
 ## Atenção, grupo
-A SECRET_KEY e a senha antigas estão no histórico do Git: troquem a senha do MySQL de vocês.
+1. Criem o .env de vocês (cp .env.example .env) e carreguem as tabelas de fuso.
+2. A SECRET_KEY e a senha antigas estão no histórico do Git: troquem a senha do MySQL.
 ```
 
-Peça revisão para qualquer um dos outros três. Mesclar com **Squash and merge** e avisar no grupo: "PR-1 entrou: `git pull` e criem o `.env` de vocês".
+Mesclar com **Squash and merge** e avisar no grupo.
 
 ---
 
-## 6️⃣ Rodada 2 — revisar e testar no navegador
+## 7️⃣ Rodada 2 — revisar e testar no navegador
 
-- [ ] Revisar os PRs que abrirem na rodada (prazo combinado: 24 h)
-- [ ] Para cada PR de tela (C e D): trocar para a branch (`git switch <branch>`), subir o `runserver` e clicar em tudo que o PR diz que mudou. Anotar no PR o que der errado, com print
+Enquanto B, C e D trabalham, você é quem mais testa:
+
+- [ ] Revisar cada PR que abrir, em até 24 h
+- [ ] Para cada PR de tela: `git switch <branch>`, `runserver`, clicar em tudo que o PR diz que mudou, e escrever no PR o que deu errado, com print
 
 ---
 
-## 7️⃣ PR-6 — a CI (rodadas 3 e 4)
+## 8️⃣ A-6 — a CI (PR-6)
 
-Referência: [[Projetos/EducMatch(Secretária)/passo-a-passo-tst-01-tst-05|🧪 TST-01 a TST-05]] §5 (TST-05). O que o workflow precisa ter:
+```bash
+git switch main && git pull
+git switch -c test/ci
+```
 
-- [ ] `.github/workflows/test.yml` disparando em `pull_request` e em `push` para `main`
-- [ ] Um serviço **MySQL 8.0** no job, com usuário que tenha permissão de `CREATE` (o Django cria o banco `test_educmatch`)
-- [ ] Um passo que **carrega as tabelas de fuso** no MySQL do job (sem isso, o seu teste do passo 4 fica vermelho na CI)
-- [ ] As variáveis `DB_*` apontando para o serviço, e `DJANGO_SECRET_KEY` com qualquer valor
-- [ ] `pip install -r backend/requirements.txt`, `python manage.py makemigrations --check --dry-run` e `python manage.py test`, dentro de `backend/`
+### `.github/workflows/test.yml` (arquivo novo)
 
-**Só ligue a proteção da `main` quando a suíte estiver verde.** No GitHub, em *Settings → Branches → Add rule* para `main`:
+```yaml
+name: testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  django:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: raiz
+          MYSQL_DATABASE: educmatch
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -praiz"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      DJANGO_SECRET_KEY: so-para-a-ci
+      DB_NAME: educmatch
+      DB_USER: root
+      DB_PASSWORD: raiz
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dependências do sistema para o mysqlclient
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libmysqlclient-dev
+
+      - name: Tabelas de fuso no MySQL do job
+        run: mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -h 127.0.0.1 -uroot -praiz mysql
+
+      - run: pip install -r requirements.txt
+
+      - name: Nenhuma migração esquecida
+        run: python manage.py makemigrations --check --dry-run
+
+      - run: python manage.py test -v 2
+```
+
+> [!note] No Linux da CI o `mysql_tzinfo_to_sql` existe
+> É a mesma coisa que o pacote POSIX faz no Windows, lida direto do `/usr/share/zoneinfo` do sistema.
+
+### A proteção da `main`
+
+**Só ligue quando a suíte estiver verde.** No GitHub, *Settings → Branches → Add rule* para `main`:
+
 - [ ] Require a pull request before merging
 - [ ] Require approvals: **1**
-- [ ] Require status checks to pass → marcar o job de testes
+- [ ] Require status checks to pass → marcar `django`
 - [ ] Automatically delete head branches
 
-### PR-6 — pronto quando
+> [!important] A lição que a CI resolve
+> A suíte de testes do projeto já se perdeu uma vez, e ninguém percebeu por três semanas, porque nada rodava os testes sozinho. **Suíte sem gatilho automático é documentação, não garantia.** É um parágrafo curto e forte para a monografia.
 
-- [ ] A CI roda sozinha num PR e fica **verde**
-- [ ] Você quebrou um teste de propósito numa branch de rascunho e a CI ficou **vermelha** (depois apague essa branch)
-- [ ] Rodou o exercício "quebre de propósito" da TST §6 e guardou a saída de `python manage.py test -v 2`, que vai de anexo na monografia
+### Verificação do PR-6
+
+| # | O quê | Sinal |
+|---|---|---|
+| 1 | Abrir o PR-6 | O check `testes / django` aparece e fica verde |
+| 2 | Numa branch de rascunho, quebrar um teste de propósito | O check fica **vermelho** (depois apague a branch) |
+| 3 | O exercício "quebre de propósito" da [[Projetos/EducMatch(Secretária)/passo-a-passo-tst-01-tst-05|TST]] §6 | Cada quebra acende o teste certo. Guarde a saída de `test -v 2`: é anexo da monografia |
 
 ---
 
-## 8️⃣ Armadilhas
+## ▶️ Próxima ação
 
-> [!danger] Rodar sem erro não é sinal de sucesso
-> O `seed_cursos` já "não deu erro" enquanto apagava o catálogo em silêncio. Depois de qualquer mudança, confira o **número**: `12` áreas, `20` cursos e `73` pesos.
-> ```bash
-> python manage.py shell -c "from catalogo.models import Area, Curso, Peso_curso; print(Area.objects.count(), Curso.objects.count(), Peso_curso.objects.count())"
-> ```
+Criar a branch `infra/settings-env` e fazer a §1. Com o PR-1 mesclado, **avisar o grupo** para criar o `.env` e carregar as tabelas de fuso.
 
-> [!warning] Não troque o `TIME_ZONE` para `"UTC"` para fugir das tabelas de fuso
-> Funciona, mas toda hora na tela fica três horas adiantada. Na defesa, "18:40" quando eram 15:40 é pergunta da banca na certa. O grupo já decidiu isso (D4 do plano v0.2).
+## 📎 Veja também
+
+- [[Projetos/EducMatch(Secretária)/tarefas-backend-por-pessoa|👥 Tarefas por pessoa]]
+- [[Projetos/EducMatch(Secretária)/passo-a-passo-inf-01-inf-05|🧱 INF-01 a INF-05]] — a origem da INF-04
+- [[Projetos/EducMatch(Secretária)/plano-execucao-v02|🗺️ Plano v0.2]] — decisões D1 a D5 e a seção 3 (por que MySQL)
