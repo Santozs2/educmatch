@@ -1,0 +1,99 @@
+/* Detalhe do curso (tela 10). */
+
+.curso-topo {
+  max-width: 800px;
+}
+
+.curso {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); 
+  gap: 24px;
+  max-width: 740px;
+  margin: 0 auto;
+}
+
+.curso__cartao {
+  overflow: hidden;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+}
+
+.curso__cabeca {
+  padding: 28px;
+  background: var(--preto);
+  color: var(--branco);
+}
+
+.curso__cabeca h1 {
+  color: var(--branco);
+  font-size: var(--h2);
+}
+
+.curso__cabeca p {
+  margin: 0;
+  color: var(--gelo);
+}
+
+.curso__cabeca .chip--escuro {
+  border-color: var(--preto-2);
+  background: var(--preto-2);
+}
+
+.curso__corpo {
+  display: grid;
+  gap: 20px;
+  padding: 28px;
+}
+
+.curso__afinidade {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--marca-claro);
+  border-radius: var(--raio-botao);
+  background: var(--marca-clarinho);
+  color: var(--titulo);
+}
+
+.curso__afinidade strong,
+.curso__afinidade span {
+  display: block;
+}
+
+.curso__afinidade span {
+  font-size: var(--pequeno);
+}
+
+.curso__afinidade-valor {
+  font-size: 1.6rem !important;
+  font-weight: 700;
+}
+
+.secretaria h2 {
+  font-size: 1.1rem;
+}
+
+.secretaria__dados {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.secretaria__dados dt {
+  font-weight: 700;
+}
+
+.secretaria__dados dt i {
+  color: var(--marca);
+}
+
+.secretaria__dados dd {
+  margin: 4px 0 0;
+  color: var(--texto-2);
+  font-size: var(--pequeno);
+}

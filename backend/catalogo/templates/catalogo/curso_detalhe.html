@@ -1,34 +1,59 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ curso.nome_curso }}{% endblock %}
 
+{% block estilos %}<link rel="stylesheet" href="{% static 'css/curso.css' %}">{% endblock %}
+    
+{% block topo %}
+<header class="topo">
+    <div class="topo__inner curso-topo">
+        {% if tentativa_id %}
+        <a class="voltar" href="{% url 'quiz-resultado' tentativa_id %}">Voltar para o meu resultado</a>
+        {% else %}
+        <a class="voltar" href="{% url 'quiz-inicio' %}">Voltar</a>
+        {% endif %}
+    </div>
+</header>
+{% endblock %}
+
 {% block content %}
-{% if tentativa_id %}
-<a class="botao botao--ghost" href="{% url 'quiz-resultado' tentativa_id %}">
-    <span aria-hidden="true">&larr;</span> Voltar para o meu resultado
-</a>
-{% endif %}
+<div class="curso">
+    <article class="curso__cartao" aria-labelledby="curso-nome">
+        <header class="curso__cabeca">
+            <ul class="chips">
+                <li class="chip chip--marca">{{ curso.area_principal.nome }}</li>
+                <li class="chip chip--escuro">{{ curso.duracao }} horas</li>
+                {% if curso.inicio_dia %}<li class="chip chip--escuro">Início em {{ curso.inicio_dia|date:"d/m/Y" }}</li>{% endif %}
+            </ul>
+            <h1 id="curso-nome">{{ curso.nome_curso }}</h1>
+            <p>{{ curso.descricao|linebreaksbr }}</p>
+        </header>
 
-<section>
-    <p>Sobre o curso</p>
-    <h1>{{ curso.nome_curso }}</h1>
+        <div class="curso__corpo">
+            {% if afinidade is not None %}
+            <div class="curso__afinidade">
+                <div>
+                    <strong>Sua afinidade</strong>
+                    <span>Baseado nas suas respostas</span>
+                </div>
+                <span class="curso__afinidade-valor">{{ afinidade }}%</span>
+            </div>
+            {% endif %}
 
-    <ul class="etiquetas">
-        <li>{{ curso.area_principal.nome }}</li>
-        <li>{{ curso.duracao }} horas</li>
-        {% if curso.inicio_dia %}<li>Início em {{ curso.inicio_dia|date:"d/m/Y" }}</li>{% endif %}
-    </ul>
+            <form method="post" action="{% url 'interesse-salvar' %}">
+                {% csrf_token %}
+                <input type="hidden" name="curso_id" value="{{ curso.id }}">
+                {% if tentativa_id %}<input type="hidden" name="tentativa_id" value="{{ tentativa_id }}">{% endif %}
+                {% if salvo %}
+                <button class="botao botao--contorno botao--bloco" type="submit">Remover da minha lista</button>
+                {% else %}
+                <button class="botao botao--bloco" type="submit">Manifestar interesse neste curso</button>
+                {% endif %}
+            </form>
+        </div>
+    </article>
 
-    <h2>Descrição</h2>
-    <p>{{ curso.descricao|linebreaksbr }}</p>
-
-    <form method="post" action="{% url 'interesse-salvar' %}">
-        {% csrf_token %}
-        <input type="hidden" name="curso_id" value="{{ curso.id }}">
-        {% if tentativa_id %}<input type="hidden" name="tentativa_id" value="{{ tentativa_id }}">{% endif %}
-        <button class="botao" type="submit">
-            {% if salvo %}Remover da minha lista{% else %}Salvar na minha lista{% endif %}
-        </button>
-    </form>
-</section>
+    {% include "componentes/_secretaria.html" %}
+</div>
 {% endblock %}

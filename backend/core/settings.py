@@ -71,6 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.contexto.escola',
             ],
         },
     },
@@ -119,6 +120,12 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+ESCOLA = {
+    "nome": os.environ.get("ESCOLA_NOME", "SENAI São José do Rio Preto · CFP 8.01 Antonio Devisate"),
+    "endereco": os.environ.get("ESCOLA_ENDERECO", ""),
+    "telefone": os.environ.get("ESCOLA_TELEFONE", ""),
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 QUIZ_RECOMENDACAO_LIMIT = 5

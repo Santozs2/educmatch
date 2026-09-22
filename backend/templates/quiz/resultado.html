@@ -1,120 +1,123 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Seu resultado{% endblock %}
 
+{% block estilos %}<link rel="stylesheet" href="{% static 'css/resultado.css' %}">{% endblock %}
+
 {% block content %}
-<section>
-    <p>Resultado do seu perfil</p>
-    {% if tentativa.questionario_link_id %}
-        <p class="faixa-link" role="note">Você respondeu pelo link da escola.</p>
-    {% endif %}
+<section class="resultado">
     <h1>
         {% if tentativa.respondido_por %}{{ tentativa.respondido_por }}, esses{% else %}Esses{% endif %}
-        sao os cursos que mais combinam com voce
+        são os cursos que mais combinam com você
     </h1>
 
+    {% if tentativa.questionario_link_id %}
+    <p class="aviso" role="note">Você respondeu pelo link da escola.</p>
+    {% endif %}
+
     {% if tentativa.confidence_band == "baixa" %}
-    <p>
+    <p class="aviso" role="note">
         Sua afinidade com os cursos disponiveis ficou baixa. Vale refazer o teste
         com calma ou conversar com a secretaria antes de decidir.
     </p>
     {% endif %}
 
     {% if curso_pendente %}
-    <div>
-        <p>Voce queria salvar <strong>{{ curso_pendente.nome_curso }}</strong>.</p>
-        <form method="post" action="{% url 'interesse-salvar' %}">
-            {% csrf_token %}
-            <input type="hidden" name="curso_id" value="{{ curso_pendente.id }}">
-            <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
-            <button type="submit">Salvar agora</button>
-        </form>
-    </div>
+    <form class="aviso resultado__pendente" method="post" action="{% url 'interesse-salvar' %}">
+        {% csrf_token %}
+        <p>Você queria salvar <strong>{{ curso_pendente.nome_curso }}</strong>.</p>
+        <input type="hidden" name="curso_id" value="{{ curso_pendente.id }}">
+        <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
+        <button class="botao" type="submit">Salvar agora</button>
+    </form>
     {% endif %}
 
     {% if destaque %}
-    <article>
-        <div>
-            <span>Melhor combinacao</span>
-            <div style="--valor: {{ destaque.match }}">
-                <span>{{ destaque.match }}<small>%</small></span>
-                <span>de afinidade</span>
-            </div>
+    {# Tela 09 · o 1º lugar em destaque #}
+    <article class="destaque" aria-labelledby="destaque-nome">
+        <div class="destaque__faixa">
+            <span class="chip"><i class="fa-solid fa-check" aria-hidden="true"></i> Melhor combinação</span>
         </div>
 
-        <h2>
-            <a href="{% url 'curso-detalhe' destaque.curso.id %}?tentativa={{ tentativa.pk }}">{{ destaque.curso.nome_curso }}</a>
-        </h2>
-        <p>{{ destaque.curso.descricao }}</p>
-
-        <ul>
-            <li>{{ destaque.curso.area_principal.nome }}</li>
-            <li>{{ destaque.curso.duracao }} horas</li>
-        </ul>
-
-        <div>
-            <h3>Por que este curso</h3>
-            {% for area in destaque.areas %}
-            <div>
-                <div>
-                    <span>{{ area.area_name }}</span>
-                    <span>{{ area.percentual }}%</span>
-                </div>
-                <div>
-                    <div style="width: {{ area.percentual }}%"></div>
-                </div>
+        <div class="destaque__corpo">
+            <div class="destaque__afinidade">
+                {% include "componentes/_anel.html" with valor=destaque.match %}
+                <span class="destaque__legenda">de afinidade</span>
             </div>
-            {% endfor %}
-        </div>
 
-        <form method="post" action="{% url 'interesse-salvar' %}">
-            {% csrf_token %}
-            <input type="hidden" name="curso_id" value="{{ destaque.curso.id }}">
-            <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
-            <button type="submit">
-                {% if destaque.curso.id in interesses_salvos %}Remover da minha lista{% else %}Salvar na minha lista{% endif %}
-            </button>
-        </form>
+            <div class="destaque__info">
+                <h2 id="destaque-nome">{{ destaque.curso.nome_curso }}</h2>
+                <p class="subtitulo">{{ destaque.curso.descricao|truncatewords:30 }}</p>
+
+                <ul class="chips">
+                    <li class="chip chip--area">{{ destaque.curso.area_principal.nome }}</li>
+                    <li class="chip"><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ destaque.curso.duracao }} horas</li>
+                </ul>
+
+                {% if destaque.areas %}
+                <div class="porque">
+                    <h3>Por que este curso?</h3>
+                    {% for area in destaque.areas %}
+                    <div class="porque__linha">
+                        <span>{{ area.area_name }}</span>
+                        <span>{{ area.percentual|floatformat:0 }}%</span>
+                        {% include "componentes/_barra.html" with valor=area.percentual %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <a class="botao botao--bloco" href="{% url 'curso-detalhe' destaque.curso.id %}?tentativa={{ tentativa.pk }}">
+                    Ver detalhes do curso
+                </a>
+            </div>
+        </div>
     </article>
 
-    <h2>Tambem combinam com voce</h2>
-    <div>
+    {% if outros %}
+    <h2 class="resultado__subtitulo">Também combinam com você</h2>
+    <ol class="outros">
         {% for item in outros %}
-        <article>
-            <div>
-                <span>{{ item.rank }}</span>
-                <h3>
-                    <a href="{% url 'curso-detalhe' item.curso.id %}?tentativa={{ tentativa.pk }}">{{ item.curso.nome_curso }}</a>
-                </h3>
-                <span>{{ item.match }}%</span>
+        <li class="outro">
+            <span class="outro__rank" aria-hidden="true">{{ item.rank }}</span>
+            <div class="outro__info">
+                {# O link cobre a linha inteira (ver .outro__link::after no CSS) #}
+                <a class="outro__link" href="{% url 'curso-detalhe' item.curso.id %}?tentativa={{ tentativa.pk }}">
+                    {{ item.curso.nome_curso }}
+                </a>
+                <p class="outro__descricao">{{ item.curso.descricao }}</p>
             </div>
-            <div>
-                <div style="width: {{ item.match }}%"></div>
+            <span class="chip chip--area outro__area">{{ item.curso.area_principal.nome }}</span>
+            <div class="outro__afinidade">
+                <strong>{{ item.match }}%</strong>
+                {% include "componentes/_barra.html" with valor=item.match escura=True %}
             </div>
-            <p>{{ item.curso.descricao }}</p>
-            <ul>
-                <li>{{ item.curso.duracao }} h</li>
-                {% for area in item.areas %}
-                <li>{{ area.area_name }}</li>
-                {% endfor %}
-            </ul>
-            <form method="post" action="{% url 'interesse-salvar' %}">
-                {% csrf_token %}
-                <input type="hidden" name="curso_id" value="{{ item.curso.id }}">
-                <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
-                <button type="submit">
-                    {% if item.curso.id in interesses_salvos %}Remover{% else %}Salvar{% endif %}
-                </button>
-            </form>
-        </article>
+            <i class="fa-solid fa-arrow-right outro__seta" aria-hidden="true"></i>
+        </li>
         {% endfor %}
-    </div>
-    {% else %}
-    <p>Nao encontramos recomendacoes para esta tentativa.</p>
+    </ol>
     {% endif %}
 
-    <div>
-        <a class= "botao_refazer" href="{% url 'quiz-inicio' %}">Refazer o teste</a>
+    {% else %}
+    <p class="vazio">Não encontramos recomendações para esta tentativa.</p>
+    {% endif %}
+
+    <div class="resultado__acoes">
+        <a class="botao botao--contorno" href="{% url 'quiz-inicio' %}">Refazer o teste</a>
+        {# Só com JS: sem ele, o Ctrl+P do navegador faz o mesmo #}
+        <button class="botao botao--texto" type="button" data-imprimir hidden>
+            <i class="fa-solid fa-download" aria-hidden="true"></i> Salvar resultado em PDF
+        </button>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelectorAll("[data-imprimir]").forEach(function (botao) {
+        botao.hidden = false;
+        botao.addEventListener("click", function () { window.print(); });
+    });
+</script>
 {% endblock %}
