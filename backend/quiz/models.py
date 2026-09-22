@@ -68,6 +68,7 @@ class Tentativa_de_resposta(models.Model):
     
     class Meta:
         ordering = ["-criado_em"]
+        indexes = [models.Index(fields=["criado_em"], name="idx_tentativa_criado_em")]
         
     def __str__(self):
         nome_usuario = self.user.email if self.user else "anônimo"
@@ -114,6 +115,7 @@ class Recomendacao(models.Model):
     class Meta:
         unique_together = ('tentativa', 'curso')
         ordering = ["rank"]
+        indexes = [models.Index(fields=["rank", "curso"], name="idx_rec_rank_curso")]
    
     @property
     def is_primary(self):

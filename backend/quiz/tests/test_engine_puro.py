@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase
 
-from quiz.engine import confianca, cosseno
+from quiz.engine import afinidade as cosseno
 
 
 class MatematicaTest(SimpleTestCase):

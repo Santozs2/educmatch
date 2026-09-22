@@ -18,6 +18,7 @@ media/
 staticfiles/
 db.sqlite3
 local_settings.py
+*.sql
 
 # Variáveis de ambiente
 .env
