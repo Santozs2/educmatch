@@ -328,7 +328,23 @@ git switch main && git pull
 git switch -c test/ci
 ```
 
-### `.github/workflows/test.yml` (arquivo novo)
+### `.github/workflows/test.yml` (arquivo novo, na **raiz** do repositório)
+
+```
+educmatch/                  ← raiz do repositório (onde está o .git)
+├── .github/
+│   └── workflows/
+│       └── test.yml        ← aqui, e não dentro de backend/
+├── backend/
+└── docs/
+```
+
+```bash
+mkdir -p .github/workflows      # rodando na raiz; o Explorador do Windows não gosta de pasta com ponto
+```
+
+> [!warning] O GitHub só lê workflows em `.github/workflows/` na raiz
+> Em qualquer outro lugar o arquivo é ignorado, sem aviso. É por isso que o workflow abaixo tem `working-directory: backend`: o arquivo mora na raiz, e os comandos entram em `backend/`.
 
 ```yaml
 name: testes

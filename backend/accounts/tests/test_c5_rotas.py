@@ -1,10 +1,9 @@
-from django.test import TestCase
 from django.urls import reverse
 
-from accounts.tests_helpers import criar_usuario   # ou reaproveite a Base
+from quiz.tests.base import BaseEducMatch
 
 
-class C5AutorizacaoTest(TestCase):
+class C5AutorizacaoTest(BaseEducMatch):
     """C5 -- Rotas e autorizacao.
 
     Tres perguntas por rota protegida:
@@ -14,14 +13,15 @@ class C5AutorizacaoTest(TestCase):
     """
 
     ROTAS_PROTEGIDAS = [
-        ("interesse-lista", {}),
+        ("lista_interesse", {}),
         ("minhas-tentativas", {}),
         ("aluno-perfil", {}),
     ]
 
     def setUp(self):
-        self.dono = criar_usuario("dono@exemplo.com")
-        self.outro = criar_usuario("outro@exemplo.com")
+        super().setUp()
+        self.dono = self.criar_usuario("dono@exemplo.com")
+        self.outro = self.criar_usuario("outro@exemplo.com")
 
     def test_anonimo_e_redirecionado_em_toda_rota_protegida(self):
         for nome, kwargs in self.ROTAS_PROTEGIDAS:
@@ -50,7 +50,7 @@ class C5AutorizacaoTest(TestCase):
     def test_toda_rota_de_escrita_recusa_GET(self):
         """Salvar interesse e sair sao POST. Link que faz GET e 405, nao acao."""
         self.client.force_login(self.dono)
-        for nome in ("interesse-salvar", "sair"):
+        for nome in ("interesse-salvar", "logout"):
             with self.subTest(rota=nome):
                 resposta = self.client.get(reverse(nome))
-                self.assertIn(resposta.status_code, (405, 302)) 
+                self.assertEqual(resposta.status_code, 405)

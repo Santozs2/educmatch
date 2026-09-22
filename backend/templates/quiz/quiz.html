@@ -2,6 +2,9 @@
 {% block title %}Quiz de orientacao{% endblock %}
 
 {% block content %}
+{% if via_link %}
+<p class="faixa-link" role="note">Você está respondendo pelo link da escola.</p>
+{% endif %}
 {% if not erro and not quiz_iniciado %}
 <form class="quiz-form quiz-intro-form" method="get" action="{% url 'quiz-inicio' %}?etapa=1#questao-1">
     <section class="quiz-passo quiz-intro" id="inicio" data-passo>

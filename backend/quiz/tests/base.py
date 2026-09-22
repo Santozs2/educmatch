@@ -31,17 +31,39 @@ class BaseEducMatch(TestCase):
             email=email, password="afinidade-2026", **extra
         )
 
-    def responder_tudo(self, nome="Visitante", coluna=0):
-        """Responde o quiz inteiro escolhendo sempre a alternativa de indice `coluna`.
-
-        Devolve a resposta HTTP. Usa `get()` na alternativa de proposito:
-        trecho ambiguo tem que estourar, nao escolher em silencio.
-        """
+    def payload_do_quiz(self, nome="Visitante", coluna=0):
+        """O POST do formulario do quiz, escolhendo sempre a alternativa `coluna`."""
         from quiz.models import Questao
 
         dados = {"respondido_por": nome}
         for questao in Questao.objects.filter(is_active=True).order_by("id"):
             alternativas = list(questao.alternativas.order_by("id"))
             dados[f"questao_{questao.id}"] = alternativas[coluna % len(alternativas)].id
+        return dados
 
-        return self.client.post("/", dados)
+    def responder_tudo(self, nome="Visitante", coluna=0):
+        """Responde o quiz inteiro pelo formulario. Devolve a resposta HTTP."""
+        return self.client.post("/", self.payload_do_quiz(nome, coluna))
+
+    def criar_tentativa(self, dono=None, coluna=0):
+        """Uma tentativa ja calculada pela engine, com ou sem dono."""
+        from quiz.engine import recomedacao
+        from quiz.models import Questao, Resposta, Tentativa_de_resposta
+
+        tentativa = Tentativa_de_resposta.objects.create(user=dono, respondido_por="Teste")
+        for questao in Questao.objects.filter(is_active=True).order_by("id"):
+            alternativas = list(questao.alternativas.order_by("id"))
+            Resposta.objects.create(
+                tentativa=tentativa, questao=questao,
+                alternativa=alternativas[coluna % len(alternativas)],
+            )
+        recomedacao(tentativa)
+        return tentativa
+
+    def dados_de_cadastro(self, email="ana@exemplo.com"):
+        return {
+            "first_name": "Ana",
+            "email": email,
+            "password1": "afinidade-2026",
+            "password2": "afinidade-2026",
+        }

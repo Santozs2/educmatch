@@ -5,6 +5,9 @@
 {% block content %}
 <section>
     <p>Resultado do seu perfil</p>
+    {% if tentativa.questionario_link_id %}
+        <p class="faixa-link" role="note">Você respondeu pelo link da escola.</p>
+    {% endif %}
     <h1>
         {% if tentativa.respondido_por %}{{ tentativa.respondido_por }}, esses{% else %}Esses{% endif %}
         sao os cursos que mais combinam com voce
