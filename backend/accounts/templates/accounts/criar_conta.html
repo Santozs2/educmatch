@@ -1,37 +1,31 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Criar conta{% endblock %}
 
+{% block estilos %}<link rel="stylesheet" href="{% static 'css/conta.css' %}">{% endblock %}
+
+{% block topo %}{% url 'entrar' as entrar %}{% include "componentes/_topo_voltar.html" with destino=entrar %}{% endblock %}
+
 {% block content %}
-<section>
-    <p>Comece agora</p>
+<section class="cartao cartao--centro cartao--estreito conta">
     <h1>Criar conta</h1>
-    <p>Salve os cursos recomendados e acompanhe seus testes anteriores.</p>
+    <p class="subtitulo">Salve os cursos que combinam com você e veja seus testes anteriores.</p>
 
     <form method="post" novalidate>
         {% csrf_token %}
-        {% if request.GET.next %}
-            <input type="hidden" name="next" value="{{ request.GET.next }}">
-        {% endif %}
+        {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
 
-        {% for field in form %}
-        <label for="{{ field.id_for_label }}">
-            <span>
-                {{ field.label }}
-                {% if not field.field.required %}<span>(opcional)</span>{% endif %}
-            </span>
-            {{ field }}
-            {% if field.help_text %}<p>{{ field.help_text|safe }}</p>{% endif %}
-            {% for erro in field.errors %}<p>{{ erro }}</p>{% endfor %}
-        </label>
+        {% for campo in form %}
+        {% include "componentes/_campo.html" %}
         {% endfor %}
 
-        <div>
-            <a href="{% url 'entrar' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">Ja tenho conta</a>
-            <button type="submit">
-                Criar conta <span aria-hidden="true">&rarr;</span>
-            </button>
-        </div>
+        <button class="botao botao--bloco" type="submit">Criar conta</button>
     </form>
+
+    <p class="conta__troca">
+        Já tem conta?
+        <a href="{% url 'entrar' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}">Entrar</a>
+    </p>
 </section>
 {% endblock %}

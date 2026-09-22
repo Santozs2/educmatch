@@ -1,27 +1,42 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Meus testes{% endblock %}
 
-{% block content %}
-<section>
-    <p>Sua conta</p>
-    <h1>Meus testes</h1>
+{% block estilos %}<link rel="stylesheet" href="{% static 'css/conta.css' %}">{% endblock %}
 
-    {% for tentativa in tentativas %}
-    {% with principal=tentativa.recomendacoes.all.0 %}
-    <article>
-        <h3>Teste de {{ tentativa.criado_em|date:"d/m/Y" }} às {{ tentativa.criado_em|date:"H:i" }}</h3>
-        {% if principal %}
-        <p>1º lugar: <strong>{{ principal.curso.nome_curso }}</strong></p>
-        {% endif %}
-        <a href="{% url 'quiz-resultado' tentativa.pk %}">
-            Ver resultado <span aria-hidden="true">&rarr;</span>
-        </a>
-    </article>
-    {% endwith %}
-    {% empty %}
-    <p>Você ainda não fez o teste com a conta logada.</p>
-    <a class="botao" href="{% url 'quiz-inicio' %}">Fazer o teste</a>
-    {% endfor %}
+{% block content %}
+<section class="pagina-conta">
+    <div class="pagina-conta__titulo">
+        <a class="voltar" href="{% url 'quiz-inicio' %}">Voltar</a>
+        <h1>Meus testes</h1>
+    </div>
+
+    {% if tentativas %}
+    <ul class="linhas">
+        {% for tentativa in tentativas %}
+        {% with principal=tentativa.recomendacoes.all.0 %}
+        <li class="linha">
+            <div class="linha__info">
+                <a class="linha__titulo" href="{% url 'quiz-resultado' tentativa.pk %}">
+                    Teste de {{ tentativa.criado_em|date:"d/m/Y" }} às {{ tentativa.criado_em|date:"H:i" }}
+                </a>
+                {% if principal %}
+                <p class="linha__descricao">1º lugar: <strong>{{ principal.curso.nome_curso }}</strong></p>
+                {% endif %}
+            </div>
+            {% if principal %}
+            <span class="chip chip--area">{% widthratio principal.score 1 100 %}% de afinidade</span>
+            {% endif %}
+        </li>
+        {% endwith %}
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="vazio">
+        <p>Você ainda não fez o teste com a conta logada.</p>
+        <a class="botao" href="{% url 'quiz-inicio' %}">Fazer o teste</a>
+    </div>
+    {% endif %}
 </section>
 {% endblock %}

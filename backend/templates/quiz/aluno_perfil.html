@@ -1,35 +1,49 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Meu perfil{% endblock %}
 
+{% block estilos %}<link rel="stylesheet" href="{% static 'css/conta.css' %}">{% endblock %}
+
 {% block content %}
-<section>
-    <p>Meu perfil</p>
-    <h1>{{ user.first_name|default:user.email }}</h1>
+<section class="pagina-conta">
+    <div class="pagina-conta__titulo">
+        <a class="voltar" href="{% url 'quiz-inicio' %}">Voltar</a>
+        <h1>{{ user.first_name|default:user.email }}</h1>
+    </div>
 
     {# Só números que o sistema mede de verdade #}
-    <ul class="perfil__numeros">
-        <li><strong>{{ total_de_testes }}</strong> {{ total_de_testes|pluralize:"teste feito,testes feitos" }}</li>
-        <li><strong>{{ total_na_lista }}</strong> {{ total_na_lista|pluralize:"curso na lista,cursos na lista" }}</li>
-    </ul>
+    <div class="perfil__numeros">
+        <a class="cartao perfil__numero" href="{% url 'minhas-tentativas' %}">
+            <strong>{{ total_de_testes }}</strong>
+            {{ total_de_testes|pluralize:"teste feito,testes feitos" }}
+        </a>
+        <a class="cartao perfil__numero" href="{% url 'lista_interesse' %}">
+            <strong>{{ total_na_lista }}</strong>
+            {{ total_na_lista|pluralize:"curso na lista,cursos na lista" }}
+        </a>
+    </div>
 
     <h2>Histórico de resultados</h2>
-    {% for item in historico %}
-    <article>
-        <h3>
-            <a href="{% url 'quiz-resultado' item.tentativa_id %}">
-                {{ item.curso.nome_curso|default:"Resultado sem curso" }}
-            </a>
-        </h3>
-        <p>
-            {% if item.match is not None %}{{ item.match }}% de afinidade · {% endif %}
-            {{ item.data|date:"d/m/Y" }} às {{ item.data|date:"H:i" }}
-        </p>
-    </article>
-    {% empty %}
-    <p>Você ainda não fez o teste com a conta logada.</p>
-    {% endfor %}
-
-    <a class="botao" href="{% url 'quiz-inicio' %}">Fazer o teste de novo</a>
+    {% if historico %}
+    <ul class="linhas">
+        {% for item in historico %}
+        <li class="linha">
+            <div class="linha__info">
+                <a class="linha__titulo" href="{% url 'quiz-resultado' item.tentativa_id %}">
+                    {{ item.curso.nome_curso|default:"Resultado sem curso" }}
+                </a>
+                <p class="linha__descricao">{{ item.data|date:"d/m/Y" }} às {{ item.data|date:"H:i" }}</p>
+            </div>
+            {% if item.match is not None %}<span class="chip chip--area">{{ item.match }}% de afinidade</span>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="vazio">
+        <p>Você ainda não fez o teste com a conta logada.</p>
+        <a class="botao" href="{% url 'quiz-inicio' %}">Fazer o teste</a>
+    </div>
+    {% endif %}
 </section>
 {% endblock %}
