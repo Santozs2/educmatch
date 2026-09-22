@@ -1,5 +1,6 @@
 
 from pathlib import Path
+import os 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -64,7 +65,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'educmatch',
-        'USER': 'root',
+        'USER': 'tecmysql',
         'PASSWORD': 'devmysql',
         'HOST': 'localhost',
         'PORT': '3306',

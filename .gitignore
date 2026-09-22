@@ -1,28 +1,38 @@
-# Dependency directories
-node_modules/
-.pnpm/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+*.egg
+.pytest_cache/
+.mypy_cache/
 
-# Build outputs
-dist/
-build/
-out/
+# Ambientes virtuais
+.venv/
+venv/
+env/
 
-# Cache & temp
-.vite/
-.cache/
-*.tsbuildinfo
+# Django
+media/
+staticfiles/
+db.sqlite3
+local_settings.py
 
-# Environment variables
+# Variáveis de ambiente
 .env
 .env.local
 .env.*.local
 
 # Logs
 *.log
-npm-debug.log*
-yarn-debug.log*
 
-# OS files
+# Testes / cobertura
+coverage/
+.coverage
+htmlcov/
+
+# Sistema operacional
 .DS_Store
 Thumbs.db
 
@@ -32,32 +42,6 @@ Thumbs.db
 *.swp
 *.swo
 *~
-
-# Python (EducMatch backend)
-__pycache__/
-*.pyc
-*.pyo
-*.egg-info/
-.eggs/
-*.egg
-.pytest_cache/
-.mypy_cache/
-.venv/
-venv/
-env/
-
-# Django / Python web
-media/
-staticfiles/
-db.sqlite3
-
-# Testing
-coverage/
-htmlcov/
-
-# Misc
-*.manifest
-*.spec
 
 # Configuração local do Claude Code (contém token): nunca versionar
 .claude/settings.local.json

@@ -1,5 +1,3 @@
-// static/js/quiz.js
-// Transforma o formulario (que funciona sem JS) num wizard de uma pergunta por vez.
 (function () {
     const form = document.querySelector("[data-quiz]");
     if (!form) return;
@@ -10,12 +8,11 @@
     const barraWrapper = form.querySelector("[data-barra-wrapper]");
     const barra = form.querySelector("[data-barra]");
     const contador = form.querySelector("[data-contador]");
-    const totalPerguntas = passos.length - 1; // o primeiro passo e a apresentacao
+    const totalPerguntas = passos.length - 1;
 
     form.classList.add("quiz--wizard");
     if (barraWrapper) barraWrapper.hidden = false;
 
-    // Se o servidor devolveu erro, comeca na primeira pergunta sem resposta.
     let atual = form.querySelector(".alerta") ? primeiraVazia() : 0;
 
     function primeiraVazia() {
@@ -60,7 +57,7 @@
             const aviso = passo.querySelector("[data-aviso]");
             if (aviso) aviso.hidden = false;
             passo.classList.remove("treme");
-            void passo.offsetWidth; // reinicia a animacao
+            void passo.offsetWidth;
             passo.classList.add("treme");
             return;
         }
@@ -72,14 +69,12 @@
         if (evento.target.closest("[data-voltar]")) mostrar(atual - 1, true);
     });
 
-    // Marcou a resposta: segue sozinho, com uma pausa para o clique ser visto.
     form.addEventListener("change", (evento) => {
         if (evento.target.type !== "radio") return;
         esconderAviso(passos[atual]);
         if (atual < passos.length - 1) setTimeout(avancar, 320);
     });
 
-    // Enter avanca em vez de enviar o formulario pela metade.
     form.addEventListener("keydown", (evento) => {
         if (evento.key !== "Enter") return;
         if (atual === passos.length - 1) return;

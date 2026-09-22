@@ -2,31 +2,27 @@
 
 Plataforma de matching educacional — conecta estudantes a cursos técnicos com base no perfil respondido num quiz.
 
+Aplicação Django única, renderizada no servidor (templates + CSS/JS estáticos). Não há mais SPA separada: o front em React foi removido e as telas vivem em `backend/templates/`.
+
 ## Estrutura
 
 ```
 educmatch/
-├─ backend/          Django + DRF: API v1, engine de recomendação, admin
-│  ├─ core/          settings e rotas do projeto
-│  ├─ quiz/          questões, tentativas, engine (cosseno)
-│  ├─ catalogo/      áreas e cursos
-│  ├─ accounts/      usuário, login, lista de interesse
-│  ├─ painel/        métricas agregadas com supressão k-anônima
-│  ├─ templates/     front antigo em templates (sai na FE-24)
+├─ backend/
+│  ├─ core/         settings e rotas do projeto
+│  ├─ quiz/         questões, tentativas, engine de recomendação (cosseno)
+│  ├─ catalogo/     áreas e cursos
+│  ├─ accounts/     usuário, login/cadastro, lista de interesse
+│  ├─ painel/       métricas agregadas com supressão k-anônima
+│  ├─ templates/    telas do quiz (base.html, quiz/)
+│  ├─ static/       css/style.css e js/quiz.js
 │  └─ requirements.txt
-├─ frontend/         React 19 + Vite + TypeScript + Tailwind 4
-│  └─ src/
-│     ├─ lib/        cliente HTTP, tipos, queries, sessão
-│     ├─ components/ compartilhados (Header, Modal, Toast…)
-│     └─ features/   uma pasta por fluxo: quiz, conta, painel, pesquisa
-└─ docs/specs/       planos e passo a passo de cada fase
+└─ docs/specs/      planos e passo a passo de cada fase
 ```
 
 ## Como rodar
 
-São dois servidores em desenvolvimento. Abra sempre o front em `http://localhost:5173`: o Vite repassa `/api` para o Django.
-
-### Backend
+Pré-requisitos: Python 3.12+ e MySQL com o banco `educmatch` criado.
 
 ```bash
 cd backend
@@ -38,27 +34,38 @@ python manage.py seed_areas && python manage.py seed_cursos && python manage.py 
 python manage.py runserver      # http://localhost:8000
 ```
 
-O banco é MySQL (`educmatch`). As credenciais vêm de variáveis de ambiente; veja `docs/specs/passo-a-passo-bk-01-bk-08.md` (BK-08).
+As credenciais do banco ficam em `core/settings.py`; veja `docs/specs/passo-a-passo-bk-01-bk-08.md` (BK-08) para movê-las para variáveis de ambiente.
 
-### Frontend
+### Rotas principais
+
+| Rota | O que é |
+| --- | --- |
+| `/` | início do quiz |
+| `/questionario/<token>/` | acesso ao questionário por link |
+| `/resultado/<id>/` | resultado com os cursos recomendados |
+| `/quiz/dashboard/` | dashboard e geração de link |
+| `/entrar/`, `/cadastro_usuario/` | login e cadastro |
+| `/meus-testes/`, `/meu-perfil/`, `/lista_interesse/` | área do aluno |
+| `/admin/` | admin do Django |
+
+## Testes
 
 ```bash
-cd frontend
-pnpm install
-pnpm dev          # http://localhost:5173
-pnpm typecheck
-pnpm build        # gera frontend/dist/
+cd backend
+python manage.py test
 ```
+
+Os testes cobrem o engine de recomendação (`quiz/tests/`), as rotas web, a lista de interesse (`accounts/tests/`) e as métricas do painel (`painel/tests/`).
 
 ## Tecnologias
 
-- **Backend:** Python, Django 5.2 LTS, Django REST Framework, MySQL
-- **Frontend:** React 19, Vite, TypeScript, Tailwind CSS 4, React Router, TanStack Query, Recharts
-- **Gerenciadores:** pip e pnpm (use só o pnpm no front: o lockfile é `pnpm-lock.yaml`)
+- Python, Django 5.2 LTS, MySQL (`mysqlclient`)
+- Templates Django + CSS e JavaScript sem build step
+- `djangorestframework` continua instalado, mas nenhuma rota de API está exposta hoje
 
 ## Contribuindo
 
 1. Crie uma branch a partir de `main` (uma fase do plano = um PR)
-2. Antes do PR: `pnpm typecheck && pnpm build` em `frontend/` e `python manage.py test` em `backend/`
+2. Antes do PR: `python manage.py test` em `backend/`
 3. Commit com mensagem clara (Conventional Commits)
 4. Abra PR para `main`

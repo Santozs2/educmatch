@@ -115,8 +115,6 @@ class Recomendacao(models.Model):
         unique_together = ('tentativa', 'curso')
         ordering = ["rank"]
    
-   
-    # Função para verificar se a recomendação é a principal (rank 1)
     @property
     def is_primary(self):
         return self.rank == 1

@@ -1,10 +1,3 @@
-from django.db import transaction
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from quiz.engine import recomedacao
-from quiz.models import Resposta, Questao, Tentativa_de_resposta
-from quiz.serializers import RecomendacaoSerializer, Questao, EnvioSerializer, QuestaoSerializer
 from functools import wraps
 
 from django.conf import settings
@@ -13,37 +6,9 @@ from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from .models import QuestionarioLink, Resposta
 
-class QuestaoList(generics.ListAPIView):
-    queryset = Questao.objects.filter(is_active=True)
-    serializer_class = QuestaoSerializer
-    
-class EnvioQuiz(APIView):
-    def post(self, request):
-        entrada = EnvioSerializer(data=request.data)
-        entrada.is_valid(raise_exception=True)
-        dados = entrada.validated_data
+from .models import QuestionarioLink, Resposta, Tentativa_de_resposta
 
-        with transaction.atomic():
-            tentativa = Tentativa_de_resposta.objects.create(user=None)
-            Resposta.objects.bulk_create(
-                [
-                    Resposta(tentativa=tentativa, questao=item["questao"], alternativa=item["alternativa"])
-                    for item in dados["respostas"]
-                ]
-            )
-            recomendacoes = recomedacao(tentativa)
-        return Response({"tentativa_id": tentativa.id, "recomendacoes": RecomendacaoSerializer(recomendacoes, many=True).data}, status=status.HTTP_201_CREATED)
-
-class ResultadoQuestao(generics.RetrieveAPIView):
-    queryset = Questao.objects.all()
-    serializer_class = QuestaoSerializer
-
-    def recuerar(self, request, *args, **kwargs):
-        tentativa = self.get_object.all()
-        dados = RecomendacaoSerializer(tentativa, many=True).data
-        return Response(dados, status=status.HTTP_200_OK)
 
 def superuser_required(view):
     @wraps(view)
