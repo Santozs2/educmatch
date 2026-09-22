@@ -9,6 +9,7 @@ from accounts.forms import LoginForm, CadastroForm
 from accounts.models import Interesse
 from catalogo.models import Curso
 from quiz.models import Tentativa_de_resposta
+from accounts.servicos import registrar_interesse
 
 def _salvar_interesse_pendente(request):
     pendente = request.session.get("interesse_pendente")
@@ -26,11 +27,7 @@ def _salvar_interesse_pendente(request):
     if tentativa_id:
         tentativa = Tentativa_de_resposta.objects.filter(pk=tentativa_id).first()
 
-    Interesse.objects.get_or_create(
-        usuario=request.user,
-        curso=curso,
-        defaults={"envio_recurso": tentativa},
-    )
+    registrar_interesse(request.user, curso, tentativa)
     request.session.pop("interesse_pendente", None)
     return tentativa_id
 
@@ -107,16 +104,8 @@ def salvar_interesse(request):
     tentativa = None
     if tentativa_id:
         tentativa = Tentativa_de_resposta.objects.filter(pk=tentativa_id).first()
-        if tentativa:
-            rec = tentativa.recomendacoes.filter(curso=curso).first()
 
-    item, criado = Interesse.objects.get_or_create(
-        usuario=request.user,
-        curso=curso,
-        defaults= {
-            "envio_recurso": tentativa,
-        },
-    )
+    item, criado = registrar_interesse(request.user, curso, tentativa)
     if not criado:
         item.delete()
         

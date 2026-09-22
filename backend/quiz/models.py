@@ -70,7 +70,7 @@ class Tentativa_de_resposta(models.Model):
         ordering = ["-criado_em"]
         
     def __str__(self):
-        nome_usuario = self.user.username if self.user else "anônimo"
+        nome_usuario = self.user.email if self.user else "anônimo"
         return f"Tentativa de {nome_usuario} em {self.criado_em.strftime('%Y-%m-%d %H:%M:%S')} - Nota: {self.score}"
 
 
@@ -109,7 +109,7 @@ class Recomendacao(models.Model):
     curso = models.ForeignKey('catalogo.Curso', on_delete=models.CASCADE, related_name="recomendacoes")
     score = models.FloatField(default=0.0, validators=[MinValueValidator(0.0), MaxValueValidator(5)])
     rank = models.IntegerField(default=0)
-    explicacao = models.TextField(blank=True, null=True)
+    explicacao = models.JSONField(default=dict, blank=True)
     
     class Meta:
         unique_together = ('tentativa', 'curso')
@@ -120,4 +120,4 @@ class Recomendacao(models.Model):
         return self.rank == 1
         
     def __str__(self):
-        return f"Recomendação do curso {self.curso.nome} para a tentativa {self.tentativa.id} - Score: {self.score}, Rank: {self.rank}"
+        return f"Recomendação do curso {self.curso.nome_curso} para a tentativa {self.tentativa.id} - Score: {self.score}, Rank: {self.rank}"

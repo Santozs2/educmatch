@@ -34,21 +34,7 @@ class UserManager(BaseUserManager):
         
         return self._criar_usuario(email, password, **extra_fields)
 
-class Login(models.Model):
-    nome = models.CharField(max_length=100)
-    senha = models.CharField(max_length=100)
-    
-    def __str__(self):
-        return self.nome
 
-class Cadastro(models.Model):
-    nome = models.CharField(max_length=100)
-    data_nascimento = models.DateField()
-    email = models.EmailField()
-    senha = models.CharField(max_length=100)
-    
-    def __str__(self):
-        return f"{self.nome} realizou o cadastro com sucesso!! "
 
 
 class Interesse(models.Model):
@@ -60,10 +46,21 @@ class Interesse(models.Model):
     ]
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="interesses")
     curso = models.ForeignKey("catalogo.Curso", on_delete=models.PROTECT, related_name="interessados")
-    envio_recurso = models.ForeignKey("quiz.Tentativa_de_resposta", null=True, blank=True, on_delete=models.SET_NULL, related_name="interesses")
+    tentativa_origem = models.ForeignKey(
+        "quiz.Tentativa_de_resposta",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="interesses",
+    )
+    # C4: a "foto" do momento em que o aluno salvou o curso. A tentativa pode
+    # ser refeita e a recomendação regravada; o snapshot não muda.
+    rank_snapshot = models.PositiveSmallIntegerField("posição no momento", null=True, blank=True)
+    afinidade_snapshot = models.FloatField("afinidade no momento", null=True, blank=True)
+    era_principal = models.BooleanField("era o 1º colocado", default=False)
     status = models.CharField(max_length=20, choices=STATUS, default="interessado")
     nota = models.TextField(blank=True)
-    criado_em = models.DateTimeField(auto_now=True)
+    criado_em = models.DateTimeField(auto_now_add=True)  # era auto_now: mudava a cada save
     
     
     class Meta:
