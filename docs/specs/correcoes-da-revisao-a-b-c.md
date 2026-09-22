@@ -11,6 +11,28 @@ criado: 2026-09-22
 
 # 🔎 Correções da revisão — A, B e C
 
+> [!important] Rodada 2 (2026-09-22, contra a `main` em `56a49b2`): **o código das três está certo**
+> Mesclando as três branches na ordem **A → B → C** numa cópia da `main`, a suíte fecha em **59 testes, 58 verdes**. O único vermelho é o do fuso, que é esperado na máquina local e passa na CI (o workflow carrega as tabelas).
+> O que ainda impede o merge **não é o código**. São três coisas de Git e uma de segredo:
+>
+> | Pessoa | Falta |
+> |---|---|
+> | **A** | ❌ nada mudou desde a rodada 1: a senha `devmysql` e o usuário `tecmysql` continuam como padrão no `settings.py` (A-2) e o README (A-3) |
+> | **B** | ✅ `.sql`, `import ast` e `*.sql` no `.gitignore` feitos, e o PR-3 adiantado e certo. ❌ **não fez o `git merge origin/main`** (passo comum): os conflitos continuam. ❌ **mexeu no `ALLOWED_HOSTS` do `settings.py`**, que é da A |
+> | **C** | ✅ `_celula.html` e a rota `cursos/` feitos. ❌ **não fez o `git merge origin/main`**. ❌ **mexeu no `ALLOWED_HOSTS` do `settings.py`**, que é da A. ⏳ continua dependendo do merge da B |
+>
+> **B e C: desfaçam a mudança no `settings.py`.** Ela conflita com o PR da A, que já resolve o `ALLOWED_HOSTS` do jeito certo (por variável de ambiente). Para os testes rodarem na sua máquina antes do PR da A entrar, deixe a mudança **sem commit**. Para tirar do commit:
+> ```bash
+> git switch <sua-branch>
+> git fetch origin
+> git merge origin/main                         # o passo comum, que faltou
+> git checkout --theirs backend/catalogo/ docs/specs/   # só os que estiverem em conflito
+> git checkout origin/main -- backend/core/settings.py  # desfaz o ALLOWED_HOSTS
+> git add -A && git commit --no-edit
+> git push
+> ```
+> Depois, confira: `git diff origin/main -- backend/core/settings.py` tem de sair **vazio**.
+
 > [!abstract] O que esta nota é
 > O resultado da revisão de código das três branches abertas, feita em 2026-09-22 contra a `main` em `c50960f` (depois do PR #4, que consertou a página do curso). Cada branch foi **mesclada numa cópia** da `main` e testada no MySQL. Nenhuma está pronta para entrar ainda, mas todas estão perto: **o código principal de cada uma está certo**, e o que falta é pequeno e está listado abaixo, com os comandos.
 
