@@ -1,0 +1,157 @@
+/* Painel da coordenação. Usa as variáveis do :root do style.css. */
+
+.painel {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.painel__topo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  border-bottom: 3px solid var(--vermelho);
+  padding-bottom: 1rem;
+}
+
+.painel__periodos {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.painel__periodos a {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  text-decoration: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.painel__periodos a[aria-current="page"] {
+  background: var(--preto);
+  color: var(--branco);
+  border-color: var(--preto);
+}
+
+.painel__numeros,
+.painel__grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.painel__numero,
+.painel__cartao {
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  padding: 1.2rem;
+}
+
+.painel__numero h2,
+.painel__cartao h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vermelho-escuro);
+  margin-bottom: 0.6rem;
+}
+
+.painel__numero p,
+.painel__destaque {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.painel__cartao--largo {
+  grid-column: 1 / -1;
+}
+
+.painel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.painel th {
+  text-align: left;
+  border-bottom: 2px solid var(--preto);
+  padding: 0.4rem;
+}
+
+.painel td {
+  border-bottom: 1px solid var(--linha);
+  padding: 0.4rem;
+}
+
+.painel td:last-child,
+.painel th:last-child {
+  text-align: right;
+}
+
+/* Barra proporcional ao total de testes do período */
+.painel__barra {
+  display: block;
+  height: 6px;
+  margin-top: 0.3rem;
+  width: var(--largura);
+  background: var(--vermelho);
+  border-radius: 3px;
+}
+
+.painel abbr {
+  text-decoration: none;
+  cursor: help;
+  color: var(--cinza);
+}
+
+.painel__aviso {
+  background: #fff8e1;
+  border-left: 4px solid #b26a00;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.painel__alerta td {
+  color: var(--vermelho-escuro);
+  font-weight: 700;
+}
+
+.painel__links {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.painel__links li {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.painel__links input {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--linha);
+  border-radius: 8px;
+}
+
+.painel__rodape {
+  font-size: 0.85rem;
+  color: var(--cinza);
+}
+
+/* Escondido na tela, lido pelo leitor de tela */
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

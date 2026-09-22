@@ -29,12 +29,27 @@ cd backend
 python -m venv .venv
 source .venv/Scripts/activate   # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env            # e ajuste DB_USER e DB_PASSWORD para o seu MySQL
 python manage.py migrate
 python manage.py seed_areas && python manage.py seed_cursos && python manage.py seed_questoes
 python manage.py runserver      # http://localhost:8000
 ```
 
-As credenciais do banco ficam em `core/settings.py`; veja `docs/specs/passo-a-passo-bk-01-bk-08.md` (BK-08) para movê-las para variáveis de ambiente.
+Confira o catálogo pelo número: `12` áreas, `20` cursos, `73` pesos.
+
+### Configuração (`backend/.env`)
+
+Tudo que muda de uma máquina para outra (chave, `DEBUG`, hosts e banco) vem de variável de ambiente. O `core/settings.py` lê o arquivo `backend/.env` sozinho; os nomes estão em `backend/.env.example`. O `.env` **nunca** vai para o Git.
+
+### Tabelas de fuso do MySQL (uma vez por máquina)
+
+O projeto usa `TIME_ZONE = "America/Sao_Paulo"`, e o MySQL vem sem as tabelas de fuso: sem elas, todo filtro por data do painel volta vazio, sem erro. Baixe o pacote POSIX em https://dev.mysql.com/downloads/timezones.html e rode:
+
+```bash
+mysql -u root -p mysql < timezone_posix.sql
+```
+
+O teste `python manage.py test core` diz se deu certo.
 
 ### Rotas principais
 
@@ -43,7 +58,9 @@ As credenciais do banco ficam em `core/settings.py`; veja `docs/specs/passo-a-pa
 | `/` | início do quiz |
 | `/questionario/<token>/` | acesso ao questionário por link |
 | `/resultado/<id>/` | resultado com os cursos recomendados |
-| `/quiz/dashboard/` | dashboard e geração de link |
+| `/cursos/<id>/` | detalhe do curso |
+| `/painel/` | painel da coordenação (staff), com k-anonimato e geração de link |
+| `/quiz/dashboard/` | endereço antigo: redireciona para `/painel/` |
 | `/entrar/`, `/cadastro_usuario/` | login e cadastro |
 | `/meus-testes/`, `/meu-perfil/`, `/lista_interesse/` | área do aluno |
 | `/admin/` | admin do Django |

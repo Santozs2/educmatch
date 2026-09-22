@@ -1,5 +1,3 @@
-import ast
-
 from django.db import transaction 
 from django.http import Http404 
 from django.shortcuts import get_object_or_404, redirect, render
@@ -14,12 +12,7 @@ def perguntas_ativas():
     return Questao.objects.filter(is_active=True).prefetch_related("alternativas")
 
 def areas_da_recomendacao(recomendacao):
-    explicacao = recomendacao.explicacao
-    if isinstance(explicacao, str):
-        try:
-            explicacao = ast.literal_eval(explicacao)
-        except (ValueError, SyntaxError):
-            return []
+    explicacao = recomendacao.explicacao  # JSONField: já chega como dict
     if not isinstance(explicacao, dict):
         return []
 

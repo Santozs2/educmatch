@@ -8,6 +8,8 @@ from quiz.models import Recomendacao
 TOP3 = 3
 CORTE_MINIMO = 0.5
 CORTE_MAXIMO = 0.8
+BANDA_CONFIANCA_ALTA = 0.15
+BANDA_CONFIANCA_MEDIA = 0.05
 
 def vetor_curso(curso):
     vetor = {
@@ -77,6 +79,7 @@ def banda(afinidade):
 
 
 def confianca(ranking):
+    """Quanto o 1º lugar se separou do 2º, no ranking INTEIRO (antes do corte)."""
     if not ranking:
         return "baixa"
 
@@ -87,39 +90,47 @@ def confianca(ranking):
         return "baixa"
 
     separacao = (primeiro - segundo) / primeiro
-    if separacao >= 0.15:
+    if separacao >= BANDA_CONFIANCA_ALTA:
         return "alta"
-    if separacao >= 0.05:
+    if separacao >= BANDA_CONFIANCA_MEDIA:
         return "media"
     return "baixa"
-
 
 @transaction.atomic
 def recomedacao(tentativa, limit=None):
     if limit is None:
         limit = settings.QUIZ_RECOMENDACAO_LIMIT
-    alternativas = [resposta.alternativa for resposta in tentativa.respostas.select_related("alternativa")]
-    perfil = perfil_vetor(alternativas)
+    respostas = (
+        tentativa.respostas
+        .select_related("alternativa")                 # FK: um JOIN
+        .prefetch_related("alternativa__pesos__area")  # para-muitos: uma consulta a mais
+    )
+    perfil = perfil_vetor([resposta.alternativa for resposta in respostas])
     nome_areas = dict(Area.objects.values_list("slug", "nome"))
-    ranking = rank_cursos(perfil, Curso.objects.all(), nome_areas)[:limit]
+
+    # REC-02: curso desativado não entra no cálculo (e nem no painel).
+    cursos = Curso.objects.filter(is_active=True).prefetch_related("curso_peso__area")
+    ranking = rank_cursos(perfil, cursos, nome_areas)   # completo
 
     primeiro = ranking[0][1] if ranking else 0.0
     segundo = ranking[1][1] if len(ranking) > 1 else 0.0
 
     tentativa.diferenca = primeiro - segundo
-    tentativa.confidence_band = confianca(ranking)
+    tentativa.confidence_band = confianca(ranking)     # REC-04: mede antes do corte
     tentativa.save(update_fields=["confidence_band", "diferenca"])
 
-    tentativa.recomendacoes.all().delete()
-    return Recomendacao.objects.bulk_create(
+    ranking = ranking[:limit]
+    Recomendacao.objects.filter(tentativa=tentativa).delete()
+    Recomendacao.objects.bulk_create(
         [
             Recomendacao(
                 tentativa=tentativa,
                 curso=curso,
-                score=round(score, 4),
-                rank=posicao,
+                score=score,
+                rank=rank,
                 explicacao=explicacao,
             )
-            for posicao, (curso, score, explicacao) in enumerate(ranking, start=1)
+            for rank, (curso, score, explicacao) in enumerate(ranking, start=1)
         ]
     )
+    return tentativa
