@@ -5,39 +5,31 @@
 {% block content %}
 <section>
     <p>Meu perfil</p>
+    <h1>{{ user.first_name|default:user.email }}</h1>
 
-    <div>
-        <span aria-hidden="true">
-            <i class="fa-solid fa-user"></i>
-        </span>
-            {% if user.is_authenticated %}
-        <div>
-            <h1>
-                {{ user.first_name }} {{ user.last_name }}
-            </h1>
-        </div>
-            {% endif %}
-    </div>
+    {# Só números que o sistema mede de verdade #}
+    <ul class="perfil__numeros">
+        <li><strong>{{ total_de_testes }}</strong> {{ total_de_testes|pluralize:"teste feito,testes feitos" }}</li>
+        <li><strong>{{ total_na_lista }}</strong> {{ total_na_lista|pluralize:"curso na lista,cursos na lista" }}</li>
+    </ul>
 
-    <h2>Historico de resultados</h2>
-    <div>
-        {% for tentativa in historico %}
-        <article>
-            <div>
-                <span>{{ forloop.counter }}</span>
-    
-                <h3>{{ tentativa.curso.nome_curso }}</h3>
-                <span>{{ tentativa.match }}%</span>
-            </div>
-            <p>{{ tentativa.data|date:"d/m/Y" }} às {{ tentativa.data|date:"H:i" }}</p>
-        </article>
-        {% empty %}
-        <p>Voce ainda nao tem tentativas registradas.</p>
-        {% endfor %}
-    </div>
+    <h2>Histórico de resultados</h2>
+    {% for item in historico %}
+    <article>
+        <h3>
+            <a href="{% url 'quiz-resultado' item.tentativa_id %}">
+                {{ item.curso.nome_curso|default:"Resultado sem curso" }}
+            </a>
+        </h3>
+        <p>
+            {% if item.match is not None %}{{ item.match }}% de afinidade · {% endif %}
+            {{ item.data|date:"d/m/Y" }} às {{ item.data|date:"H:i" }}
+        </p>
+    </article>
+    {% empty %}
+    <p>Você ainda não fez o teste com a conta logada.</p>
+    {% endfor %}
 
-    <div>
-        <a class="botao_refazer" href="{% url 'quiz-inicio' %}">Refazer o teste</a>
-    </div>
+    <a class="botao" href="{% url 'quiz-inicio' %}">Fazer o teste de novo</a>
 </section>
 {% endblock %}

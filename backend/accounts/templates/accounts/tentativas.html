@@ -3,35 +3,25 @@
 {% block title %}Meus testes{% endblock %}
 
 {% block content %}
-<a class="botao" href="{% url 'quiz-inicio' %}">
-    <span aria-hidden="true">
-        <i class="fa-solid fa-arrow-left-long"></i>
-    </span>
-    VOLTAR
-</a>
 <section>
+    <p>Sua conta</p>
     <h1>Meus testes</h1>
-    
 
-    {% if tentativas %}
-    <div>
-        {% for tentativa in tentativas %}
-        <article>
-            <div>
-                <h3>Teste de {{ tentativa.criado_em|date:"d/m/Y" }}</h3>
-            </div>
-            <p>Respondido as {{ tentativa.criado_em|date:"H:i" }}</p>
-            <a href="{% url 'quiz-resultado' tentativa.pk %}">
-                Ver resultado <span aria-hidden="true">&rarr;</span>
-            </a>
-        </article>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p>Voce ainda nao respondeu ao teste estando logado.</p>
-    <div>
-        <a href="{% url 'quiz-inicio' %}">Fazer o teste</a>
-    </div>
-    {% endif %}
+    {% for tentativa in tentativas %}
+    {% with principal=tentativa.recomendacoes.all.0 %}
+    <article>
+        <h3>Teste de {{ tentativa.criado_em|date:"d/m/Y" }} às {{ tentativa.criado_em|date:"H:i" }}</h3>
+        {% if principal %}
+        <p>1º lugar: <strong>{{ principal.curso.nome_curso }}</strong></p>
+        {% endif %}
+        <a href="{% url 'quiz-resultado' tentativa.pk %}">
+            Ver resultado <span aria-hidden="true">&rarr;</span>
+        </a>
+    </article>
+    {% endwith %}
+    {% empty %}
+    <p>Você ainda não fez o teste com a conta logada.</p>
+    <a class="botao" href="{% url 'quiz-inicio' %}">Fazer o teste</a>
+    {% endfor %}
 </section>
 {% endblock %}

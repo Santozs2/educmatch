@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{{ curso.nome_curso }}{% endblock %}
+
+{% block content %}
+{% if tentativa_id %}
+<a class="botao botao--ghost" href="{% url 'quiz-resultado' tentativa_id %}">
+    <span aria-hidden="true">&larr;</span> Voltar para o meu resultado
+</a>
+{% endif %}
+
+<section>
+    <p>Sobre o curso</p>
+    <h1>{{ curso.nome_curso }}</h1>
+
+    <ul class="etiquetas">
+        <li>{{ curso.area_principal.nome }}</li>
+        <li>{{ curso.duracao }} horas</li>
+        {% if curso.inicio_dia %}<li>Início em {{ curso.inicio_dia|date:"d/m/Y" }}</li>{% endif %}
+    </ul>
+
+    <h2>Descrição</h2>
+    <p>{{ curso.descricao|linebreaksbr }}</p>
+
+    <form method="post" action="{% url 'interesse-salvar' %}">
+        {% csrf_token %}
+        <input type="hidden" name="curso_id" value="{{ curso.id }}">
+        {% if tentativa_id %}<input type="hidden" name="tentativa_id" value="{{ tentativa_id }}">{% endif %}
+        <button class="botao" type="submit">
+            {% if salvo %}Remover da minha lista{% else %}Salvar na minha lista{% endif %}
+        </button>
+    </form>
+</section>
+{% endblock %}
