@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Quiz de orientacao{% endblock %}
+
+{% block content %}
+{% if not erro and not quiz_iniciado %}
+<form class="quiz-form quiz-intro-form" method="get" action="{% url 'quiz-inicio' %}?etapa=1#questao-1">
+    <section class="quiz-passo quiz-intro" id="inicio" data-passo>
+        <p class="sobretitulo">Leva menos de 2 minutos</p>
+        <h1>Descubra o curso <em>certo</em> para o seu perfil</h1>
+        <p>
+            Responda algumas perguntas sobre o jeito que voce gosta de trabalhar.
+            No final, mostramos os cursos que mais combinam com voce e explicamos o porque.
+        </p>
+
+        <label>
+            <span>Seu nome <span>(opcional)</span></span>
+            <input type="text" name="respondido_por" maxlength="100"
+                   value="{{ respondido_por|default:'' }}" placeholder="Como podemos te chamar?">
+        </label>
+        <button class="botao" type="submit">Começar <span aria-hidden="true">&rarr;</span></button>
+    </section>
+</form>
+{% endif %}
+
+<form class="quiz-form quiz-questions-form{% if erro %} quiz-form--erro{% endif %}" method="post" action="{% url 'quiz-inicio' %}" data-quiz novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="respondido_por" value="{{ respondido_por|default:'' }}">
+
+    <div data-barra-wrapper hidden>
+        <div>
+            <div data-barra></div>
+        </div>
+        <span data-contador></span>
+    </div>
+
+    {% if erro %}
+        <p role="alert">{{ erro }}</p>
+    {% endif %}
+
+    {% for questao in questoes %}
+    <fieldset class="quiz-passo" id="questao-{{ forloop.counter }}" data-passo>
+        <legend>
+            <span>{{ forloop.counter }}</span>
+            {{ questao.texto }}
+        </legend>
+
+        <div class="quiz-opcoes">
+            {% for choice in questao.alternativas.all %}
+            <label>
+                <input type="radio" name="questao_{{ questao.id }}" value="{{ choice.id }}"
+                      required
+                       {% if choice.id == questao.marcada_id %}checked{% endif %}>
+                <span aria-hidden="true">{{ forloop.counter }}</span>
+                <span>{{ choice.texto }}</span>
+                <span aria-hidden="true"></span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <p data-aviso hidden>Escolha uma opcao para continuar.</p>
+
+        <div class="quiz-acoes">
+            {% if forloop.first %}
+                <a class="botao botao--ghost" href="{% url 'quiz-inicio' %}">Voltar</a>
+            {% else %}
+                <a class="botao botao--ghost" href="#questao-{{ forloop.counter0 }}">Voltar</a>
+            {% endif %}
+            {% if forloop.last %}
+                <button class="botao" type="submit">
+                    Ver meus cursos
+                    <span aria-hidden="true">&rarr;</span>
+                </button>
+            {% else %}
+                <a class="botao" href="#questao-{{ forloop.counter|add:'1' }}">
+                    Proxima
+                    <span aria-hidden="true">&rarr;</span>
+                </a>
+            {% endif %}
+        </div>
+    </fieldset>
+    {% endfor %}
+</form>
+{% endblock %}
+

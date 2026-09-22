@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Precisão{% endblock %}
+{% block content %}
+<section class="painel" style="max-width:1200px; margin:0 auto; padding:2rem; font-family:'DM Sans',sans-serif; color:var(--preto);">
+  <header style="margin-bottom:2rem; border-bottom:3px solid var(--vermelho); padding-bottom:1.2rem;">
+    <h1 style="font-size:2rem; letter-spacing:-0.03em; margin:0 0 0.2rem;">Dashboard</h1>
+    <p style="color:#666; margin:0; font-size:0.95rem;">Agregação precisa · Nenhum dado individual exposto · Período: {{ periodo }} dias · Top 3 de cursos com manifestação de interesse.</p>
+  </header>
+
+  {% if not tem_massa %}
+    <div style="background:#fff8e1; border-left:4px solid #ff9800; padding:1rem; border-radius:8px; font-size:0.95rem;">
+      <strong>Objeto de privacidade:</strong> Menos de {{ k_minimo }} tentativas neste período. Para preservar o anonimato, apenas o total agregado é exibido. Escolha um período maior.
+    </div>
+  {% else %}
+
+  <!-- Métricas principais -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-bottom:2rem;">
+    <article style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.04);">
+      <h3 style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--vermelho); margin:0 0 0.3rem;">Tentativas</h3>
+      <p style="font-size:2rem; font-weight:700; margin:0;">{{ total_de_tentativas }}</p>
+    </article>
+    <article style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.04);">
+      <h3 style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--vermelho); margin:0 0 0.3rem;">Top 3 manifestações</h3>
+      <p style="font-size:2rem; font-weight:700; margin:0;">{{ top_manifestacoes|length }}</p>
+    </article>
+    <article style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.04);">
+      <h3 style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--vermelho); margin:0 0 0.3rem;">Cursos ativos</h3>
+      <p style="font-size:2rem; font-weight:700; margin:0;">{{ cursos_ativos }}</p>
+    </article>
+  </div>
+
+  <!-- Top 3 cursos com manifestações (preciso) -->
+  <div style="margin-bottom:2rem;">
+    <h2 style="font-size:1.2rem; border-left:4px solid var(--vermelho); padding-left:0.7rem;">Top 3 — cursos com mais manifestações</h2>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+      <div style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1rem;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;" aria-label="Top 3 cursos com mais manifestações">
+          <thead><tr style="border-bottom:2px solid var(--preto);"><th style="text-align:left; padding:0.5rem;">Curso</th><th style="text-align:right; padding:0.5rem;">Manifestações</th></tr></thead>
+          <tbody>
+            {% for linha in top_manifestacoes %}
+            <tr style="border-bottom:1px solid var(--linha);">
+              <td style="padding:0.5rem;">{{ linha.curso__nome_curso }}</td>
+              <td style="padding:0.5rem; text-align:right; font-weight:700;">{{ linha.total }}</td>
+            </tr>
+            {% empty %}<tr><td colspan="2" style="padding:0.5rem;">Nenhum dado no período.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Gráfico de barras horizontal -->
+      <div style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1rem;">
+        <h3 style="font-size:0.95rem; margin:0 0 0.8rem;">Distribuição por curso (Top 3)</h3>
+        <canvas id="chartTop3" aria-label="Gráfico de barras com top 3 cursos" role="img"></canvas>
+        <p style="font-size:0.8rem; color:#666; margin:0.5rem 0 0;">Valores começam no 1º lugar; menor que {{ k_minimo }} é suprimido.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos complementares -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-bottom:2rem;">
+    <div style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1rem;">
+      <h2 style="font-size:1.1rem; border-left:4px solid var(--vermelho); padding-left:0.7rem;">Conversão — recomendado → salvo</h2>
+      <table style="width:100%; border-collapse:collapse; font-size:0.9rem;" aria-label="Conversão por curso">
+        <thead><tr style="border-bottom:2px solid var(--preto);"><th style="text-align:left; padding:0.4rem;">Curso</th><th style="text-align:right; padding:0.4rem;">Taxa</th></tr></thead>
+        <tbody>
+          {% for linha in conversao %}
+          <tr style="border-bottom:1px solid var(--linha);"><td style="padding:0.4rem;">{{ linha.nome_curso }}</td><td style="padding:0.4rem; text-align:right;">{{ linha.taxa|floatformat:1 }}%</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-top:0.8rem; height:220px;">
+        <canvas id="chartConversao" aria-label="Gráfico de barras da conversão por curso" role="img"></canvas>
+      </div>
+    </div>
+
+    <div style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1rem;">
+      <h2 style="font-size:1.1rem; border-left:4px solid var(--vermelho); padding-left:0.7rem;">Cobertura de áreas</h2>
+      <table style="width:100%; border-collapse:collapse; font-size:0.9rem;" aria-label="Cobertura de áreas pelo quiz">
+        <thead><tr style="border-bottom:2px solid var(--preto);"><th style="text-align:left; padding:0.4rem;">Área</th><th style="text-align:right; padding:0.4rem;">Alternativas</th></tr></thead>
+        <tbody>
+          {% for area in cobertura %}
+          <tr style="border-bottom:1px solid var(--linha);"><td style="padding:0.4rem;">{{ area.nome }}</td><td style="padding:0.4rem; text-align:right;">{{ area.alternativas }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-top:0.8rem; height:220px;">
+        <canvas id="chartCobertura" aria-label="Gráfico de barras da cobertura de áreas" role="img"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notas do período -->
+  <nav aria-label="Seleção de período" style="margin-bottom:1rem;">
+    {% for chave, dias in periodos.items %}
+      <a class="botao {% if periodo == chave %}botao--principal{% else %}botao--fantasma{% endif %}" href="?periodo={{ chave }}">{{ dias }} dias</a>
+    {% endfor %}
+    <a class="botao {% if periodo == 'tudo' %}botao--principal{% else %}botao--fantasma{% endif %}" href="?periodo=tudo">Tudo</a>
+  </nav>
+
+  <div style="margin-top:1rem; padding:1rem; background:#fff5f5; border-left:4px solid var(--vermelho); border-radius:8px; font-size:0.85rem;">
+    <strong>Nota de privacidade:</strong> Nenhum nome, e-mail ou resposta individual é exibido. Valores menores que {{ k_minimo }} são suprimidos ({{ k_minimo }}). Dados agregados por tentativa.
+  </div>
+  {% endif %}
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  'use strict';
+  // Top 3 — barras horizontais com cores distintas
+  var ctx = document.getElementById('chartTop3');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [{% for linha in top_manifestacoes %}'{{ linha.curso__nome_curso|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+          label: 'Manifestações',
+          data: [{% for linha in top_manifestacoes %}{{ linha.total }}{% if not forloop.last %},{% endif %}{% endfor %}],
+          backgroundColor: ['#2e7d32','#c62828','#1565c0'],
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, title: { display: true, text: 'Manifestações' } } }
+      }
+    });
+  }
+
+  // Conversão
+  var ctx2 = document.getElementById('chartConversao');
+  if (ctx2) {
+    new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: [{% for linha in conversao %}'{{ linha.nome_curso|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+          label: 'Taxa %',
+          data: [{% for linha in conversao %}{{ linha.taxa|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}],
+          backgroundColor: '#2e7d32',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: '%' } } }
+      }
+    });
+  }
+
+  // Cobertura
+  var ctx3 = document.getElementById('chartCobertura');
+  if (ctx3) {
+    new Chart(ctx3, {
+      type: 'bar',
+      data: {
+        labels: [{% for area in cobertura %}'{{ area.nome|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+          label: 'Alternativas',
+          data: [{% for area in cobertura %}{{ area.alternativas }}{% if not forloop.last %},{% endif %}{% endfor %}],
+          backgroundColor: '#1565c0',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

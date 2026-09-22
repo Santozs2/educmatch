@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Criar conta{% endblock %}
+
+{% block content %}
+<section>
+    <p>Comece agora</p>
+    <h1>Criar conta</h1>
+    <p>Salve os cursos recomendados e acompanhe seus testes anteriores.</p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+        {% endif %}
+
+        {% for field in form %}
+        <label for="{{ field.id_for_label }}">
+            <span>
+                {{ field.label }}
+                {% if not field.field.required %}<span>(opcional)</span>{% endif %}
+            </span>
+            {{ field }}
+            {% if field.help_text %}<p>{{ field.help_text|safe }}</p>{% endif %}
+            {% for erro in field.errors %}<p>{{ erro }}</p>{% endfor %}
+        </label>
+        {% endfor %}
+
+        <div>
+            <a href="{% url 'entrar' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">Ja tenho conta</a>
+            <button type="submit">
+                Criar conta <span aria-hidden="true">&rarr;</span>
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}

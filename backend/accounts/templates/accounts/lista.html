@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Minha lista{% endblock %}
+
+{% block content %}
+{% if ultima_tentativa %}
+<a class="botao" href="{% url 'quiz-resultado' ultima_tentativa.pk %}">
+    <span aria-hidden="true">
+        <i class="fa-solid fa-arrow-left-long"> VOLTAR</i>
+    </span>
+</a>
+{% endif %}
+<section>
+    <p>Sua conta</p>
+    <h1>Minha lista</h1>
+    {% if ultima_tentativa %}
+    {% else %}
+    <a href="{% url 'quiz-inicio' %}">
+        voltar
+        <span aria-hidden="true">&rarr;</span>
+    </a>
+    {% endif %}
+
+    {% if interesses %}
+    <div>
+        {% for item in interesses %}
+        <article>
+            <div>
+                <h3>{{ item.curso.nome_curso }}</h3>
+            </div>
+            <p>{{ item.curso.area_principal.nome }}</p>
+            <ul>
+                <li>{{ item.get_status_display }}</li>
+                <li>salvo em {{ item.criado_em|date:"d/m/Y" }}</li>
+            </ul>
+            <form method="post" action="{% url 'remover_interesse' item.pk %}">
+                {% csrf_token %}
+                <button type="submit">Remover</button>
+            </form>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Voce ainda nao salvou nenhum curso. Refaca o teste e clique em "Salvar" nos resultados.</p>
+    <div>
+        <a href="{% url 'quiz-inicio' %}">Fazer o teste</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

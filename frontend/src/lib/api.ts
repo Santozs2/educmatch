@@ -18,6 +18,7 @@ function lerCookie(nome: string): string {
 
 function mensagemDeErro(status: number, corpo: any): string {
   if (corpo?.detail) return corpo.detail
+  if (status === 400 && corpo && typeof corpo === 'object') return 'Confira os campos destacados.'
   if (status === 401) return 'Você precisa entrar para continuar.'
   if (status === 403) return 'Você não tem permissão para isso.'
   if (status === 404) return 'Não encontramos o que você procura.'
@@ -49,3 +50,13 @@ export async function api<T>(caminho: string, init: RequestInit = {}): Promise<T
 }
 
 export const garantirCsrf = () => api<void>('/auth/csrf/')
+export function errosDeCampo(erro: unknown): Record<string, string> {
+  if (!(erro instanceof ErroApi) || erro.status !== 400) return {}
+  if (!erro.corpo || typeof erro.corpo !== 'object') return {}
+  const saida: Record<string, string> = {}
+  for (const [campo, valor] of Object.entries(erro.corpo as Record<string, unknown>)) {
+    if (campo === 'detail') continue
+    saida[campo] = Array.isArray(valor) ? String(valor[0]) : String(valor)
+  }
+  return saida
+}

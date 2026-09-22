@@ -8,7 +8,7 @@ import { useSessao } from '../lib/sessao'
 export function Header({ semNav = false }: { semNav?: boolean }) {
   const [menuAberto, setMenuAberto] = useState(false)
   const navegar = useNavigate()
-  const { logado, admin, sair } = useSessao()
+  const { carregando, usuario, logado, admin, sair } = useSessao()
 
   const ir = (rota: string) => {
     setMenuAberto(false)
@@ -30,7 +30,7 @@ export function Header({ semNav = false }: { semNav?: boolean }) {
         {!semNav && (
           <div className="flex items-center gap-2 sm:gap-4">
 
-            {logado ? (
+            {carregando ? null : logado ? (
               <div className="relative">
                 <button
                   onClick={() => setMenuAberto((aberto) => !aberto)}
@@ -39,7 +39,7 @@ export function Header({ semNav = false }: { semNav?: boolean }) {
                   className="flex items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-white/20"
                 >
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-red-600 text-xs">
-                    {admin ? 'A' : 'M'}
+                    {(usuario?.username || usuario?.email || 'M').charAt(0).toUpperCase()}
                   </span>
                   <span className="hidden sm:inline">{admin ? 'Administração' : 'Minha conta'}</span>
                   <ChevronDown size={16} className={menuAberto ? 'rotate-180 transition-transform' : 'transition-transform'} />
@@ -63,7 +63,11 @@ export function Header({ semNav = false }: { semNav?: boolean }) {
                     )}
                     <button
                       role="menuitem"
-                      onClick={() => { setMenuAberto(false); sair(); navegar('/') }}
+                      onClick={async () => {
+                        setMenuAberto(false)
+                        await sair()
+                        navegar('/')
+                      }}
                       className="flex w-full items-center gap-3 border-t border-line-200 px-4 py-3 text-left text-sm font-semibold text-ink-600 hover:bg-red-50 hover:text-red-700"
                     >
                       <LogOut size={17} /> Sair

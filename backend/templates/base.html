@@ -1,0 +1,54 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Descubra seu curso ideal{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+    <header class="topo">
+        <div class="topo__inner">
+            <a class="marca" href="{% url 'quiz-inicio' %}">
+                <span>Quiz<strong>Pessoal</strong></span>
+            </a>
+            <span class="topo__tagline">Orientacao profissional</span>
+
+            <nav class="topo__nav" aria-label="Navegacao principal">
+                {% if user.is_authenticated %}
+                    <details class="usuario-menu">
+                        <summary>
+                            <span class="usuario-menu__avatar" aria-hidden="true">
+                                <i style="color: white;" class="fa-solid fa-user"></i>
+                            </span>
+                            <span>Olá, {{ user.first_name|default:user.email }}</span>
+                        </summary>
+                        <div class="usuario-menu__dropdown">
+                            <a href="{% url 'lista_interesse' %}">Minha lista</a>
+                            <a href="{% url 'minhas-tentativas' %}">Meus testes</a>
+                            <a href="{% url 'aluno-perfil' %}">Meu perfil</a>
+                            {% if user.is_superuser %}<a href="{% url 'dashboard' %}">Dashboard</a>{% endif %}
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit">Sair</button>
+                            </form>
+                        </div>
+                    </details>
+                {% else %}
+                    <a class="botao" href="{% url 'entrar' %}">Entrar</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="conteudo">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="rodape">
+        <p>Recomendacoes calculadas por similaridade de perfil.</p>
+    </footer>
+    {% block scripts %} {% endblock %}
+</body>
+</html>
