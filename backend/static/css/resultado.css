@@ -1,6 +1,8 @@
+/* Resultado (tela 09). Coluna central, como no protótipo. */
+
 .resultado {
   display: grid;
-  grid-template-columns: minmax(0, 1fr); 
+  grid-template-columns: minmax(0, 1fr); /* sem isto, texto com nowrap alarga a página */
   gap: 20px;
   max-width: 760px;
   margin: 0 auto;
@@ -22,6 +24,8 @@
 .resultado__pendente p {
   margin: 0;
 }
+
+/* ---------- O 1º lugar ---------- */
 
 .destaque {
   overflow: hidden;
@@ -74,6 +78,8 @@
   margin-bottom: 6px;
 }
 
+/* ---------- Por que este curso ---------- */
+
 .porque {
   margin-bottom: 20px;
   padding: 16px;
@@ -101,6 +107,8 @@
 .porque__linha .barra {
   grid-column: 1 / -1;
 }
+
+/* ---------- Também combinam ---------- */
 
 .resultado__subtitulo {
   margin: 12px 0 0;
@@ -152,6 +160,8 @@
   font-weight: 700;
   text-decoration: none;
 }
+
+/* A linha inteira clica, mas só o nome do curso é o link (leitor de tela lê uma vez) */
 .outro__link::after {
   content: "";
   position: absolute;
@@ -196,6 +206,8 @@
   margin-top: 12px;
 }
 
+/* ---------- Celular ---------- */
+
 @media (max-width: 640px) {
   .destaque__corpo {
     grid-template-columns: 1fr;
@@ -216,6 +228,9 @@
     display: none;
   }
 }
+
+/* ---------- "Salvar em PDF": o que sai no papel ---------- */
+
 @media print {
   .topo,
   .rodape,

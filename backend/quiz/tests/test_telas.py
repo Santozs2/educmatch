@@ -13,13 +13,12 @@ class TelasDoAlunoTest(BaseEducMatch):
         return Tentativa_de_resposta.objects.latest("id")
 
     def test_aviso_de_baixa_confianca_aparece(self):
-        """O template testava `confidence_level`, que não existe: o aviso nunca aparecia."""
         tentativa = self.responder()
         Tentativa_de_resposta.objects.filter(pk=tentativa.pk).update(confidence_band="baixa")
 
         resposta = self.client.get(reverse("quiz-resultado", args=[tentativa.pk]))
 
-        self.assertContains(resposta, "afinidade com os cursos disponiveis ficou baixa")
+        self.assertContains(resposta, "afinidade com os cursos disponíveis ficou baixa")
 
     def test_resultado_leva_ao_detalhe_do_curso(self):
         tentativa = self.responder()
@@ -30,13 +29,27 @@ class TelasDoAlunoTest(BaseEducMatch):
         destino = reverse("curso-detalhe", args=[primeiro.pk]) + f"?tentativa={tentativa.pk}"
         self.assertContains(resposta, destino)
 
-    def test_detalhe_do_curso_mostra_o_curso_e_volta_ao_resultado(self):
-        curso = Curso.objects.first()
+    def test_detalhe_do_curso_mostra_a_afinidade_e_volta_ao_resultado(self):
+        tentativa = self.responder()
+        rec = tentativa.recomendacoes.get(rank=1)
 
-        resposta = self.client.get(reverse("curso-detalhe", args=[curso.pk]) + "?tentativa=7")
+        resposta = self.client.get(reverse("curso-detalhe", args=[rec.curso_id]) + f"?tentativa={tentativa.pk}")
 
-        self.assertContains(resposta, curso.nome_curso)
-        self.assertContains(resposta, reverse("quiz-resultado", args=[7]))
+        self.assertContains(resposta, rec.curso.nome_curso)
+        self.assertContains(resposta, reverse("quiz-resultado", args=[tentativa.pk]))
+        self.assertEqual(resposta.context["afinidade"], round(rec.score * 100))
+
+    def test_detalhe_nao_mostra_tentativa_de_outro_navegador(self):
+        """C6 no detalhe: ?tentativa= de outra pessoa não vira link nem afinidade."""
+        outro = self.client_class(SERVER_NAME="localhost")
+        outro.post("/", self.payload_do_quiz())
+        alheia = Tentativa_de_resposta.objects.latest("id")
+        curso = alheia.recomendacoes.get(rank=1).curso
+
+        resposta = self.client.get(reverse("curso-detalhe", args=[curso.pk]) + f"?tentativa={alheia.pk}")
+
+        self.assertIsNone(resposta.context["afinidade"])
+        self.assertNotContains(resposta, reverse("quiz-resultado", args=[alheia.pk]))
 
     def test_curso_desativado_nao_tem_pagina(self):
         curso = Curso.objects.first()
