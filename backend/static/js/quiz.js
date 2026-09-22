@@ -1,90 +1,80 @@
-// Transforma o formulario (que funciona sem JS) num wizard de uma pergunta por vez.
+// Melhorias do quiz com JavaScript. SEM JS o quiz funciona igual: cada pergunta é
+// um #questao-N, os links "Próxima"/"Voltar" trocam o # da URL e o CSS (:target)
+// mostra só a pergunta da vez. Este arquivo só acrescenta conforto:
+//   1. marcou a resposta com o mouse ou o dedo -> avança sozinho;
+//   2. Enter avança em vez de enviar o formulário pela metade;
+//   3. o foco vai para a pergunta nova (leitor de tela anuncia);
+//   4. no envio, mostra a tela "Analisando seu perfil".
 (function () {
     const form = document.querySelector("[data-quiz]");
     if (!form) return;
 
     const passos = Array.from(form.querySelectorAll("[data-passo]"));
-    if (passos.length < 2) return;
+    const analisando = document.querySelector("[data-analisando]");
 
-    const barraWrapper = form.querySelector("[data-barra-wrapper]");
-    const barra = form.querySelector("[data-barra]");
-    const contador = form.querySelector("[data-contador]");
-    const totalPerguntas = passos.length - 1; // o primeiro passo e a apresentacao
+    function passoAtual() {
+        return passos.find((passo) => "#" + passo.id === location.hash);
+    }
 
-    form.classList.add("quiz--wizard");
-    if (barraWrapper) barraWrapper.hidden = false;
-
-    // Se o servidor devolveu erro, comeca na primeira pergunta sem resposta.
-    let atual = form.querySelector(".alerta") ? primeiraVazia() : 0;
-
-    function primeiraVazia() {
-        for (let i = 1; i < passos.length; i++) {
-            if (!respondido(passos[i])) return i;
-        }
-        return passos.length - 1;
+    function irPara(indice) {
+        if (indice >= 0 && indice < passos.length) location.hash = passos[indice].id;
     }
 
     function respondido(passo) {
         return Boolean(passo.querySelector("input[type=radio]:checked"));
     }
 
-    function mostrar(indice, foco) {
-        atual = Math.max(0, Math.min(indice, passos.length - 1));
-        passos.forEach((passo, i) => passo.classList.toggle("esta-ativo", i === atual));
-
-        const respondidas = atual === 0 ? 0 : atual - 1;
-        if (barra) barra.style.width = (respondidas / totalPerguntas) * 100 + "%";
-        if (contador) {
-            contador.textContent = atual === 0
-                ? totalPerguntas + " perguntas"
-                : "Pergunta " + atual + " de " + totalPerguntas;
-        }
-
-        esconderAviso(passos[atual]);
-        if (foco) {
-            const alvo = passos[atual].querySelector("input, button");
-            if (alvo) alvo.focus({ preventScroll: true });
-        }
-        passos[atual].scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-
-    function esconderAviso(passo) {
+    function avisar(passo) {
         const aviso = passo.querySelector("[data-aviso]");
-        if (aviso) aviso.hidden = true;
+        if (aviso) aviso.hidden = false;
     }
 
-    function avancar() {
-        const passo = passos[atual];
-        if (atual > 0 && !respondido(passo)) {
-            const aviso = passo.querySelector("[data-aviso]");
-            if (aviso) aviso.hidden = false;
-            passo.classList.remove("treme");
-            void passo.offsetWidth; // reinicia a animacao
-            passo.classList.add("treme");
-            return;
-        }
-        mostrar(atual + 1, true);
-    }
+    // No teclado, as setas trocam a opção marcada e disparam "change" a cada toque.
+    // Avançar sozinho aí jogaria a pessoa para a próxima pergunta antes de escolher:
+    // no teclado, quem avança é o Enter.
+    let pelaTeclado = false;
+    form.addEventListener("pointerdown", () => { pelaTeclado = false; });
+    form.addEventListener("keydown", () => { pelaTeclado = true; });
 
-    form.addEventListener("click", (evento) => {
-        if (evento.target.closest("[data-avancar]")) avancar();
-        if (evento.target.closest("[data-voltar]")) mostrar(atual - 1, true);
-    });
-
-    // Marcou a resposta: segue sozinho, com uma pausa para o clique ser visto.
+    // 1. Marcou a resposta com o mouse/dedo: segue sozinho, com uma pausa para o clique ser visto.
     form.addEventListener("change", (evento) => {
         if (evento.target.type !== "radio") return;
-        esconderAviso(passos[atual]);
-        if (atual < passos.length - 1) setTimeout(avancar, 320);
+        const passo = evento.target.closest("[data-passo]");
+        const aviso = passo.querySelector("[data-aviso]");
+        if (aviso) aviso.hidden = true;
+        const indice = passos.indexOf(passo);
+        if (!pelaTeclado && indice < passos.length - 1) setTimeout(() => irPara(indice + 1), 320);
     });
 
-    // Enter avanca em vez de enviar o formulario pela metade.
+    // 2. Enter avança em vez de enviar o formulário pela metade.
     form.addEventListener("keydown", (evento) => {
         if (evento.key !== "Enter") return;
-        if (atual === passos.length - 1) return;
+        const passo = passoAtual();
+        if (!passo) return;
+        const indice = passos.indexOf(passo);
+        if (indice === passos.length - 1) return; // na última, Enter envia mesmo
         evento.preventDefault();
-        avancar();
+        if (respondido(passo)) irPara(indice + 1);
+        else avisar(passo);
     });
 
-    mostrar(atual, false);
+    // 3. Pergunta nova na tela: o foco vai para o enunciado.
+    window.addEventListener("hashchange", () => {
+        const passo = passoAtual();
+        if (passo) passo.querySelector("legend").focus({ preventScroll: true });
+        window.scrollTo(0, 0);
+    });
+
+    // 4. Enviou: a tela "Analisando" cobre tudo enquanto o servidor calcula.
+    //    Se faltar resposta, volta para a primeira pergunta em branco.
+    form.addEventListener("submit", (evento) => {
+        const vazio = passos.find((passo) => !respondido(passo));
+        if (vazio) {
+            evento.preventDefault();
+            location.hash = vazio.id;
+            avisar(vazio);
+            return;
+        }
+        if (analisando) analisando.hidden = false;
+    });
 })();
