@@ -20,7 +20,7 @@ export interface Curso {
   id: number
   nome_curso: string
   descricao: string
-  duracao: number // em horas
+  duracao: number
   area_principal: Area
 }
 
@@ -39,12 +39,12 @@ export interface Recomendacao {
   explicacao: { top_areas: AreaExplicada[] }
 }
 
-export interface Tentativa {
+export interface TentativaResumo {
   tentativa_id: number
+  criado_em: string
+  respondido_por: string
   confidence_band: 'alta' | 'media' | 'baixa'
-  diferenca: number
-  respondido_por?: string
-  recomendacoes: Recomendacao[]
+  principal: Recomendacao | null
 }
 
 export interface Usuario {
@@ -59,7 +59,10 @@ export interface Interesse {
   curso: Curso
   status: 'interessado' | 'contatado' | 'descartado'
   criado_em: string
+  rank_snapshot: number | null
+  era_principal: boolean
 }
+
 export interface RespostaEnviada {
   questao: number
   alternativa: number
@@ -69,4 +72,10 @@ export interface EnvioQuiz {
   respondido_por: string
   questionario_link: string | null
   respostas: RespostaEnviada[]
+}
+
+export interface DadosCadastro {
+  nome: string
+  email: string
+  senha: string
 }

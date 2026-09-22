@@ -14,6 +14,7 @@ import { Dashboard } from './features/painel/Dashboard'
 import { Questionario } from './features/pesquisa/Questionario'
 import { Obrigado } from './features/pesquisa/Obrigado'
 import { NaoEncontrado } from './components/NaoEncontrado'
+import { ExigeLogin } from './components/ExigeLogin'
 
 export const router = createBrowserRouter([
   {
@@ -25,9 +26,9 @@ export const router = createBrowserRouter([
       { path: '/curso/:id', element: <DetalheCurso /> },
       { path: '/entrar', element: <Entrar /> },
       { path: '/cadastro', element: <Cadastro /> },
-      { path: '/meus-interesses', element: <ListaInteresse /> },
-      { path: '/meu-perfil', element: <Perfil /> },
-      { path: '/meus-testes', element: <Historico /> },
+      { path: '/meus-interesses', element: <ExigeLogin><ListaInteresse /></ExigeLogin> },
+      { path: '/meu-perfil', element: <ExigeLogin><Perfil /></ExigeLogin> },
+      { path: '/meus-testes', element: <ExigeLogin><Historico /></ExigeLogin> },
       { path: '/painel', element: <Dashboard /> },
       { path: '*', element: <NaoEncontrado /> },
     ],

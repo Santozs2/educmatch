@@ -208,9 +208,6 @@ const SEEDED_SURVEY_RESPONSES: SurveyResponse[] = [
   { answers: [3, 1, 0, 1], submittedAt: '2026-09-14T10:30:00Z' },
 ];
 
-const ADMIN_EMAIL = 'admin@senai.com';
-const ADMIN_PASSWORD = 'admin123';
-
 // --- UTILITY ---
 
 function generateToken(): string {
@@ -917,7 +914,7 @@ function LoginScreen({
       setError('Preencha e-mail e senha para continuar.');
       return;
     }
-    if (email.trim() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    if (email.trim() === (process.env.ADMIN_EMAIL || '') && password === (process.env.ADMIN_PASSWORD || '')) {
       onAdminLogin();
       return;
     }
