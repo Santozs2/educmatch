@@ -18,7 +18,7 @@
 
     {% if tentativa.confidence_band == "baixa" %}
     <p class="aviso" role="note">
-        Sua afinidade com os cursos disponiveis ficou baixa. Vale refazer o teste
+        Sua afinidade com os cursos disponíveis ficou baixa. Vale refazer o teste
         com calma ou conversar com a secretaria antes de decidir.
     </p>
     {% endif %}
@@ -115,6 +115,7 @@
 
 {% block scripts %}
 <script>
+    // "Salvar em PDF" = imprimir; o navegador oferece "Salvar como PDF".
     document.querySelectorAll("[data-imprimir]").forEach(function (botao) {
         botao.hidden = false;
         botao.addEventListener("click", function () { window.print(); });

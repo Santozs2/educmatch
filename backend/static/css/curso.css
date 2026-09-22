@@ -6,7 +6,7 @@
 
 .curso {
   display: grid;
-  grid-template-columns: minmax(0, 1fr); 
+  grid-template-columns: minmax(0, 1fr); /* sem isto, texto com nowrap alarga a página */
   gap: 24px;
   max-width: 740px;
   margin: 0 auto;
@@ -72,6 +72,8 @@
   font-size: 1.6rem !important;
   font-weight: 700;
 }
+
+/* ---------- Secretaria ---------- */
 
 .secretaria h2 {
   font-size: 1.1rem;
