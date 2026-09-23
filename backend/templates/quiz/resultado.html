@@ -7,7 +7,7 @@
 
 {% block content %}
 <section class="resultado">
-    <h1>
+    <h1 class="entrada">
         {% if tentativa.respondido_por %}{{ tentativa.respondido_por }}, esses{% else %}Esses{% endif %}
         são os cursos que mais combinam com você
     </h1>
@@ -35,7 +35,7 @@
 
     {% if destaque %}
     {# Tela 09 · o 1º lugar em destaque #}
-    <article class="destaque" aria-labelledby="destaque-nome">
+    <article class="destaque entrada" style="--i: 1" aria-labelledby="destaque-nome">
         <div class="destaque__faixa">
             <span class="chip"><i class="fa-solid fa-check" aria-hidden="true"></i> Melhor combinação</span>
         </div>
@@ -59,7 +59,7 @@
                 <div class="porque">
                     <h3>Por que este curso?</h3>
                     {% for area in destaque.areas %}
-                    <div class="porque__linha">
+                    <div class="porque__linha" style="--i: {{ forloop.counter }}">
                         <span>{{ area.area_name }}</span>
                         <span>{{ area.percentual|floatformat:0 }}%</span>
                         {% include "componentes/_barra.html" with valor=area.percentual %}
@@ -76,10 +76,10 @@
     </article>
 
     {% if outros %}
-    <h2 class="resultado__subtitulo">Também combinam com você</h2>
+    <h2 class="resultado__subtitulo entrada" style="--i: 3">Também combinam com você</h2>
     <ol class="outros">
         {% for item in outros %}
-        <li class="outro">
+        <li class="outro entrada" style="--i: {{ forloop.counter|add:'3' }}">
             <span class="outro__rank" aria-hidden="true">{{ item.rank }}</span>
             <div class="outro__info">
                 {# O link cobre a linha inteira (ver .outro__link::after no CSS) #}
@@ -90,7 +90,7 @@
             </div>
             <span class="chip chip--area outro__area">{{ item.curso.area_principal.nome }}</span>
             <div class="outro__afinidade">
-                <strong>{{ item.match }}%</strong>
+                <strong data-contar>{{ item.match }}%</strong>
                 {% include "componentes/_barra.html" with valor=item.match escura=True %}
             </div>
             <i class="fa-solid fa-arrow-right outro__seta" aria-hidden="true"></i>
@@ -103,7 +103,7 @@
     <p class="vazio">Não encontramos recomendações para esta tentativa.</p>
     {% endif %}
 
-    <div class="resultado__acoes">
+    <div class="resultado__acoes entrada" style="--i: 6">
         <a class="botao botao--contorno" href="{% url 'quiz-inicio' %}">Refazer o teste</a>
         {# Só com JS: sem ele, o Ctrl+P do navegador faz o mesmo #}
         <button class="botao botao--texto" type="button" data-imprimir hidden>

@@ -7,7 +7,7 @@
 
 {% block content %}
 <section class="painel">
-    <header class="painel__topo">
+    <header class="painel__topo entrada">
         <div>
             <p>Painel da coordenação</p>
             <h1>O que o catálogo e a demanda estão dizendo</h1>
@@ -21,18 +21,18 @@
     </header>
 
     <div class="painel__numeros">
-        <article class="painel__numero">
+        <article class="painel__numero entrada" style="--i: 1">
             <h2>Testes respondidos</h2>
-            <p>{{ total_de_tentativas }}</p>
+            <p data-contar>{{ total_de_tentativas }}</p>
         </article>
         {% if tem_massa %}
-        <article class="painel__numero">
+        <article class="painel__numero entrada" style="--i: 2">
             <h2>Pelo link da escola</h2>
-            <p>{{ via_link }}</p>
+            <p data-contar>{{ via_link }}</p>
         </article>
-        <article class="painel__numero">
+        <article class="painel__numero entrada" style="--i: 3">
             <h2>Cursos ativos</h2>
-            <p>{{ cursos_ativos }}</p>
+            <p data-contar>{{ cursos_ativos }}</p>
         </article>
         {% endif %}
     </div>
@@ -44,7 +44,7 @@
     </p>
     {% else %}
 
-    <div class="painel__grade">
+    <div class="painel__grade entrada" style="--i: 4">
         {% include "painel/_ranking.html" with titulo="Cursos em 1º lugar" linhas=top_primeiro coluna="Testes" %}
         {% include "painel/_ranking.html" with titulo="Cursos que aparecem no top 5" linhas=top_cinco coluna="Testes" %}
         {% include "painel/_ranking.html" with titulo="Cursos mais salvos na lista" linhas=top_manifestacoes coluna="Alunos" %}

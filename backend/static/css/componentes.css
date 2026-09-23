@@ -12,18 +12,34 @@
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background var(--dur-rapida) var(--ease-padrao),
+    color var(--dur-rapida) var(--ease-padrao),
+    border-color var(--dur-rapida) var(--ease-padrao),
+    box-shadow var(--dur-media) var(--ease-padrao),
+    opacity var(--dur-media) var(--ease-padrao),
+    transform var(--dur-media) var(--ease-saida);
 }
 
 .botao:hover {
   border-color: var(--marca-hover);
   background: var(--marca-hover);
   color: var(--gelo);
+  box-shadow: 0 6px 16px rgba(217, 37, 28, 0.22);
+  transform: translateY(-1px);
+}
+
+/* Apertar: o botão afunda um pouco, resposta imediata ao toque */
+.botao:active {
+  box-shadow: none;
+  transform: translateY(0) scale(0.98);
+  transition-duration: 60ms;
 }
 
 .botao--bloco {
   width: 100%;
 }
+
 .botao--contorno {
   background: transparent;
   color: var(--marca);
@@ -32,6 +48,7 @@
 .botao--contorno:hover {
   background: var(--marca-clarinho);
   color: var(--marca-escuro);
+  box-shadow: none;
 }
 
 .botao--texto {
@@ -45,6 +62,8 @@
   border-color: transparent;
   background: var(--marca-clarinho);
   color: var(--marca-escuro);
+  box-shadow: none;
+  transform: none;
 }
 
 .voltar {
@@ -61,6 +80,11 @@
   content: "‹";
   font-size: 1.4em;
   line-height: 1;
+  transition: transform var(--dur-media) var(--ease-saida);
+}
+
+.voltar:hover::before {
+  transform: translateX(-4px);
 }
 
 .topo .voltar {
@@ -106,13 +130,25 @@
   color: var(--branco);
 }
 
-
 .cartao {
   padding: clamp(20px, 4vw, 40px);
   border: 1px solid var(--linha);
   border-radius: var(--raio);
   background: var(--superficie);
   box-shadow: var(--sombra);
+}
+
+/* Cartão que é link: levanta no hover para mostrar que clica */
+a.cartao {
+  transition:
+    border-color var(--dur-rapida) var(--ease-padrao),
+    box-shadow var(--dur-media) var(--ease-padrao),
+    transform var(--dur-media) var(--ease-saida);
+}
+
+a.cartao:hover {
+  box-shadow: 0 12px 30px rgba(9, 9, 11, 0.1);
+  transform: translateY(-3px);
 }
 
 .cartao--centro {
@@ -134,6 +170,7 @@
   font-size: var(--pequeno);
   text-align: center;
 }
+
 .campo {
   display: grid;
   gap: 6px;
@@ -154,10 +191,19 @@
   border-radius: var(--raio-botao);
   background: var(--superficie);
   font-weight: 400;
+  transition:
+    border-color var(--dur-rapida) var(--ease-padrao),
+    box-shadow var(--dur-media) var(--ease-padrao);
+}
+
+.campo input:hover {
+  border-color: var(--texto-3);
 }
 
 .campo input:focus-visible {
   border-color: var(--marca);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(217, 37, 28, 0.15);
 }
 
 .campo__ajuda {
@@ -172,11 +218,15 @@
   color: var(--erro);
   font-size: var(--pequeno);
   font-weight: 600;
+  animation: tremer 360ms var(--ease-padrao);
 }
 
 .campo--com-erro input {
   border-color: var(--erro);
 }
+
+/* ---------- Barra de afinidade ----------
+   Enche de 0 até --valor ao aparecer. Em lista, --i escalona as barras. */
 
 .barra {
   height: 6px;
@@ -191,11 +241,23 @@
   height: 100%;
   border-radius: inherit;
   background: var(--marca);
+  animation: barra-encher var(--dur-preencher) var(--ease-saida) backwards;
+  animation-delay: calc(300ms + var(--i, 0) * var(--escalonar));
 }
 
 .barra--escura .barra__valor {
   background: var(--preto);
 }
+
+@keyframes barra-encher {
+  from {
+    width: 0;
+  }
+}
+
+/* ---------- Anel de afinidade ----------
+   O traço corre de 0 até --valor; o número conta junto (js/movimento.js).
+   No fim, um "pulo" curto marca que terminou. */
 
 .anel {
   --tamanho: 120px;
@@ -204,6 +266,7 @@
   place-items: center;
   width: var(--tamanho);
   height: var(--tamanho);
+  animation: anel-pulo 420ms var(--ease-mola) calc(var(--dur-preencher) + 250ms) both;
 }
 
 .anel svg {
@@ -225,12 +288,28 @@
   stroke-linecap: round;
   stroke-dasharray: 326.7;
   stroke-dashoffset: calc(326.7 - 326.7 * var(--valor) / 100);
+  animation: anel-encher var(--dur-preencher) var(--ease-saida) 250ms backwards;
 }
 
 .anel__numero {
   font-size: 1.9rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
+
+@keyframes anel-encher {
+  from {
+    stroke-dashoffset: 326.7;
+  }
+}
+
+@keyframes anel-pulo {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* ---------- Avisos ---------- */
 
 .mensagens {
   display: grid;
@@ -247,6 +326,22 @@
   border-radius: var(--raio-botao);
   background: var(--superficie);
   box-shadow: var(--sombra);
+  animation: mensagem-chega var(--dur-lenta) var(--ease-mola) backwards;
+}
+
+.mensagem:nth-child(2) {
+  animation-delay: var(--escalonar);
+}
+
+.mensagem:nth-child(3) {
+  animation-delay: calc(2 * var(--escalonar));
+}
+
+@keyframes mensagem-chega {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
 }
 
 .mensagem--success {
@@ -274,7 +369,9 @@
   border-radius: var(--raio);
   text-align: center;
   color: var(--texto-2);
+  animation: aparecer var(--dur-lenta) var(--ease-padrao) both;
 }
+
 .visualmente-oculto {
   position: absolute;
   width: 1px;
