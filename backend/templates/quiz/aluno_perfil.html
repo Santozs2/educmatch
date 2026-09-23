@@ -7,28 +7,28 @@
 
 {% block content %}
 <section class="pagina-conta">
-    <div class="pagina-conta__titulo">
+    <div class="pagina-conta__titulo entrada">
         <a class="voltar" href="{% url 'quiz-inicio' %}">Voltar</a>
         <h1>{{ user.first_name|default:user.email }}</h1>
     </div>
 
     {# Só números que o sistema mede de verdade #}
     <div class="perfil__numeros">
-        <a class="cartao perfil__numero" href="{% url 'minhas-tentativas' %}">
-            <strong>{{ total_de_testes }}</strong>
+        <a class="cartao perfil__numero entrada" style="--i: 1" href="{% url 'minhas-tentativas' %}">
+            <strong data-contar>{{ total_de_testes }}</strong>
             {{ total_de_testes|pluralize:"teste feito,testes feitos" }}
         </a>
-        <a class="cartao perfil__numero" href="{% url 'lista_interesse' %}">
-            <strong>{{ total_na_lista }}</strong>
+        <a class="cartao perfil__numero entrada" style="--i: 2" href="{% url 'lista_interesse' %}">
+            <strong data-contar>{{ total_na_lista }}</strong>
             {{ total_na_lista|pluralize:"curso na lista,cursos na lista" }}
         </a>
     </div>
 
-    <h2>Histórico de resultados</h2>
+    <h2 class="entrada" style="--i: 3">Histórico de resultados</h2>
     {% if historico %}
     <ul class="linhas">
         {% for item in historico %}
-        <li class="linha">
+        <li class="linha entrada" style="--i: {{ forloop.counter|add:'3' }}">
             <div class="linha__info">
                 <a class="linha__titulo" href="{% url 'quiz-resultado' item.tentativa_id %}">
                     {{ item.curso.nome_curso|default:"Resultado sem curso" }}

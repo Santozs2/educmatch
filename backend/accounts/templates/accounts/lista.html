@@ -8,7 +8,7 @@
 {# Tela 12 #}
 {% block content %}
 <section class="pagina-conta">
-    <div class="pagina-conta__titulo">
+    <div class="pagina-conta__titulo entrada">
         {% if ultima_tentativa %}
         <a class="voltar" href="{% url 'quiz-resultado' ultima_tentativa.pk %}">Voltar</a>
         {% else %}
@@ -20,7 +20,7 @@
     {% if interesses %}
     <ul class="linhas">
         {% for item in interesses %}
-        <li class="linha">
+        <li class="linha entrada" style="--i: {{ forloop.counter }}">
             <div class="linha__info">
                 <a class="linha__titulo" href="{% url 'curso-detalhe' item.curso.id %}">{{ item.curso.nome_curso }}</a>
                 <p class="linha__descricao">{{ item.curso.descricao }}</p>

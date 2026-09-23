@@ -65,6 +65,14 @@
   border: 1px solid var(--linha);
   border-radius: var(--raio);
   background: var(--superficie);
+  transition:
+    border-color var(--dur-rapida) var(--ease-padrao),
+    box-shadow var(--dur-media) var(--ease-padrao);
+}
+
+.linha:hover {
+  border-color: var(--marca-claro);
+  box-shadow: var(--sombra);
 }
 
 .linha__info {
@@ -112,6 +120,7 @@
   display: block;
   color: var(--marca);
   font-size: 2rem;
+  font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 

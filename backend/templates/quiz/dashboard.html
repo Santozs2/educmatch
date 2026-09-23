@@ -14,7 +14,7 @@
   {% else %}
 
   <!-- Métricas principais -->
-  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-bottom:2rem;">
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1rem; margin-bottom:2rem;">
     <article style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.04);">
       <h3 style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--vermelho); margin:0 0 0.3rem;">Tentativas</h3>
       <p style="font-size:2rem; font-weight:700; margin:0;">{{ total_de_tentativas }}</p>
@@ -32,7 +32,7 @@
   <!-- Top 3 cursos com manifestações (preciso) -->
   <div style="margin-bottom:2rem;">
     <h2 style="font-size:1.2rem; border-left:4px solid var(--vermelho); padding-left:0.7rem;">Top 3 — cursos com mais manifestações</h2>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+    <div style="display:grid; grid-template-columns: 1fr; gap:2rem;">
       <div style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1rem;">
         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;" aria-label="Top 3 cursos com mais manifestações">
           <thead><tr style="border-bottom:2px solid var(--preto);"><th style="text-align:left; padding:0.5rem;">Curso</th><th style="text-align:right; padding:0.5rem;">Manifestações</th></tr></thead>
@@ -57,7 +57,7 @@
   </div>
 
   <!-- Gráficos complementares -->
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-bottom:2rem;">
+  <div style="display:grid; grid-template-columns: 1fr; gap:2rem; margin-bottom:2rem;">
     <div style="background:var(--branco); border:1px solid var(--linha); border-radius:12px; padding:1rem;">
       <h2 style="font-size:1.1rem; border-left:4px solid var(--vermelho); padding-left:0.7rem;">Conversão — recomendado → salvo</h2>
       <table style="width:100%; border-collapse:collapse; font-size:0.9rem;" aria-label="Conversão por curso">

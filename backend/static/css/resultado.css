@@ -28,6 +28,7 @@
 /* ---------- O 1º lugar ---------- */
 
 .destaque {
+  position: relative;
   overflow: hidden;
   border: 2px solid var(--preto);
   border-radius: var(--raio);
@@ -50,6 +51,35 @@
 
 .destaque__faixa .fa-check {
   color: var(--marca);
+}
+
+/* O selo "Melhor combinação" cai no lugar depois que o cartão chega */
+.destaque__faixa .chip {
+  animation: selo-cai var(--dur-lenta) var(--ease-mola) 200ms backwards;
+}
+
+@keyframes selo-cai {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.9);
+  }
+}
+
+/* Um reflexo atravessa o cartão uma vez, quando o anel termina de encher */
+.destaque::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+  transform: translateX(-100%);
+  pointer-events: none;
+  animation: brilho-destaque 900ms var(--ease-padrao) calc(var(--dur-preencher) + 200ms);
+}
+
+@keyframes brilho-destaque {
+  to {
+    transform: translateX(100%);
+  }
 }
 
 .destaque__corpo {
@@ -134,11 +164,16 @@
   border: 1px solid var(--linha);
   border-radius: var(--raio);
   background: var(--superficie);
-  transition: border-color 0.15s;
+  transition:
+    border-color var(--dur-rapida) var(--ease-padrao),
+    box-shadow var(--dur-media) var(--ease-padrao),
+    transform var(--dur-media) var(--ease-saida);
 }
 
 .outro:hover {
   border-color: var(--marca);
+  box-shadow: 0 8px 20px rgba(9, 9, 11, 0.06);
+  transform: translateY(-2px);
 }
 
 .outro__rank {
@@ -150,6 +185,14 @@
   background: var(--marca-claro);
   color: var(--marca);
   font-weight: 700;
+  transition:
+    background var(--dur-media) var(--ease-padrao),
+    color var(--dur-media) var(--ease-padrao);
+}
+
+.outro:hover .outro__rank {
+  background: var(--marca);
+  color: var(--branco);
 }
 
 .outro__info {
@@ -195,6 +238,11 @@
 
 .outro__seta {
   color: var(--marca);
+  transition: transform var(--dur-media) var(--ease-saida);
+}
+
+.outro:hover .outro__seta {
+  transform: translateX(4px);
 }
 
 .resultado__acoes {
@@ -248,5 +296,9 @@
   .outro {
     box-shadow: none;
     break-inside: avoid;
+  }
+
+  .destaque::after {
+    display: none;
   }
 }

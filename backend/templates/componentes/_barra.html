@@ -1,7 +1,1 @@
-<div class="anel" style="--valor: {{ valor }}" role="img" aria-label="{{ valor }}% de afinidade">
-    <svg viewBox="0 0 120 120" aria-hidden="true">
-        <circle class="anel__fundo" cx="60" cy="60" r="52"></circle>
-        <circle class="anel__valor" cx="60" cy="60" r="52"></circle>
-    </svg>
-    <span class="anel__numero" aria-hidden="true">{{ valor }}%</span>
-</div>
+<div class="barra{% if escura %} barra--escura{% endif %}" role="img" aria-label="{{ valor|floatformat:0 }}% de afinidade"><span class="barra__valor" style="--valor: {{ valor|floatformat:0 }}%"></span></div>
