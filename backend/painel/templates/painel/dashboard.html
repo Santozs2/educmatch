@@ -157,7 +157,8 @@
   if (c1) {
     new Chart(c1, {
       type: 'bar',
-      data: { labels: [{% for l in top_manifestacoes %}'{{ l.curso__nome_curso|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}], datasets: [{ label: 'Manifestações', data: [{% for l in top_manifestacoes %}{{ l.total }}{% if not forloop.last %},{% endif %}{% endfor %}], backgroundColor: ['#c62828','#2e7d32','#1565c0'], borderRadius:6 }] },
+      // Totais suprimidos (< k) ficam fora do gráfico: viriam como None e quebrariam o JS
+      data: { labels: [{% for l in top_manifestacoes %}{% if not l.suprimido %}'{{ l.nome|escapejs }}',{% endif %}{% endfor %}], datasets: [{ label: 'Manifestações', data: [{% for l in top_manifestacoes %}{% if not l.suprimido %}{{ l.total }},{% endif %}{% endfor %}], backgroundColor: ['#c62828','#2e7d32','#1565c0'], borderRadius:6 }] },
       options: { indexAxis: 'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}} }
     });
   }
