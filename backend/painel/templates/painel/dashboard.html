@@ -1,181 +1,189 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Painel da coordenação{% endblock %}
+{% block title %}Painel — Dash{% endblock %}
 
 {% block estilos %}<link rel="stylesheet" href="{% static 'css/painel.css' %}">{% endblock %}
 
 {% block content %}
-<section class="painel">
-    <header class="painel__topo entrada">
-        <div>
-            <p>Painel da coordenação</p>
-            <h1>O que o catálogo e a demanda estão dizendo</h1>
-        </div>
-        <nav class="painel__periodos" aria-label="Período">
-            {% for chave, dias in periodos.items %}
-            <a href="?periodo={{ chave }}" {% if periodo == chave %}aria-current="page"{% endif %}>{{ dias }} dias</a>
-            {% endfor %}
-            <a href="?periodo=tudo" {% if periodo == "tudo" %}aria-current="page"{% endif %}>Tudo</a>
-        </nav>
-    </header>
+<section class="painel" style="max-width:1200px; margin:0 auto; padding:2rem 1rem; font-family:var(--fonte); color:var(--tinta);">
 
-    <div class="painel__numeros">
-        <article class="painel__numero entrada" style="--i: 1">
-            <h2>Testes respondidos</h2>
-            <p data-contar>{{ total_de_tentativas }}</p>
-        </article>
-        {% if tem_massa %}
-        <article class="painel__numero entrada" style="--i: 2">
-            <h2>Pelo link da escola</h2>
-            <p data-contar>{{ via_link }}</p>
-        </article>
-        <article class="painel__numero entrada" style="--i: 3">
-            <h2>Cursos ativos</h2>
-            <p data-contar>{{ cursos_ativos }}</p>
-        </article>
-        {% endif %}
+  <header style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:3px solid var(--vermelho);">
+    <div>
+      <h1 style="font-family:var(--fonte); font-size:clamp(1.6rem,3vw,2.2rem); letter-spacing:-0.03em; margin:0 0 .25rem;">Painel</h1>
+      <p style="margin:0; color:var(--texto-3); font-size:0.9rem;">Período: {{ periodo }} dias · Agregado · Sem dados individuais</p>
     </div>
+    <nav aria-label="Período" style="display:flex; flex-wrap:wrap; gap:.4rem;">
+      {% for chave, dias in periodos.items %}
+      <a href="?periodo={{ chave }}" class="botao {% if periodo == chave %}botao--principal{% else %}botao--fantasma{% endif %}" style="font-size:.85rem; padding:.35rem .7rem;">{{ dias }}d</a>
+      {% endfor %}
+      <a href="?periodo=tudo" class="botao {% if periodo == 'tudo' %}botao--principal{% else %}botao--fantasma{% endif %}" style="font-size:.85rem; padding:.35rem .7rem;">Tudo</a>
+    </nav>
+  </header>
 
-    {% if not tem_massa %}
-    <p class="painel__aviso" role="status">
-        Menos de {{ k_minimo }} testes neste período. Para proteger quem respondeu,
-        só o total aparece. Escolha um período maior.
-    </p>
-    {% else %}
-
-    <div class="painel__grade entrada" style="--i: 4">
-        {% include "painel/_ranking.html" with titulo="Cursos em 1º lugar" linhas=top_primeiro coluna="Testes" %}
-        {% include "painel/_ranking.html" with titulo="Cursos que aparecem no top 5" linhas=top_cinco coluna="Testes" %}
-        {% include "painel/_ranking.html" with titulo="Cursos mais salvos na lista" linhas=top_manifestacoes coluna="Alunos" %}
-
-        <article class="painel__cartao">
-            <h2>Área que mais pesou no 1º lugar</h2>
-            <table>
-                <caption class="visualmente-oculto">Demanda por área</caption>
-                <thead><tr><th scope="col">Área</th><th scope="col">Testes</th></tr></thead>
-                <tbody>
-                    {% for linha in demanda_por_area %}
-                    <tr>
-                        <td>{{ linha.nome }}</td>
-                        <td>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="2">Nenhum dado no período.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </article>
-
-        <article class="painel__cartao">
-            <h2>Confiança do resultado</h2>
-            <table>
-                <caption class="visualmente-oculto">Distribuição da confiança</caption>
-                <thead><tr><th scope="col">Confiança</th><th scope="col">Testes</th></tr></thead>
-                <tbody>
-                    {% for linha in confianca %}
-                    <tr>
-                        <td>{{ linha.confidence_band|default:"sem cálculo"|capfirst }}</td>
-                        <td>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </article>
-
-        <article class="painel__cartao">
-            <h2>Quem salva, salva o 1º lugar?</h2>
-            {% if aderencia.com_snapshot %}
-            <p class="painel__destaque">{% widthratio aderencia.era_principal aderencia.com_snapshot 100 %}%</p>
-            <p>dos cursos salvos eram o 1º lugar do aluno.</p>
-            {% else %}
-            <p>Ninguém salvou curso no período.</p>
-            {% endif %}
-        </article>
+  <!-- Links — topo, enxuto -->
+  <article class="painel__cartao" style="margin-bottom:1.5rem; border-left:4px solid var(--vermelho); padding:1rem 1.2rem;">
+    <h2 style="font-size:0.95rem; text-transform:uppercase; letter-spacing:.05em; color:var(--vermelho-escuro); margin:0 0 .6rem;">Links</h2>
+    <div style="display:flex; gap:.6rem; flex-wrap:wrap; align-items:center;">
+      <button class="botao botao--principal" onclick="abrirModal('modal-gerar')" style="font-size:.85rem;"><i class="fa-solid fa-link" aria-hidden="true"></i> Gerar</button>
+      <button class="botao botao--texto botao--perigo" onclick="abrirModal('modal-fechar')" {% if not links %}disabled style="opacity:.45; cursor:not-allowed;"{% endif %} style="font-size:.85rem;"><i class="fa-solid fa-ban" aria-hidden="true"></i> Fechar</button>
     </div>
+    <ul style="list-style:none; padding:0; margin:.6rem 0 0; display:grid; gap:.4rem;">
+      {% for link in links %}
+      <li style="display:flex; gap:.5rem; align-items:center; background:var(--fundo); padding:.5rem .7rem; border-radius:8px; border:1px solid var(--linha); font-size:.85rem; font-family:monospace;">
+        <input type="text" value="{{ link.url }}" readonly style="flex:1; min-width:200px; padding:.3rem .4rem; border:1px solid var(--linha); border-radius:6px; font-family:monospace; font-size:.82rem; background:#fff;">
+        <button type="button" onclick="copiarLink(this)" style="font-size:.75rem; padding:.25rem .5rem;">Copiar</button>
+      </li>
+      {% empty %}<li style="font-size:.85rem; color:var(--texto-3);">Nenhum link ativo.</li>{% endfor %}
+    </ul>
+  </article>
 
-    <article class="painel__cartao painel__cartao--largo">
-        <h2>Conversão: recomendado → salvo</h2>
-        <table>
-            <caption class="visualmente-oculto">Conversão por curso</caption>
-            <thead>
-                <tr><th scope="col">Curso</th><th scope="col">Recomendado</th><th scope="col">Salvo</th><th scope="col">Taxa</th></tr>
-            </thead>
-            <tbody>
-                {% for linha in conversao %}
-                <tr>
-                    <td>{{ linha.nome_curso }}</td>
-                    <td>{{ linha.recomendado }}</td>
-                    <td>{% include "painel/_celula.html" with valor=linha.interessados suprimido=linha.suprimido %}</td>
-                    <td>{% if linha.taxa is None %}{% include "painel/_celula.html" with suprimido=True %}{% else %}{{ linha.taxa|floatformat:0 }}%{% endif %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+  {% if not tem_massa %}
+  <div class="painel__aviso" role="status"><strong>Privacidade:</strong> Menos de {{ k_minimo }} testes. Só o total aparece. Escolha período maior.</div>
+  {% else %}
+
+  <!-- KPIs -->
+  <div class="painel__numeros" style="margin-bottom:1.5rem;">
+    <article class="painel__numero entrada" style="--i:1"><h2>Testes</h2><p data-contar>{{ total_de_tentativas }}</p></article>
+    <article class="painel__numero entrada" style="--i:2"><h2>Pelo link</h2><p data-contar>{{ via_link }}</p></article>
+    <article class="painel__numero entrada" style="--i:3"><h2>Cursos ativos</h2><p data-contar>{{ cursos_ativos }}</p></article>
+  </div>
+
+  <!-- Gráficos + dados em grid -->
+  <div class="painel__grade" style="margin-bottom:1.5rem; grid-template-columns:repeat(auto-fit,minmax(300px,1fr));">
+    <article class="painel__cartao" style="grid-column:span 1;">
+      <h2>Top 3 — cursos</h2>
+      <div style="height:180px;"><canvas id="chartTop3"></canvas></div>
     </article>
 
-    <div class="painel__grade">
-        <article class="painel__cartao">
-            <h2>Cursos nunca recomendados</h2>
-            <ul>
-                {% for curso in orfaos %}<li>{{ curso.nome_curso }}</li>{% empty %}<li>Todos os cursos já apareceram.</li>{% endfor %}
-            </ul>
-        </article>
+    <article class="painel__cartao" style="grid-column:span 1;">
+      <h2>Conversão</h2>
+      <div style="height:180px;"><canvas id="chartConversao"></canvas></div>
+    </article>
+  </div>
 
-        <article class="painel__cartao">
-            <h2>Áreas que o quiz mede</h2>
-            <table>
-                <caption class="visualmente-oculto">Cobertura das áreas pelo quiz</caption>
-                <thead><tr><th scope="col">Área</th><th scope="col">Alternativas</th></tr></thead>
-                <tbody>
-                    {% for area in cobertura %}
-                    <tr {% if not area.alternativas %}class="painel__alerta"{% endif %}>
-                        <td>{{ area.nome }}</td>
-                        <td>{{ area.alternativas }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </article>
-    </div>
-    {% endif %}
-
-    <article class="painel__cartao painel__cartao--largo">
-        <h2>Links de questionário</h2>
-        <form method="post" action="{% url 'painel-gerar-link' %}">
-            {% csrf_token %}
-            <button class="botao" type="submit">Gerar novo link</button>
-        </form>
-        <ul class="painel__links">
-            {% for link in links %}
-            <li>
-                <input type="text" value="{{ link.url }}" readonly aria-label="Link criado em {{ link.criado_em|date:'d/m/Y H:i' }}">
-                <button type="button" class="botao botao--texto" data-copiar>Copiar</button>
-            </li>
-            {% empty %}
-            <li>Nenhum link ativo.</li>
-            {% endfor %}
-        </ul>
+  <div class="painel__grade" style="margin-bottom:1.5rem; grid-template-columns:repeat(auto-fit,minmax(300px,1fr));">
+    <article class="painel__cartao" style="grid-column:span 1;">
+      <h2>Área que mais pesou (1º)</h2>
+      <table>
+        <thead><tr><th>Área</th><th>Testes</th></tr></thead>
+        <tbody>
+          {% for linha in demanda_por_area %}<tr><td>{{ linha.nome }}</td><td>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td></tr>{% empty %}<tr><td colspan="2">Nenhum dado.</td></tr>{% endfor %}
+        </tbody>
+      </table>
     </article>
 
-    <p class="painel__rodape">
-        Nenhum nome, e-mail ou resposta individual aparece aqui. Números abaixo de
-        {{ k_minimo }} aparecem como <abbr title="menos de {{ k_minimo }} respondentes">—</abbr>.
-        Para um caso individual, use o <a href="{% url 'admin:index' %}">/admin</a>.
-    </p>
+    <article class="painel__cartao" style="grid-column:span 1;">
+      <h2>Confiança</h2>
+      <table>
+        <thead><tr><th>Faixa</th><th>Testes</th></tr></thead>
+        <tbody>
+          {% for linha in confianca %}<tr><td>{{ linha.confidence_band|default:"—"|capfirst }}</td><td>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </article>
+
+    <article class="painel__cartao" style="grid-column:span 1;">
+      <h2>Conversão por curso</h2>
+      <table>
+        <thead><tr><th>Curso</th><th>Taxa</th></tr></thead>
+        <tbody>
+          {% for linha in conversao %}<tr><td>{{ linha.nome_curso }}</td><td>{% if linha.taxa is None %}—{% else %}{{ linha.taxa|floatformat:0 }}%{% endif %}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </article>
+  </div>
+
+  <div class="painel__grade" style="margin-bottom:1.5rem; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
+    <article class="painel__cartao" style="grid-column:span 2;">
+      <h2>Cobertura de áreas</h2>
+      <div style="height:160px;"><canvas id="chartCobertura"></canvas></div>
+    </article>
+  </div>
+
+  <div class="painel__grade" style="margin-bottom:1.5rem; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
+    <article class="painel__cartao" style="grid-column:span 1;">
+      <h2>Top 1º</h2>
+      <table><thead><tr><th>Curso</th><th>Testes</th></tr></thead><tbody>
+      {% for linha in top_primeiro %}<tr><td>{{ linha.nome }}</td><td>{% include "painel/_celula.html" with valor=linha.total %}</td></tr>{% endfor %}
+      </tbody></table>
+    </article>
+    <article class="painel__cartao" style="grid-column:span 1;">
+      <h2>Top 5</h2>
+      <table><thead><tr><th>Curso</th><th>Testes</th></tr></thead><tbody>
+      {% for linha in top_cinco %}<tr><td>{{ linha.nome }}</td><td>{% include "painel/_celula.html" with valor=linha.total %}</td></tr>{% endfor %}
+      </tbody></table>
+    </article>
+  </div>
+
+  <div style="margin-top:1.5rem; padding:1rem; background:#fff5f5; border-left:4px solid var(--vermelho); border-radius:8px; font-size:.85rem; color:#7a2e2e;">
+    <strong>Nota de privacidade:</strong> Nenhum dado individual exposto. Valores menores que {{ k_minimo }} são suprimidos.
+  </div>
+  {% endif %}
 </section>
-{% endblock %}
 
-{% block scripts %}
+<!-- Modais -->
+<div id="modal-gerar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:10000; align-items:center; justify-content:center;" role="dialog" aria-modal="true">
+  <div style="background:#fff; padding:2rem; border-radius:14px; max-width:420px; width:92%; box-shadow:0 24px 60px rgba(0,0,0,.35);">
+    <h2 style="margin:0 0 .6rem; font-size:1.2rem;">Confirmar geração</h2>
+    <p style="margin:0 0 1.2rem;">Gerar novo link de questionário?</p>
+    <div style="display:flex; gap:.6rem; justify-content:flex-end;">
+      <button onclick="fecharModal('modal-gerar')" class="botao botao--texto">Cancelar</button>
+      <button onclick="document.getElementById('form-gerar-link').submit()" class="botao botao--principal">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-fechar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:10000; align-items:center; justify-content:center;" role="dialog" aria-modal="true">
+  <div style="background:#fff; padding:2rem; border-radius:14px; max-width:420px; width:92%; box-shadow:0 24px 60px rgba(0,0,0,.35);">
+    <h2 style="margin:0 0 .6rem; font-size:1.2rem;">Confirmar fechamento</h2>
+    <p style="margin:0 0 1.2rem;">Fechar o link ativo? Não pode ser desfeito.</p>
+    <div style="display:flex; gap:.6rem; justify-content:flex-end;">
+      <button onclick="fecharModal('modal-fechar')" class="botao botao--texto">Cancelar</button>
+      <button onclick="document.getElementById('form-fechar-link').submit()" class="botao botao--perigo">Fechar link</button>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="{% url 'painel-gerar-link' %}" id="form-gerar-link" style="display:none;">{% csrf_token %}</form>
+<form method="post" action="{% url 'painel-fechar-link' %}" id="form-fechar-link" style="display:none;">{% csrf_token %}</form>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-    // Copiar o link: melhora opcional. Sem JS, o campo continua selecionável.
-    document.querySelectorAll("[data-copiar]").forEach(function (botao) {
-        botao.addEventListener("click", function () {
-            var campo = botao.previousElementSibling;
-            navigator.clipboard.writeText(campo.value).then(function () {
-                botao.textContent = "Copiado";
-            });
-        });
+(function() {
+  'use strict';
+  // Gráficos
+  var c1 = document.getElementById('chartTop3');
+  if (c1) {
+    new Chart(c1, {
+      type: 'bar',
+      data: { labels: [{% for l in top_manifestacoes %}'{{ l.curso__nome_curso|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}], datasets: [{ label: 'Manifestações', data: [{% for l in top_manifestacoes %}{{ l.total }}{% if not forloop.last %},{% endif %}{% endfor %}], backgroundColor: ['#c62828','#2e7d32','#1565c0'], borderRadius:6 }] },
+      options: { indexAxis: 'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}} }
     });
+  }
+  var c2 = document.getElementById('chartConversao');
+  if (c2) {
+    new Chart(c2, {
+      type: 'bar',
+      data: { labels: [{% for l in conversao %}'{{ l.nome_curso|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}], datasets: [{ label: 'Taxa %', data: [{% for l in conversao %}{{ l.taxa|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}], backgroundColor: '#2e7d32', borderRadius:6 }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+  }
+  var c3 = document.getElementById('chartCobertura');
+  if (c3) {
+    new Chart(c3, {
+      type: 'bar',
+      data: { labels: [{% for a in cobertura %}'{{ a.nome|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}], datasets: [{ label: 'Alt.', data: [{% for a in cobertura %}{{ a.alternativas }}{% if not forloop.last %},{% endif %}{% endfor %}], backgroundColor: '#1565c0', borderRadius:6 }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+  }
+})();
+
+function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+function copiarLink(btn) {
+  var input = btn.previousElementSibling;
+  navigator.clipboard.writeText(input.value).then(function() { btn.textContent = 'Copiado'; setTimeout(function(){ btn.textContent = 'Copiar'; }, 1500); });
+}
 </script>
 {% endblock %}
