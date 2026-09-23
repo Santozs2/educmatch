@@ -1,11 +1,3 @@
-// Melhorias do quiz com JavaScript. SEM JS o quiz funciona igual: cada pergunta é
-// um #questao-N, os links "Próxima"/"Voltar" trocam o # da URL e o CSS (:target)
-// mostra só a pergunta da vez. Este arquivo só acrescenta conforto:
-//   1. marcou a resposta com o mouse ou o dedo -> avança sozinho;
-//   2. Enter avança em vez de enviar o formulário pela metade;
-//   3. o foco vai para a pergunta nova (leitor de tela anuncia);
-//   4. no envio, mostra a tela "Analisando seu perfil";
-//   5. marca a direção (avançar/voltar) para a animação entrar do lado certo.
 (function () {
     const form = document.querySelector("[data-quiz]");
     if (!form) return;
@@ -14,8 +6,8 @@
     const analisando = document.querySelector("[data-analisando]");
 
     // Tempo para a pessoa ver a opção sendo marcada antes de trocar de pergunta
-    const PAUSA_AO_MARCAR = 380;
-
+    const PAUSA_AO_MARCAR = 300;
+    
     function passoAtual() {
         return passos.find((passo) => "#" + passo.id === location.hash);
     }

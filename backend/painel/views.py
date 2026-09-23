@@ -69,6 +69,16 @@ def dashboard(request):
 
 @require_POST
 @staff_member_required
+def fechar_link(request):
+    ativo = QuestionarioLink.objects.filter(ativo=True)
+    for link in ativo:
+        link.ativo = False
+        link.save()
+    return redirect("painel-dashboard")
+
+
+@require_POST
+@staff_member_required
 def gerar_link(request):
     QuestionarioLink.objects.create(criado_por=request.user)
     return redirect("painel-dashboard")
