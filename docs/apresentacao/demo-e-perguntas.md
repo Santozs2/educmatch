@@ -8,8 +8,8 @@ Encontrei estes pontos ao revisar o código para a apresentação. Os itens 1 e 
 
 | # | Onde | Problema | O que fazer |
 | --- | --- | --- | --- |
-| 1 | `painel/templates/painel/dashboard.html`, gráfico "Top 3" | Usava `l.curso__nome_curso`, mas a métrica devolve a chave **`nome`**: rótulos vazios. | ✅ Corrigido (commit `782277c`, branch `front/animacoes`). |
-| 2 | Mesmo gráfico | Total suprimido (< 5) virava **`None`** no JavaScript → `ReferenceError` → nenhum gráfico desenhava. | ✅ Corrigido no mesmo commit: suprimidos ficam fora do gráfico. **Só funciona depois do merge do PR de `front/animacoes`.** |
+| 1 | `painel/templates/painel/dashboard.html`, gráfico "Top 3" | Usava `l.curso__nome_curso`, mas a métrica devolve a chave **`nome`**: rótulos vazios. | ✅ Corrigido (commit `276e746`, branch `docs/apresentacao`). |
+| 2 | Mesmo gráfico | Total suprimido (< 5) virava **`None`** no JavaScript → `ReferenceError` → nenhum gráfico desenhava. | ✅ Corrigido no mesmo commit: suprimidos ficam fora do gráfico. Entra na `main` com o PR de `docs/apresentacao`. |
 | 2b | MySQL da máquina da demo | `core.tests` falha: as **tabelas de fuso** estão vazias, e aí todo filtro por período do painel volta vazio, sem erro. | Carregar `timezone_posix.sql` (README, seção "Tabelas de fuso") **antes** da demo. |
 | 3 | Mesmo arquivo | Estilos inline e cores fixas fogem do padrão de tokens do resto do front. | Se não der tempo de mover para `painel.css`, **não abra esse arquivo** na parte de front. Mostre `quiz.html` e `resultado.html`. |
 | 4 | `base.html` | O `acessibilidade.js` existe, mas nenhum botão `data-alternar` está na tela. | Adicionar os botões ou não prometer o recurso. |
@@ -123,7 +123,7 @@ O protótipo tinha uma identidade própria. Com tokens em CSS puro o resultado �
 ## Checklist da véspera
 
 - [x] Itens 1 e 2 da tabela do topo corrigidos (gráficos do painel)
-- [ ] PR de `front/animacoes` mergeado (ou apresentar a partir dessa branch)
+- [ ] PR de `docs/apresentacao` mergeado (traz a correção dos gráficos)
 - [ ] `python manage.py test` → **OK** (print no slide)
 - [ ] Banco com seeds + ≥ 5 tentativas + 1 superusuário + 1 aluno
 - [ ] Tabelas de fuso do MySQL carregadas (`python manage.py test core`)
