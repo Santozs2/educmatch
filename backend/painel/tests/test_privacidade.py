@@ -1,27 +1,51 @@
+from django.conf import settings
 from django.test import SimpleTestCase
 from django.urls import reverse
 
 from accounts.models import Interesse
+from painel import metricas
 from painel.privacidade import K_MINIMO, suprimir_pequenos
 from painel.tests.base import BasePainel
 from quiz.models import QuestionarioLink
 
 
 class SupressaoTest(SimpleTestCase):
-    def test_celula_pequena_e_suprimida_mas_a_linha_fica(self):
+    def test_valores_pequenos_aparecem_no_dashboard(self):
         linhas = [{"nome": "A", "total": 9}, {"nome": "B", "total": 2}]
 
         saida = suprimir_pequenos(linhas)
 
-        self.assertEqual(len(saida), 2, "esconder a linha vazaria pela omissão")
+        self.assertEqual(len(saida), 2)
         self.assertEqual(saida[0]["total"], 9)
-        self.assertIsNone(saida[1]["total"])
-        self.assertTrue(saida[1]["suprimido"])
+        self.assertEqual(saida[1]["total"], 2)
+        self.assertNotIn("suprimido", saida[1])
 
     def test_a_funcao_nao_altera_a_entrada(self):
         linhas = [{"nome": "B", "total": 2}]
         suprimir_pequenos(linhas)
         self.assertEqual(linhas[0]["total"], 2)
+
+
+class FiltroDePeriodoTest(SimpleTestCase):
+    def test_periodos_suportam_diario_mensal_anual_e_mes(self):
+        self.assertIn("diario", metricas.PERIODOS)
+        self.assertIn("mensal", metricas.PERIODOS)
+        self.assertIn("anual", metricas.PERIODOS)
+        self.assertIn("mes", metricas.PERIODOS)
+        self.assertEqual(metricas.PERIODOS["diario"]["dias"], 1)
+        self.assertEqual(metricas.PERIODOS["mensal"]["dias"], 30)
+        self.assertEqual(metricas.PERIODOS["anual"]["dias"], 365)
+
+    def test_inicio_do_periodo_para_mes_escolhido(self):
+        inicio = metricas.inicio_do_periodo("mes", mes="2024-03")
+        self.assertEqual(inicio.strftime("%Y-%m"), "2024-03")
+
+
+class ConfiguracaoDeHostsTest(SimpleTestCase):
+    def test_hosts_padrao_permitidos_para_link_gerado(self):
+        self.assertIn("localhost", settings.ALLOWED_HOSTS)
+        self.assertIn("127.0.0.1", settings.ALLOWED_HOSTS)
+        self.assertIn("testserver", settings.ALLOWED_HOSTS)
 
 
 class AcessoAoPainelTest(BasePainel):

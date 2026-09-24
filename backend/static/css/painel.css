@@ -83,6 +83,31 @@
   overflow-x: auto;
 }
 
+.painel__cartao--compacto {
+  display: flex;
+  flex-direction: column;
+}
+
+.painel__tabela-scroll {
+  max-height: 11.5rem;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.painel__tabela-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.painel__tabela-scroll thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
 
 .painel table {
   width: 100%;
@@ -158,6 +183,84 @@
 .painel__rodape {
   font-size: 0.85rem;
   color: var(--cinza);
+}
+
+@media (max-width: 700px) {
+  .painel--dashboard {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .painel__cabecalho {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .painel__nav-periodos,
+  .painel__form-mes {
+    width: 100%;
+  }
+
+  .painel__nav-periodos {
+    justify-content: flex-start !important;
+  }
+
+  .painel__form-mes {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    margin-left: 0 !important;
+  }
+
+  .painel__form-mes input[type="month"] {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  .painel__lista-links {
+    gap: 0.6rem;
+  }
+
+  .painel__link-item {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .painel__link-input {
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  .painel__grade {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .painel__numero p,
+  .painel__destaque {
+    font-size: 1.7rem;
+  }
+
+  .painel__numero,
+  .painel__cartao {
+    padding: 0.9rem;
+  }
+
+  .painel__periodos a,
+  .botao {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .painel__form-mes {
+    justify-content: stretch;
+  }
+
+  .painel__form-mes button {
+    flex: 1 1 100%;
+  }
 }
 
 /* Escondido na tela, lido pelo leitor de tela */

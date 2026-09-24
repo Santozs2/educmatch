@@ -21,15 +21,18 @@ def _links_ativos(request):
 
 @staff_member_required
 def dashboard(request):
-    escolhido = request.GET.get("periodo", "90")
-    dias = metricas.PERIODOS.get(escolhido)  # "tudo" ou chave inválida -> None -> sem filtro
-    inicio = metricas.inicio_do_periodo(dias)
+    escolhido = request.GET.get("periodo", "mensal")
+    mes = request.GET.get("mes")
+    config = metricas.PERIODOS.get(escolhido, metricas.PERIODOS["mensal"])
+    inicio = metricas.inicio_do_periodo(escolhido, mes=mes)
 
     total = metricas.total_de_tentativas(inicio)
     tem_massa = privacidade.periodo_tem_massa_suficiente(total)
 
     contexto = {
         "periodo": escolhido,
+        "periodo_label": config["label"],
+        "mes": mes,
         "periodos": metricas.PERIODOS,
         "total_de_tentativas": total,
         "tem_massa": tem_massa,
