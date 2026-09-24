@@ -38,9 +38,87 @@ body:has(.quiz-passo:target) .conteudo {
   padding: 0;
 }
 
+/* ---------- Troca de pergunta ----------
+   Toda pergunta nova entra de lado: da direita ao avançar, da esquerda ao
+   voltar (o js/quiz.js marca data-direcao no form; sem JS, sempre avança).
+   Como cada pergunta sai de display:none, a animação roda a cada troca. */
+
+.quiz-passo legend,
+.quiz-passo .opcao {
+  animation: passo-avanca 360ms var(--ease-saida) backwards;
+}
+
+/* Escalonamento curto: com 6 perguntas seguidas, cada troca precisa ser rápida */
+.quiz-passo .opcao {
+  animation-delay: calc((var(--i, 0) + 1) * 40ms);
+}
+
+.quiz-form[data-direcao="voltar"] .quiz-passo legend,
+.quiz-form[data-direcao="voltar"] .quiz-passo .opcao {
+  animation-name: passo-volta;
+}
+
+@keyframes passo-avanca {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes passo-volta {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+/* ---------- Barra de progresso ----------
+   Cada pergunta tem a sua barra, mas ela parte de onde a anterior parou
+   (--de) e desliza até o valor desta pergunta. Ao voltar, parte do valor da
+   pergunta seguinte (--seguinte) e recua. */
+
 .quiz-passo__progresso {
+  position: relative;
   height: 8px;
   border-radius: 0;
+}
+
+.quiz-passo__progresso .barra__valor {
+  position: relative;
+  border-radius: 0 var(--raio-pilula) var(--raio-pilula) 0;
+  animation: progresso-avanca 500ms var(--ease-saida) both;
+}
+
+.quiz-form[data-direcao="voltar"] .quiz-passo__progresso .barra__valor {
+  animation-name: progresso-volta;
+}
+
+/* Brilho que corre sobre a barra quando ela cresce */
+.quiz-passo__progresso .barra__valor::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: translateX(-100%);
+  animation: brilho 700ms var(--ease-padrao) 150ms;
+}
+
+@keyframes progresso-avanca {
+  from {
+    width: var(--de, 0%);
+  }
+}
+
+@keyframes progresso-volta {
+  from {
+    width: var(--seguinte, 100%);
+  }
+}
+
+@keyframes brilho {
+  to {
+    transform: translateX(100%);
+  }
 }
 
 .quiz-passo__topo {
@@ -56,6 +134,7 @@ body:has(.quiz-passo:target) .conteudo {
 .quiz-passo__contador {
   color: var(--texto-2);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .quiz-passo__corpo {
@@ -79,6 +158,9 @@ body:has(.quiz-passo:target) .conteudo {
 .quiz-passo__numero {
   color: var(--marca);
 }
+
+/* ---------- Opções ---------- */
+
 .opcoes {
   display: grid;
   gap: 16px;
@@ -86,21 +168,46 @@ body:has(.quiz-passo:target) .conteudo {
 
 .opcao {
   position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   gap: 16px;
   min-height: 74px;
   padding: 14px 20px;
+  overflow: hidden;
   border: 2px solid var(--linha);
   border-radius: var(--raio);
   background: var(--superficie);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color var(--dur-rapida) var(--ease-padrao),
+    box-shadow var(--dur-media) var(--ease-padrao),
+    transform var(--dur-media) var(--ease-saida);
+}
+
+/* Fundo que "varre" a opção da esquerda para a direita ao marcar */
+.opcao::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--marca-clarinho);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 340ms var(--ease-saida);
 }
 
 .opcao:hover {
   border-color: var(--marca-hover);
+  box-shadow: 0 6px 16px rgba(217, 37, 28, 0.08);
+  transform: translateY(-2px);
 }
+
+.opcao:active {
+  transform: scale(0.99);
+  transition-duration: 60ms;
+}
+
 .opcao input {
   position: absolute;
   opacity: 0;
@@ -117,16 +224,29 @@ body:has(.quiz-passo:target) .conteudo {
   background: var(--gelo);
   color: var(--texto-2);
   font-weight: 700;
+  transition:
+    background var(--dur-media) var(--ease-padrao),
+    color var(--dur-media) var(--ease-padrao);
 }
 
 .opcao:has(input:checked) {
   border-color: var(--marca);
-  background: var(--marca-clarinho);
+}
+
+.opcao:has(input:checked)::before {
+  transform: scaleX(1);
 }
 
 .opcao:has(input:checked) .opcao__numero {
   background: var(--marca);
   color: var(--branco);
+  animation: numero-pula 420ms var(--ease-mola);
+}
+
+@keyframes numero-pula {
+  40% {
+    transform: scale(1.25);
+  }
 }
 
 .opcao:has(input:focus-visible) {
@@ -138,7 +258,10 @@ body:has(.quiz-passo:target) .conteudo {
   margin-top: 16px;
   color: var(--erro);
   font-weight: 600;
+  animation: tremer 360ms var(--ease-padrao);
 }
+
+/* ---------- Rodapé fixo com "Próxima" ---------- */
 
 .quiz-passo__rodape {
   position: fixed;
@@ -148,6 +271,7 @@ body:has(.quiz-passo:target) .conteudo {
   padding: 16px 20px;
   border-top: 1px solid var(--linha);
   background: var(--superficie);
+  box-shadow: 0 -6px 20px rgba(9, 9, 11, 0.04);
 }
 
 .quiz-passo__rodape .botao {
@@ -161,6 +285,8 @@ body:has(.quiz-passo:target) .conteudo {
   pointer-events: none;
 }
 
+/* ---------- Tela 08 · Analisando ---------- */
+
 .analisando {
   position: fixed;
   inset: 0;
@@ -169,6 +295,7 @@ body:has(.quiz-passo:target) .conteudo {
   place-items: center;
   padding: 20px;
   background: var(--fundo);
+  animation: aparecer var(--dur-media) var(--ease-padrao) both;
 }
 
 .analisando[hidden] {
@@ -178,6 +305,14 @@ body:has(.quiz-passo:target) .conteudo {
 .analisando__cartao {
   max-width: 400px;
   text-align: center;
+  animation: analisando-entra var(--dur-lenta) var(--ease-mola) 80ms both;
+}
+
+@keyframes analisando-entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
 }
 
 .analisando__icone {
@@ -193,8 +328,52 @@ body:has(.quiz-passo:target) .conteudo {
   font-weight: 700;
 }
 
-@keyframes girar {
+/* Barra "indeterminada": um trecho corre de um lado a outro até o resultado chegar */
+.analisando__progresso {
+  height: 4px;
+  margin: 16px auto 0;
+  max-width: 220px;
+  overflow: hidden;
+  border-radius: var(--raio-pilula);
+  background: var(--marca-claro);
+}
+
+.analisando__progresso span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--marca);
+  animation: vai-e-volta 1.1s var(--ease-padrao) infinite alternate;
+}
+
+@keyframes vai-e-volta {
+  from {
+    transform: translateX(-10%);
+  }
+
   to {
-    transform: rotate(360deg);
+    transform: translateX(160%);
+  }
+}
+
+@media (max-width: 640px) {
+  .quiz-passo__corpo {
+    padding: 28px 16px 110px;
+  }
+
+  .quiz-passo__topo {
+    min-height: 56px;
+    padding: 0 14px;
+  }
+
+  .opcao {
+    min-height: 64px;
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .quiz-passo__rodape {
+    padding: 12px 14px;
   }
 }

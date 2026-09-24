@@ -7,7 +7,7 @@
 
 {% block content %}
 <section class="pagina-conta">
-    <div class="pagina-conta__titulo">
+    <div class="pagina-conta__titulo entrada">
         <a class="voltar" href="{% url 'quiz-inicio' %}">Voltar</a>
         <h1>Meus testes</h1>
     </div>
@@ -16,7 +16,7 @@
     <ul class="linhas">
         {% for tentativa in tentativas %}
         {% with principal=tentativa.recomendacoes.all.0 %}
-        <li class="linha">
+        <li class="linha entrada" style="--i: {{ forloop.counter }}">
             <div class="linha__info">
                 <a class="linha__titulo" href="{% url 'quiz-resultado' tentativa.pk %}">
                     Teste de {{ tentativa.criado_em|date:"d/m/Y" }} às {{ tentativa.criado_em|date:"H:i" }}

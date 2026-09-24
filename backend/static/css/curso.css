@@ -71,6 +71,15 @@
 .curso__afinidade-valor {
   font-size: 1.6rem !important;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.curso__afinidade .barra {
+  flex-basis: 100%;
+}
+
+.curso__afinidade {
+  flex-wrap: wrap;
 }
 
 /* ---------- Secretaria ---------- */

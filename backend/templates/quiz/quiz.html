@@ -12,7 +12,7 @@
 
 {% if not quiz_iniciado %}
 {# Tela 01 · Boas-vindas. GET: sem JS, o "Começar" já leva à pergunta 1. #}
-<form class="cartao cartao--centro quiz-intro" method="get" action="{% url 'quiz-inicio' %}#questao-1">
+<form class="cartao cartao--centro quiz-intro entrada" method="get" action="{% url 'quiz-inicio' %}#questao-1">
     <h1>Descubra o curso certo para o seu perfil</h1>
     <p class="subtitulo">
         Responda a {{ questoes|length }} perguntas simples sobre o seu jeito de trabalhar
@@ -44,8 +44,9 @@
 
     {% for questao in questoes %}
     <fieldset class="quiz-passo" id="questao-{{ forloop.counter }}" data-passo>
+        {# A barra desliza de onde a pergunta anterior parou (--de) ou, ao voltar, de onde a seguinte estava (--seguinte) #}
         <div class="barra quiz-passo__progresso" aria-hidden="true">
-            <span class="barra__valor" style="--valor: {% widthratio forloop.counter questoes|length 100 %}%"></span>
+            <span class="barra__valor" style="--valor: {% widthratio forloop.counter questoes|length 100 %}%; --de: {% widthratio forloop.counter0 questoes|length 100 %}%; --seguinte: {% widthratio forloop.counter|add:'1' questoes|length 100 %}%"></span>
         </div>
 
         <div class="quiz-passo__topo">
@@ -65,7 +66,7 @@
 
             <div class="opcoes">
                 {% for alternativa in questao.alternativas.all %}
-                <label class="opcao">
+                <label class="opcao" style="--i: {{ forloop.counter0 }}">
                     <input type="radio" name="questao_{{ questao.id }}" value="{{ alternativa.id }}"
                            {% if alternativa.id == questao.marcada_id %}checked{% endif %}>
                     <span class="opcao__numero" aria-hidden="true">{{ forloop.counter }}</span>
@@ -94,6 +95,7 @@
         <i class="fa-solid fa-rotate analisando__icone" aria-hidden="true"></i>
         <p class="analisando__titulo">Analisando seu perfil e cruzando com nossos cursos...</p>
         <p class="nota">Isso leva só um instante</p>
+        <div class="analisando__progresso" aria-hidden="true"><span></span></div>
     </div>
 </div>
 {% endblock %}

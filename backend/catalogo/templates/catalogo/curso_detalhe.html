@@ -20,7 +20,7 @@
 
 {% block content %}
 <div class="curso">
-    <article class="curso__cartao" aria-labelledby="curso-nome">
+    <article class="curso__cartao entrada" aria-labelledby="curso-nome">
         <header class="curso__cabeca">
             <ul class="chips">
                 <li class="chip chip--marca">{{ curso.area_principal.nome }}</li>
@@ -38,7 +38,8 @@
                     <strong>Sua afinidade</strong>
                     <span>Baseado nas suas respostas</span>
                 </div>
-                <span class="curso__afinidade-valor">{{ afinidade }}%</span>
+                <span class="curso__afinidade-valor" data-contar>{{ afinidade }}%</span>
+                {% include "componentes/_barra.html" with valor=afinidade %}
             </div>
             {% endif %}
 
@@ -55,6 +56,6 @@
         </div>
     </article>
 
-    {% include "componentes/_secretaria.html" %}
+    <div class="entrada" style="--i: 2">{% include "componentes/_secretaria.html" %}</div>
 </div>
 {% endblock %}

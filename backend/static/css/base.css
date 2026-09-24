@@ -7,6 +7,7 @@
 html {
   font-size: var(--tamanho-base);
   scroll-behavior: smooth;
+  transition: font-size var(--dur-media) var(--ease-padrao);
 }
 
 body {
@@ -48,6 +49,7 @@ p {
 
 a {
   color: inherit;
+  transition: color var(--dur-rapida) var(--ease-padrao);
 }
 
 img,
@@ -62,17 +64,40 @@ textarea {
   font: inherit;
   color: inherit;
 }
+
 :focus-visible {
   outline: 3px solid var(--foco);
   outline-offset: 3px;
   border-radius: 4px;
 }
 
+.skip-link {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  padding: 8px 16px;
+  border-radius: var(--raio-botao);
+  background: var(--preto);
+  color: var(--branco);
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform var(--dur-media) var(--ease-saida);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
 /* ---------- Topo ---------- */
 
 .topo {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   background: var(--preto);
   color: var(--branco);
+  view-transition-name: topo; /* fica parado enquanto a página troca */
 }
 
 .topo__inner {
@@ -115,6 +140,7 @@ textarea {
   background: transparent;
   color: var(--branco);
   cursor: pointer;
+  transition: background var(--dur-rapida) var(--ease-padrao);
 }
 
 .topo__icone:hover,
@@ -135,10 +161,32 @@ textarea {
   border-radius: var(--raio-botao);
   cursor: pointer;
   list-style: none;
+  transition: background var(--dur-rapida) var(--ease-padrao);
+}
+
+.usuario-menu summary:hover,
+.usuario-menu[open] summary {
+  background: var(--preto-2);
 }
 
 .usuario-menu summary::-webkit-details-marker {
   display: none;
+}
+
+.usuario-menu summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin: -3px 2px 0 2px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--dur-media) var(--ease-saida);
+}
+
+.usuario-menu[open] summary::after {
+  margin-top: 3px;
+  transform: rotate(-135deg);
 }
 
 .usuario-menu__dropdown {
@@ -153,6 +201,11 @@ textarea {
   background: var(--superficie);
   color: var(--tinta);
   box-shadow: var(--sombra);
+  transform-origin: top right;
+}
+
+.usuario-menu[open] .usuario-menu__dropdown {
+  animation: surgir-menu var(--dur-media) var(--ease-saida);
 }
 
 .usuario-menu__dropdown a,
@@ -167,18 +220,22 @@ textarea {
   text-align: left;
   text-decoration: none;
   cursor: pointer;
+  transition: background var(--dur-rapida) var(--ease-padrao), padding-left var(--dur-media) var(--ease-saida);
 }
 
 .usuario-menu__dropdown a:hover,
 .usuario-menu__dropdown button:hover {
+  padding-left: 16px;
   background: var(--fundo);
 }
+
 .conteudo {
   flex: 1;
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
   padding: clamp(24px, 5vw, 56px) 20px;
+  view-transition-name: conteudo;
 }
 
 .rodape {
@@ -191,7 +248,94 @@ textarea {
 .rodape p {
   margin: 0;
 }
+
+/* ---------- Movimento ----------
+   Uma animação de entrada por bloco, nunca em loop. Escalonar: style="--i: 2"
+   atrasa o bloco em 2 × --escalonar. */
+
+.entrada {
+  animation: subir var(--dur-lenta) var(--ease-saida) backwards;
+  animation-delay: calc(var(--i, 0) * var(--escalonar));
+}
+
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes surgir-menu {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+}
+
+@keyframes tremer {
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Transição entre páginas ----------
+   O navegador tira uma foto da página velha e anima até a nova. Onde não há
+   suporte a View Transitions, a página só troca, como antes. */
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(root),
+::view-transition-group(topo) {
+  animation-duration: var(--dur-media);
+}
+
+::view-transition-old(conteudo) {
+  animation: var(--dur-rapida) var(--ease-padrao) both pagina-sai;
+}
+
+::view-transition-new(conteudo) {
+  animation: var(--dur-lenta) var(--ease-saida) both pagina-entra;
+}
+
+@keyframes pagina-sai {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pagina-entra {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+
   *,
   *::before,
   *::after {
@@ -215,11 +359,16 @@ textarea {
     min-height: 40px;
     padding: 0 12px;
   }
+
   .usuario-menu summary span {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
     clip: rect(0 0 0 0);
+  }
+
+  .conteudo {
+    padding: 20px 14px;
   }
 }
