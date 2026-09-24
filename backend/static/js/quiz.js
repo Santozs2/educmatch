@@ -53,20 +53,13 @@
     form.addEventListener("pointerdown", () => { pelaTeclado = false; });
     form.addEventListener("keydown", () => { pelaTeclado = true; });
 
-    // 1. Marcou a resposta com o mouse/dedo: segue sozinho, com uma pausa para o clique ser visto.
-    let avancoAgendado = null;
+    // 1. Marcou a resposta com o mouse/dedo: aguarda o usuário clicar em "Próxima"
     form.addEventListener("change", (evento) => {
         if (evento.target.type !== "radio") return;
         const passo = evento.target.closest("[data-passo]");
         const aviso = passo.querySelector("[data-aviso]");
         if (aviso) aviso.hidden = true;
-        const indice = passos.indexOf(passo);
-        if (pelaTeclado || indice === passos.length - 1) return;
-        clearTimeout(avancoAgendado);
-        avancoAgendado = setTimeout(() => {
-            // Só avança se a pessoa ainda estiver nessa pergunta
-            if (passoAtual() === passo || (!location.hash && indice === 0)) irPara(indice + 1);
-        }, PAUSA_AO_MARCAR);
+        // Não avança automaticamente - o usuário deve clicar em "Próxima"
     });
 
     // 2. Enter avança em vez de enviar o formulário pela metade.
@@ -103,6 +96,13 @@
             avisar(vazio);
             return;
         }
+        // Mostra o spinner de análise
         if (analisando) analisando.hidden = false;
+        // Impede o envio imediato para mostrar o spinner por mais tempo
+        evento.preventDefault();
+        // Delay de 1,5 segundos antes de enviar realmente o formulário
+        setTimeout(() => {
+            form.submit();
+        }, 1500);
     });
 })();
