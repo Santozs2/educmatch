@@ -4,7 +4,7 @@
 <section class="painel" style="max-width:1200px; margin:0 auto; padding:2rem; font-family:'DM Sans',sans-serif; color:var(--preto);">
   <header style="margin-bottom:2rem; border-bottom:3px solid var(--vermelho); padding-bottom:1.2rem;">
     <h1 style="font-size:2rem; letter-spacing:-0.03em; margin:0 0 0.2rem;">Dashboard</h1>
-    <p style="color:#666; margin:0; font-size:0.95rem;">Agregação precisa · Nenhum dado individual exposto · Período: {{ periodo }} dias · Top 3 de cursos com manifestação de interesse.</p>
+    <p style="color:#666; margin:0; font-size:0.95rem;">Agregação precisa · Nenhum dado individual exposto · Período: {{ periodo_label }}{% if periodo == 'mes' and mes %} · {{ mes }}{% endif %} · Top 3 de cursos com manifestação de interesse.</p>
   </header>
 
   {% if not tem_massa %}
@@ -90,11 +90,16 @@
   </div>
 
   <!-- Notas do período -->
-  <nav aria-label="Seleção de período" style="margin-bottom:1rem;">
-    {% for chave, dias in periodos.items %}
-      <a class="botao {% if periodo == chave %}botao--principal{% else %}botao--fantasma{% endif %}" href="?periodo={{ chave }}">{{ dias }} dias</a>
+  <nav aria-label="Seleção de período" style="margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
+    {% for chave, config in periodos.items %}
+      <a class="botao {% if periodo == chave %}botao--principal{% else %}botao--fantasma{% endif %}" href="?periodo={{ chave }}{% if chave == 'mes' and mes %}&mes={{ mes }}{% endif %}">{{ config.label }}</a>
     {% endfor %}
-    <a class="botao {% if periodo == 'tudo' %}botao--principal{% else %}botao--fantasma{% endif %}" href="?periodo=tudo">Tudo</a>
+    <form method="get" style="display:flex; align-items:center; gap:0.5rem; margin-left:0.5rem;">
+      <input type="hidden" name="periodo" value="mes">
+      <label for="mes-select" style="font-size:0.85rem; color:#666;">Mês</label>
+      <input id="mes-select" type="month" name="mes" value="{{ mes|default:'' }}" style="padding:0.45rem 0.6rem; border:1px solid var(--linha); border-radius:6px; font-size:0.85rem;">
+      <button type="submit" class="botao botao--principal">Aplicar</button>
+    </form>
   </nav>
 
   <div style="margin-top:1rem; padding:1rem; background:#fff5f5; border-left:4px solid var(--vermelho); border-radius:8px; font-size:0.85rem;">

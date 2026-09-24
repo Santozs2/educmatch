@@ -15,7 +15,7 @@ def vetor_curso(curso):
     vetor = {
         peso.area.slug: peso.peso
         for peso in curso.curso_peso.all()
-        if peso.area is not None and hasattr(peso.area, "slug")
+        if peso.area is not None and hasattr(peso.area, "slug") 
     }
     if not vetor and curso.area_principal:
         vetor[curso.area_principal.slug] = 1.0

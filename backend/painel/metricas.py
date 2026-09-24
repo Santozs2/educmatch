@@ -5,7 +5,7 @@ Nenhuma função daqui recebe request nem usuário, e nenhuma lê `user` ou
 nunca de pessoas, e é o que deixa estes números testáveis sem navegador.
 """
 from collections import Counter
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.db.models import Count, F, Q
 from django.utils import timezone
@@ -14,10 +14,30 @@ from accounts.models import Interesse
 from catalogo.models import Area, Curso
 from quiz.models import Recomendacao, Tentativa_de_resposta
 
-PERIODOS = {"30": 30, "90": 90, "365": 365}
+PERIODOS = {
+    "diario": {"label": "Diário", "dias": 1},
+    "mensal": {"label": "Mensal", "dias": 30},
+    "anual": {"label": "Anual", "dias": 365},
+    "mes": {"label": "Mês", "dias": None},
+}
 
 
-def inicio_do_periodo(dias):
+def _inicio_do_mes(mes):
+    if not mes:
+        return None
+    try:
+        inicio = datetime.strptime(mes, "%Y-%m")
+    except ValueError:
+        return None
+    return timezone.make_aware(inicio.replace(day=1, hour=0, minute=0, second=0, microsecond=0))
+
+
+def inicio_do_periodo(periodo, mes=None):
+    if periodo == "mes":
+        return _inicio_do_mes(mes)
+
+    config = PERIODOS.get(periodo, PERIODOS["mensal"])
+    dias = config.get("dias")
     if dias is None:
         return None
     return timezone.now() - timedelta(days=dias)
