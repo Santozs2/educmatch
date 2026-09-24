@@ -1,9 +1,6 @@
 // Números que contam de 0 até o valor final, no mesmo ritmo do anel e das
 // barras (ver --dur-preencher no tokens.css). Uso: <span data-contar>87%</span>.
-// Sem JS, ou com "reduzir movimento" ligado, o número já aparece pronto.
 (function () {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
     const estilo = getComputedStyle(document.documentElement);
     const duracao = parseFloat(estilo.getPropertyValue("--dur-preencher")) || 1200;
     const atraso = 250;
