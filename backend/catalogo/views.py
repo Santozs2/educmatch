@@ -22,7 +22,8 @@ def curso_detalhe(request, pk):
 
     salvo = (
         request.user.is_authenticated
-        and Interesse.objects.filter(usuario=request.user, curso=curso).exists()
+        and Interesse.objects.filter(usuario=request.user, curso=curso)
+        .exclude(status="removido").exists()
     )
     return render(request, "catalogo/curso_detalhe.html", {
         "curso": curso,

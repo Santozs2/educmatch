@@ -143,7 +143,7 @@ def resultado_pagina(request,pk):
         curso_pendente = Curso.objects.filter(pk=pendente.get("curso_id")).first()
     interesses_salvos = set()
     if request.user.is_authenticated:
-        interesses_salvos = set(Interesse.objects.filter(usuario=request.user).values_list("curso_id", flat=True))
+        interesses_salvos = set(Interesse.objects.filter(usuario=request.user).exclude(status="removido").values_list("curso_id", flat=True))
     return render(request, "quiz/resultado.html", 
             {
                 "tentativa" : tentativa,

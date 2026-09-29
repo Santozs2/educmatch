@@ -9,7 +9,8 @@ from accounts.forms import LoginForm, CadastroForm
 from accounts.models import Interesse
 from catalogo.models import Curso
 from quiz.models import Tentativa_de_resposta
-from accounts.servicos import registrar_interesse
+from accounts.servicos import registrar_interesse, remover_da_lista
+from quiz.permissoes import tentativa_visivel
 
 def _salvar_interesse_pendente(request):
     pendente = request.session.get("interesse_pendente")
@@ -23,9 +24,7 @@ def _salvar_interesse_pendente(request):
         request.session.pop("interesse_pendente", None)
         return None
 
-    tentativa = None
-    if tentativa_id:
-        tentativa = Tentativa_de_resposta.objects.filter(pk=tentativa_id).first()
+    tentativa = tentativa_visivel(request, int(tentativa_id)) if str(tentativa_id).isdigit() else None
 
     registrar_interesse(request.user, curso, tentativa)
     request.session.pop("interesse_pendente", None)
@@ -62,7 +61,7 @@ def cadastrar_conta(request):
 
 @login_required
 def lista_interesse(request):
-    interesses = Interesse.objects.filter(usuario=request.user).select_related('curso')
+    interesses = (Interesse.objects.filter(usuario=request.user).exclude(status="removido").select_related("curso"))
     ultima_tentativa = Tentativa_de_resposta.objects.filter(
         user=request.user
     ).first()
@@ -76,7 +75,7 @@ def lista_interesse(request):
 @login_required
 def remover_interesse(request, pk):
     interesse = get_object_or_404(Interesse, pk=pk, usuario=request.user)
-    interesse.delete()
+    remover_da_lista(interesse)
     return redirect('lista_interesse')
 
 @login_required
@@ -89,30 +88,38 @@ def interesse_remover(request, pk):
 @require_POST
 def salvar_interesse(request):
     curso_id = request.POST.get('curso_id')
-    tentativa_id = request.POST.get('tentativa_id')
+    tentativa_id = request.POST.get('tentativa_id', '')
     curso = get_object_or_404(Curso, id=curso_id)
-    
+
     if not request.user.is_authenticated:
         request.session['interesse_pendente'] = {
-            "curso_id" : curso_id,
-            "tentativa_id" : tentativa_id,
+            "curso_id": curso_id,
+            "tentativa_id": tentativa_id,
         }
         next_url = reverse("quiz-resultado", kwargs={"pk": tentativa_id}) if tentativa_id else reverse("quiz-inicio")
         login_url = f"{reverse('entrar')}?{urlencode({'next': next_url})}"
         return redirect(login_url)
-    
-    tentativa = None
-    if tentativa_id:
-        tentativa = Tentativa_de_resposta.objects.filter(pk=tentativa_id).first()
 
-    item, criado = registrar_interesse(request.user, curso, tentativa)
-    if not criado:
-        item.delete()
-        
+    tentativa = tentativa_visivel(request, int(tentativa_id)) if tentativa_id.isdigit() else None
+    registrar_interesse(request.user, curso, tentativa)
+
     request.session.pop("interesse_pendente", None)
     if tentativa_id:
         return redirect("quiz-resultado", pk=tentativa_id)
     return redirect("lista_interesse")
+
+@require_POST
+@login_required
+def remover_interesse_por_curso(request):
+    interesse = get_object_or_404(
+        Interesse, usuario=request.user, curso_id=request.POST.get("curso_id")
+    )
+    remover_da_lista(interesse)
+    destino = reverse("curso-detalhe", args=[interesse.curso_id])
+    tentativa_id = request.POST.get("tentativa_id", "")
+    if tentativa_id.isdigit():
+        destino += f"?tentativa={tentativa_id}"
+    return redirect(destino)
 
 @login_required
 def minhas_tentativas(request):
@@ -137,6 +144,6 @@ def aluno_perfil(request):
         })
     return render(request, "quiz/aluno_perfil.html", {
         "total_de_testes": len(historico),
-        "total_na_lista": Interesse.objects.filter(usuario=request.user).count(),
+        "total_na_lista": Interesse.objects.filter(usuario=request.user).exclude(status="removido").count(),
         "historico": historico,
     })

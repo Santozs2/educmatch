@@ -65,6 +65,8 @@ def top_cursos_com_manifestacoes(inicio, limite=3):
     return list(
         Interesse.objects
         .filter(_no_periodo(inicio))
+        .filter(_no_periodo(inicio))
+        .exclude(status="removido")
         .values("curso_id", nome=F("curso__nome_curso"))
         .annotate(total=Count("id"))
         .order_by("-total", "nome")[:limite]
@@ -106,7 +108,7 @@ def conversao_por_curso(inicio):
             # esse nome dá ValueError. O nome curto volta no dicionário abaixo.
             n_interessados=Count(
                 "interessados",
-                filter=_no_periodo(inicio, "interessados__criado_em"),
+                filter=_no_periodo(inicio, "interessados__criado_em") & ~Q(interessados__status="removido"),
                 distinct=True,
             ),
         )
@@ -129,6 +131,7 @@ def aderencia_a_recomendacao(inicio):
         Interesse.objects
         .filter(_no_periodo(inicio))
         .exclude(rank_snapshot__isnull=True)
+        .exclude(status="removido")
     )
     return {
         "com_snapshot": base.count(),

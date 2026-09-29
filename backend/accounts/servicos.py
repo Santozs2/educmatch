@@ -6,9 +6,12 @@ def registrar_interesse(usuario, curso, tentativa=None):
 
     Idempotente: devolve (interesse, criado). Se o interesse já existe,
     não mexe no snapshot: ele é a foto do momento em que foi salvo.
+    Se o aluno tinha removido o curso e salva de novo, o MESMO registro
+    volta para "interessado" com a foto ORIGINAL — é a do primeiro
+    salvamento que aderencia_a_recomendacao() mede.
     """
     rec = tentativa.recomendacoes.filter(curso=curso).first() if tentativa else None
-    return Interesse.objects.get_or_create(
+    interesse, criado = Interesse.objects.get_or_create(
         usuario=usuario,
         curso=curso,
         defaults={
@@ -18,3 +21,13 @@ def registrar_interesse(usuario, curso, tentativa=None):
             "era_principal": bool(rec and rec.rank == 1),
         },
     )
+    if not criado and interesse.status == "removido":
+        interesse.status = "interessado"
+        interesse.save(update_fields=["status"])
+    return interesse, criado
+
+
+def remover_da_lista(interesse):
+    """O aluno tirou o curso da lista. Soft delete: a linha e a foto ficam."""
+    interesse.status = "removido"
+    interesse.save(update_fields=["status"])

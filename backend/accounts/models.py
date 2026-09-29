@@ -43,6 +43,7 @@ class Interesse(models.Model):
         ("interessado", "Interessado"),
         ("contatado", "Contatado"),
         ("descartado", "Descartado"),
+        ("removido", "Removido pelo aluno"),
     ]
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="interesses")
     curso = models.ForeignKey("catalogo.Curso", on_delete=models.PROTECT, related_name="interessados")
