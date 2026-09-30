@@ -163,7 +163,7 @@
           <thead><tr style="border-bottom:2px solid var(--preto);"><th style="text-align:left; padding:0.4rem;">Curso</th><th style="text-align:right; padding:0.4rem;">Taxa</th></tr></thead>
           <tbody>
             {% for linha in conversao %}
-            <tr style="border-bottom:1px solid var(--linha);"><td style="padding:0.4rem;">{{ linha.nome_curso }}</td><td style="padding:0.4rem; text-align:right;">{{ linha.taxa|floatformat:1 }}%</td></tr>
+            <tr style="border-bottom:1px solid var(--linha);"><td style="padding:0.4rem;">{{ linha.nome_curso }}</td><td style="padding:0.4rem; text-align:right;">{% if linha.taxa is None %}—{% else %}{{ linha.taxa|floatformat:1 }}%{% endif %}</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -194,19 +194,21 @@
     <article class="painel__cartao" style="grid-column:span 1;">
       <h2>Top 1º</h2>
       <table><thead><tr><th>Curso</th><th>Testes</th></tr></thead><tbody>
-      {% for linha in top_primeiro %}<tr><td>{{ linha.nome }}</td><td>{% include "painel/_celula.html" with valor=linha.total %}</td></tr>{% endfor %}
+      {% for linha in top_primeiro %}<tr><td>{{ linha.nome }}</td><td>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td></tr>{% endfor %}
       </tbody></table>
     </article>
     <article class="painel__cartao" style="grid-column:span 1;">
       <h2>Top 5</h2>
       <table><thead><tr><th>Curso</th><th>Testes</th></tr></thead><tbody>
-      {% for linha in top_cinco %}<tr><td>{{ linha.nome }}</td><td>{% include "painel/_celula.html" with valor=linha.total %}</td></tr>{% endfor %}
+      {% for linha in top_cinco %}<tr><td>{{ linha.nome }}</td><td>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td></tr>{% endfor %}
       </tbody></table>
     </article>
   </div>
 
   <div style="margin-top:1.5rem; padding:1rem; background:#fff5f5; border-left:4px solid var(--vermelho); border-radius:8px; font-size:.85rem; color:#7a2e2e;">
-    <strong>Nota de privacidade:</strong> Nenhum dado individual exposto. Valores menores que {{ k_minimo }} também aparecem no painel.
+    <strong>Nota de privacidade:</strong> Nenhum dado individual exposto. Valores menores que {{ k_minimo }} aparecem como “—”: a linha continua na tabela, só o número é escondido.
+
+    
   </div>
   {% endif %}
 </section>
@@ -378,7 +380,7 @@
 
   var c4 = document.getElementById('chartConfianca');
   if (c4) {
-    var confianca = [{% for l in confianca %}{ faixa: '{{ l.confidence_band|default:"—"|escapejs }}', total: {{ l.total|default:0 }} }{% if not forloop.last %},{% endif %}{% endfor %}];
+    var confianca = [{% for l in confianca %}{% if not l.suprimido %}{ faixa: '{{ l.confidence_band|default:"—"|escapejs }}', total: {{ l.total }} },{% endif %}{% endfor %}];
     if (!confianca.length) {
       confianca = [{ faixa: 'Sem dados', total: 0 }];
     }

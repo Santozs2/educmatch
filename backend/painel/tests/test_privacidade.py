@@ -10,15 +10,15 @@ from quiz.models import QuestionarioLink
 
 
 class SupressaoTest(SimpleTestCase):
-    def test_valores_pequenos_aparecem_no_dashboard(self):
+    def test_celula_pequena_e_suprimida_mas_a_linha_fica(self):
         linhas = [{"nome": "A", "total": 9}, {"nome": "B", "total": 2}]
 
         saida = suprimir_pequenos(linhas)
 
-        self.assertEqual(len(saida), 2)
+        self.assertEqual(len(saida), 2, "esconder a linha vazaria pela omissão")
         self.assertEqual(saida[0]["total"], 9)
-        self.assertEqual(saida[1]["total"], 2)
-        self.assertNotIn("suprimido", saida[1])
+        self.assertIsNone(saida[1]["total"])
+        self.assertTrue(saida[1]["suprimido"])
 
     def test_a_funcao_nao_altera_a_entrada(self):
         linhas = [{"nome": "B", "total": 2}]

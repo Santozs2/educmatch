@@ -43,16 +43,21 @@
             </div>
             {% endif %}
 
+            {% if salvo %}
+            <form method="post" action="{% url 'interesse-remover' %}">
+                {% csrf_token %}
+                <input type="hidden" name="curso_id" value="{{ curso.id }}">
+                {% if tentativa_id %}<input type="hidden" name="tentativa_id" value="{{ tentativa_id }}">{% endif %}
+                <button class="botao botao--contorno botao--bloco" type="submit">Remover da minha lista</button>
+            </form>
+            {% else %}
             <form method="post" action="{% url 'interesse-salvar' %}">
                 {% csrf_token %}
                 <input type="hidden" name="curso_id" value="{{ curso.id }}">
                 {% if tentativa_id %}<input type="hidden" name="tentativa_id" value="{{ tentativa_id }}">{% endif %}
-                {% if salvo %}
-                <button class="botao botao--contorno botao--bloco" type="submit">Remover da minha lista</button>
-                {% else %}
                 <button class="botao botao--bloco" type="submit">Manifestar interesse neste curso</button>
-                {% endif %}
             </form>
+            {% endif %}
         </div>
     </article>
 
