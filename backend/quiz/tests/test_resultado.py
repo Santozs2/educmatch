@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from catalogo.models import Area, Curso, Peso_curso
-from quiz.engine import explicacao, recomedacao
+from quiz.engine import explicacao, recomendar
 from quiz.models import Alternativa, Peso_alternativa, Questao, Resposta, Tentativa_de_resposta
 
 
@@ -26,7 +26,7 @@ class ResultadoDisplayTests(TestCase):
         Resposta.objects.create(tentativa=self.tentativa, questao=self.questao, alternativa=self.alternativa)
 
     def test_recomendacao_define_confidence_level(self):
-        recomedacao(self.tentativa)
+        recomendar(self.tentativa)
         self.tentativa.refresh_from_db()
 
         self.assertIn(self.tentativa.confidence_band, ["alta", "media", "baixa"])

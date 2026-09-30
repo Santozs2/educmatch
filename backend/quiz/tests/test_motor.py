@@ -1,7 +1,7 @@
 from django.test import SimpleTestCase
 
 from catalogo.models import Curso
-from quiz.engine import confianca, recomedacao
+from quiz.engine import confianca, recomendar
 from quiz.models import Tentativa_de_resposta
 from quiz.tests.base import BaseEducMatch
 
@@ -26,7 +26,7 @@ class MotorTest(BaseEducMatch):
         """REC-05: eram 120 consultas por quiz; com prefetch, 12."""
         tentativa = self.responder()
         with self.assertNumQueries(12):
-            recomedacao(tentativa)
+            recomendar(tentativa)
 
 
 class ConfiancaTest(SimpleTestCase):
