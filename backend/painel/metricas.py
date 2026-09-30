@@ -76,7 +76,7 @@ def top_cursos_com_manifestacoes(inicio, limite=3):
 def top_cursos_em_primeiro(inicio, limite=10):
     return list(
         Recomendacao.objects
-        .filter(rank=1)
+        .filter(rank_final=1)
         .filter(_no_periodo(inicio, "tentativa__criado_em"))
         .values("curso_id", nome=F("curso__nome_curso"))
         .annotate(total=Count("tentativa_id", distinct=True))
@@ -148,7 +148,7 @@ def demanda_por_area(inicio, limite=12):
     """A área que mais pesou em cada 1º lugar do período."""
     explicacoes = (
         Recomendacao.objects
-        .filter(rank=1)
+        .filter(rank_final=1)
         .filter(_no_periodo(inicio, "tentativa__criado_em"))
         .values_list("explicacao", flat=True)
     )

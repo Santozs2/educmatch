@@ -13,7 +13,7 @@ class MotorTest(BaseEducMatch):
 
     def test_curso_desativado_nao_e_recomendado(self):
         """REC-02: o filtro está no motor, não na tela."""
-        primeiro = self.responder().recomendacoes.get(rank=1).curso
+        primeiro = self.responder().recomendacoes.get(rank_final=1).curso
         Curso.objects.filter(pk=primeiro.pk).update(is_active=False)
 
         tentativa = self.responder()

@@ -110,7 +110,7 @@ class PrivacidadeNaTelaTest(BasePainel):
     def test_conversao_suprimida_nao_vaza_pela_taxa(self):
         """taxa x recomendado / 100 reconstruiria o número escondido."""
         tentativas = self.criar_tentativas(quantidade=K_MINIMO + 1)
-        curso = tentativas[0].recomendacoes.get(rank=1).curso
+        curso = tentativas[0].recomendacoes.get(rank_final=1).curso
         Interesse.objects.create(usuario=self.criar_usuario("um@exemplo.com"), curso=curso)
 
         conversao = self.abrir_painel().context["conversao"]

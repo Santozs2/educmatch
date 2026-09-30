@@ -129,7 +129,7 @@ def resultado_pagina(request,pk):
     recomendacoes = tentativa.recomendacoes.select_related("curso__area_principal")
     itens = [
         {
-            "rank": rec.rank,
+            "rank": rec.rank_final,
             "match": round(rec.score * 100),
             "curso": rec.curso,
             "areas": areas_da_recomendacao(rec),

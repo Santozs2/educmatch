@@ -134,7 +134,8 @@ def recomendar(tentativa, limit=None):
                 tentativa=tentativa,
                 curso=curso,
                 score=score,
-                rank=rank,
+                rank_engine=rank,
+                rank_final=rank, #Sem LLM, a ordem entregue e da engine.
                 explicacao=explicacao,
             )
             for rank, (curso, score, explicacao) in enumerate(ranking, start=1)

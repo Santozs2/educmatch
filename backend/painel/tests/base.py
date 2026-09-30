@@ -43,7 +43,7 @@ class BasePainel(BaseEducMatch):
         curso = self.criar_curso()
         for _ in range(recomendacoes):
             tentativa = Tentativa_de_resposta.objects.create()
-            Recomendacao.objects.create(tentativa=tentativa, curso=curso, score=0.5, rank=2)
+            Recomendacao.objects.create(tentativa=tentativa, curso=curso, score=0.5, rank_engine=2, rank_final=2)
         for i in range(interesses):
             usuario = self.criar_usuario(f"interessado{i}@exemplo.com")
             Interesse.objects.create(usuario=usuario, curso=curso)
@@ -52,6 +52,6 @@ class BasePainel(BaseEducMatch):
     def criar_tentativa_com_explicacao(self, explicacao):
         tentativa = Tentativa_de_resposta.objects.create()
         Recomendacao.objects.create(
-            tentativa=tentativa, curso=Curso.objects.first(), score=0.9, rank=1, explicacao=explicacao
+            tentativa=tentativa, curso=Curso.objects.first(), score=0.9, rank_engine=1, rank_final=1, explicacao=explicacao
         )
         return tentativa

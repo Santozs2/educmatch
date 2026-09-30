@@ -31,7 +31,7 @@ class RespostaInline(admin.TabularInline):
 class RecomendacaoInline(admin.TabularInline):
     model = Recomendacao
     extra = 0
-    readonly_fields = ['curso', 'score', 'rank', 'explicacao']
+    readonly_fields = ['curso', 'score', 'rank_engine', 'rank_final', 'explicacao', 'llm_text']
     can_delete = False
     
 @admin.register(Tentativa_de_resposta)
