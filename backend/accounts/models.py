@@ -57,6 +57,7 @@ class Interesse(models.Model):
     # C4: a "foto" do momento em que o aluno salvou o curso. A tentativa pode
     # ser refeita e a recomendação regravada; o snapshot não muda.
     rank_snapshot = models.PositiveSmallIntegerField("posição no momento", null=True, blank=True)
+    rank_engine_snapshot = models.PositiveSmallIntegerField("posição na engine", null=True, blank=True)
     afinidade_snapshot = models.FloatField("afinidade no momento", null=True, blank=True)
     era_principal = models.BooleanField("era o 1º colocado", default=False)
     status = models.CharField(max_length=20, choices=STATUS, default="interessado")

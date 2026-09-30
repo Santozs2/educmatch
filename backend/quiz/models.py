@@ -66,6 +66,18 @@ class Tentativa_de_resposta(models.Model):
     confidence_band = models.CharField(max_length=10, choices=CONFIDENCE_CHOICE_NIVEIS, default="")
     tie_set = models.JSONField(default=list, blank=True)
     
+    
+    # Metadados da entrega da LLM: são de chamada, não de cada curso.
+    llm_model = models.CharField(max_length=60, blank=True)
+    prompt_version = models.CharField(max_length=20, blank=True)
+    latency_ms = models.PositiveIntegerField(null=True, blank=True)
+    tokens_in = models.PositiveIntegerField(null=True, blank=True)
+    tokens_out = models.PositiveIntegerField(null=True, blank=True)
+    used_fallback = models.BooleanField(default=False)
+    diverged = models.BooleanField(default=False)
+    cache_hit = models.BooleanField(default=False)
+    
+    
     class Meta:
         ordering = ["-criado_em"]
         indexes = [models.Index(fields=["criado_em"], name="idx_tentativa_criado_em")]
@@ -109,17 +121,24 @@ class Recomendacao(models.Model):
     tentativa = models.ForeignKey(Tentativa_de_resposta, on_delete=models.CASCADE, related_name="recomendacoes")
     curso = models.ForeignKey('catalogo.Curso', on_delete=models.CASCADE, related_name="recomendacoes")
     score = models.FloatField(default=0.0, validators=[MinValueValidator(0.0), MaxValueValidator(5)])
-    rank = models.IntegerField(default=0)
+    rank_engine = models.PositiveSmallIntegerField(
+        default=0, help_text="Ordem determinística calculada pela engine."
+    )
+    rank_final = models.PositiveSmallIntegerField(
+        default=0, help_text="Ordem entregue ao aluno (a LLM pode reordenar)."
+    )
     explicacao = models.JSONField(default=dict, blank=True)
-    
+    llm_text = models.TextField(blank=True)
+
     class Meta:
         unique_together = ('tentativa', 'curso')
-        ordering = ["rank"]
-        indexes = [models.Index(fields=["rank", "curso"], name="idx_rec_rank_curso")]
-   
+        # A tela mostra a ordem que o aluno viu, não a que a engine calculou.
+        ordering = ["rank_final"]
+        indexes = [models.Index(fields=["rank_final", "curso"], name="idx_rec_rank_final_curso")]
+
     @property
     def is_primary(self):
-        return self.rank == 1
+        return self.rank_final == 1
         
     def __str__(self):
-        return f"Recomendação do curso {self.curso.nome_curso} para a tentativa {self.tentativa.id} - Score: {self.score}, Rank: {self.rank}"
+        return f"Recomendação do curso {self.curso.nome_curso} para a tentativa {self.tentativa.id} - Score: {self.score}, Rank: {self.rank_final}"

@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 from quiz.models import Questao, QuestionarioLink, Resposta, Tentativa_de_resposta
 from catalogo.models import Curso
 from accounts.models import Interesse
-from quiz.engine import recomedacao
+from quiz.engine import recomendar
 
 def perguntas_ativas():
     return Questao.objects.filter(is_active=True).prefetch_related("alternativas")
@@ -97,7 +97,7 @@ def pagina_quiz(request):
                 for questao, escolha in selecionadas.items()
             ]
         )
-        recomedacao(tentativa)
+        recomendar(tentativa)
     tentativas = request.session.setdefault("minhas_tentativas", [])
     tentativas.append(tentativa.pk)
     request.session.pop("quiz_respostas", None)
@@ -126,16 +126,16 @@ def resultado_pagina(request,pk):
     if tentativa.user_id is None and not esta_na_sessao:
         raise Http404
     
-    recomedacoes = tentativa.recomendacoes.select_related("curso__area_principal")
+    recomendacoes = tentativa.recomendacoes.select_related("curso__area_principal")
     itens = [
         {
-            "rank": rec.rank,
+            "rank": rec.rank_final,
             "match": round(rec.score * 100),
             "curso": rec.curso,
             "areas": areas_da_recomendacao(rec),
             
         }
-        for rec in recomedacoes
+        for rec in recomendacoes
     ]
     pendente = request.session.get("interesse_pendente")
     curso_pendente = None

@@ -22,7 +22,7 @@ class TelasDoAlunoTest(BaseEducMatch):
 
     def test_resultado_leva_ao_detalhe_do_curso(self):
         tentativa = self.responder()
-        primeiro = tentativa.recomendacoes.get(rank=1).curso
+        primeiro = tentativa.recomendacoes.get(rank_final=1).curso
 
         resposta = self.client.get(reverse("quiz-resultado", args=[tentativa.pk]))
 
@@ -31,7 +31,7 @@ class TelasDoAlunoTest(BaseEducMatch):
 
     def test_detalhe_do_curso_mostra_a_afinidade_e_volta_ao_resultado(self):
         tentativa = self.responder()
-        rec = tentativa.recomendacoes.get(rank=1)
+        rec = tentativa.recomendacoes.get(rank_final=1)
 
         resposta = self.client.get(reverse("curso-detalhe", args=[rec.curso_id]) + f"?tentativa={tentativa.pk}")
 
@@ -44,7 +44,7 @@ class TelasDoAlunoTest(BaseEducMatch):
         outro = self.client_class(SERVER_NAME="localhost")
         outro.post("/", self.payload_do_quiz())
         alheia = Tentativa_de_resposta.objects.latest("id")
-        curso = alheia.recomendacoes.get(rank=1).curso
+        curso = alheia.recomendacoes.get(rank_final=1).curso
 
         resposta = self.client.get(reverse("curso-detalhe", args=[curso.pk]) + f"?tentativa={alheia.pk}")
 

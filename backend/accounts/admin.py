@@ -27,4 +27,4 @@ class InteresseAdmin(admin.ModelAdmin):
     list_filter = ["status", "era_principal"]
     search_fields = ["usuario__email", "curso__nome_curso"]
     # O snapshot é a foto do momento: ninguém edita pelo admin.
-    readonly_fields = ["tentativa_origem", "rank_snapshot", "afinidade_snapshot", "era_principal", "criado_em"]
+    readonly_fields = ["tentativa_origem", "rank_snapshot", "rank_engine_snapshot", "afinidade_snapshot", "era_principal", "criado_em"]

@@ -16,9 +16,10 @@ def registrar_interesse(usuario, curso, tentativa=None):
         curso=curso,
         defaults={
             "tentativa_origem": tentativa,
-            "rank_snapshot": rec.rank if rec else None,
+            "rank_snapshot": rec.rank_final if rec else None,
+            "rank_engine_snapshot": rec.rank_engine if rec else None,
             "afinidade_snapshot": rec.score if rec else None,
-            "era_principal": bool(rec and rec.rank == 1),
+            "era_principal": bool(rec and rec.rank_final == 1),
         },
     )
     if not criado and interesse.status == "removido":

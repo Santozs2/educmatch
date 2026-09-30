@@ -70,6 +70,13 @@ def rank_cursos(profile, cursos, nome_areas):
     return resultado
 
 def banda(afinidade):
+    """Nível da afinidade de UM curso: baixo (< 0,5), medio (< 0,8) ou alto.
+
+    Não confundir com confianca(), que mede a separação entre o 1º e o 2º.
+    Fica no motor para o fallback e para o tom do prompt: um 1º lugar com
+    afinidade "baixo" não pode ser apresentado como "combina muito com você",
+    venha o texto da LLM ou da engine.
+    """
     if afinidade < CORTE_MINIMO:
         return "baixo"
     elif afinidade < CORTE_MAXIMO:
@@ -97,7 +104,7 @@ def confianca(ranking):
     return "baixa"
 
 @transaction.atomic
-def recomedacao(tentativa, limit=None):
+def recomendar(tentativa, limit=None):
     if limit is None:
         limit = settings.QUIZ_RECOMENDACAO_LIMIT
     respostas = (
@@ -127,7 +134,8 @@ def recomedacao(tentativa, limit=None):
                 tentativa=tentativa,
                 curso=curso,
                 score=score,
-                rank=rank,
+                rank_engine=rank,
+                rank_final=rank, #Sem LLM, a ordem entregue e da engine.
                 explicacao=explicacao,
             )
             for rank, (curso, score, explicacao) in enumerate(ranking, start=1)

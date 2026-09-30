@@ -47,7 +47,7 @@ class BaseEducMatch(TestCase):
 
     def criar_tentativa(self, dono=None, coluna=0):
         """Uma tentativa ja calculada pela engine, com ou sem dono."""
-        from quiz.engine import recomedacao
+        from quiz.engine import recomendar
         from quiz.models import Questao, Resposta, Tentativa_de_resposta
 
         tentativa = Tentativa_de_resposta.objects.create(user=dono, respondido_por="Teste")
@@ -57,7 +57,7 @@ class BaseEducMatch(TestCase):
                 tentativa=tentativa, questao=questao,
                 alternativa=alternativas[coluna % len(alternativas)],
             )
-        recomedacao(tentativa)
+        recomendar(tentativa)
         return tentativa
 
     def dados_de_cadastro(self, email="ana@exemplo.com"):
