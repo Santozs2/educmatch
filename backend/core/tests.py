@@ -13,7 +13,4 @@ class FusoDoMySQL(TestCase):
             cursor.execute("select CONVERT_TZ(NOW(), 'UTC', %s)", [settings.TIME_ZONE])
             convertido = cursor.fetchone()[0]
 
-        self.assertIsNotNone(
-            convertido,
-            "as tabelas de fuso do MySQL estao vazias: veja o README, secao 'Tabelas de fuso'",
-        )
+        self.assertIsNotNone(convertido, "as tabelas de fuso do MySQL estao vazias: veja o README, secao -Tabelas de fuso-")

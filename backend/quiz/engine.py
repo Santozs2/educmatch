@@ -8,8 +8,12 @@ from quiz.models import Recomendacao
 TOP3 = 3
 CORTE_MINIMO = 0.5
 CORTE_MAXIMO = 0.8
+# Diferença ABSOLUTA de afinidade entre dois cursos. A mesma régua decide a
+# banda de confiança, o tie_set e a regra 2 do prompt (quando a LLM pode
+# trocar o 1º lugar): três lugares, um número só.
+EMPATE = 0.05
 BANDA_CONFIANCA_ALTA = 0.15
-BANDA_CONFIANCA_MEDIA = 0.05
+CASAS = 6  # arredonda antes de comparar: 0.80 - 0.75 dá 0.05000000000000004
 
 def vetor_curso(curso):
     vetor = {
@@ -85,23 +89,33 @@ def banda(afinidade):
         return "alto"
 
 
+def diferenca_do_topo(ranking, score):
+    return round(ranking[0][1] - score, CASAS)
+
+
 def confianca(ranking):
     """Quanto o 1º lugar se separou do 2º, no ranking INTEIRO (antes do corte)."""
-    if not ranking:
+    if not ranking or ranking[0][1] <= 0:
         return "baixa"
 
-    primeiro = ranking[0][1]
     segundo = ranking[1][1] if len(ranking) > 1 else 0.0
-
-    if primeiro <= 0:
-        return "baixa"
-
-    separacao = (primeiro - segundo) / primeiro
-    if separacao >= BANDA_CONFIANCA_ALTA:
+    diferenca = diferenca_do_topo(ranking, segundo)
+    if diferenca >= BANDA_CONFIANCA_ALTA:
         return "alta"
-    if separacao >= BANDA_CONFIANCA_MEDIA:
+    if diferenca >= EMPATE:
         return "media"
     return "baixa"
+
+
+def conjunto_de_empate(ranking):
+    """Ids dos cursos a menos de EMPATE do 1º lugar, o 1º incluído.
+
+    É a lista de quem a LLM pode colocar em 1º (regra 2). Um item só = sem
+    empate: a LLM não pode trocar o principal.
+    """
+    if not ranking:
+        return []
+    return [curso.pk for curso, score, _ in ranking if diferenca_do_topo(ranking, score) < EMPATE]
 
 @transaction.atomic
 def recomendar(tentativa, limit=None):
@@ -124,9 +138,10 @@ def recomendar(tentativa, limit=None):
 
     tentativa.diferenca = primeiro - segundo
     tentativa.confidence_band = confianca(ranking)     # REC-04: mede antes do corte
-    tentativa.save(update_fields=["confidence_band", "diferenca"])
-
     ranking = ranking[:limit]
+    tentativa.tie_set = conjunto_de_empate(ranking)    # só quem a LLM vai receber
+    tentativa.save(update_fields=["confidence_band", "diferenca", "tie_set"])
+
     Recomendacao.objects.filter(tentativa=tentativa).delete()
     Recomendacao.objects.bulk_create(
         [
