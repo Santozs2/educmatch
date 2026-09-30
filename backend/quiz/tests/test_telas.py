@@ -18,7 +18,7 @@ class TelasDoAlunoTest(BaseEducMatch):
 
         resposta = self.client.get(reverse("quiz-resultado", args=[tentativa.pk]))
 
-        self.assertContains(resposta, "afinidade com os cursos disponíveis ficou baixa")
+        self.assertContains(resposta, "quase na mesma medida")
 
     def test_resultado_leva_ao_detalhe_do_curso(self):
         tentativa = self.responder()
