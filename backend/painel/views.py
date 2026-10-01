@@ -38,6 +38,13 @@ def _contexto_base(request, secao):
     if escolhido == "mes" and mes:
         filtro["mes"] = mes
 
+    link_ativo = QuestionarioLink.objects.filter(ativo=True).order_by("-criado_em").first()
+    url_do_quiz = (
+        request.build_absolute_uri(reverse("questionario-link", kwargs={"token": link_ativo.token}))
+        if link_ativo is not None
+        else request.build_absolute_uri(reverse("quiz-inicio"))
+    )
+
     return inicio, {
         "secao": secao,
         "periodo": escolhido,
@@ -49,6 +56,7 @@ def _contexto_base(request, secao):
         "total_de_tentativas": total,
         "tem_massa": privacidade.periodo_tem_massa_suficiente(total),
         "k_minimo": privacidade.K_MINIMO,
+        "url_do_quiz": url_do_quiz,
     }
 
 
