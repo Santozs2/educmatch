@@ -1,0 +1,77 @@
+{% extends "painel/base_painel.html" %}
+{% block titulo_painel %}Quiz{% endblock %}
+{% block titulo_pagina %}Quiz — Visão geral{% endblock %}
+{% block subtitulo %}Desempenho da recomendação e cobertura da engine{% endblock %}
+
+{% block painel %}
+{% if not tem_massa %}
+{% include "painel/_sem_massa.html" %}
+{% else %}
+<div class="painel-grade painel-grade--3">
+    {% include "painel/_ranking.html" with titulo="Mais salvos na lista" linhas=top_manifestacoes %}
+    {% include "painel/_ranking.html" with titulo="Mais vezes em 1º lugar" linhas=top_primeiro %}
+    {% include "painel/_ranking.html" with titulo="Mais vezes no Top 5" linhas=top_cinco %}
+</div>
+
+<div class="painel-grade painel-grade--2">
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Distribuição de confiança</h2>
+        <ul class="painel-barras">
+            {% for linha in confianca %}
+            <li>
+                <span>{{ linha.rotulo }}</span>
+                <b>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</b>
+            </li>
+            {% empty %}<li>Nenhum dado.</li>{% endfor %}
+        </ul>
+    </article>
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Aderência à recomendação <span class="painel-ajuda" tabindex="0" data-dica="Dos cursos salvos, quantos eram o 1º colocado do ranking no momento em que o aluno salvou.">?</span></h2>
+        {% if aderencia.taxa is None %}
+        <p class="painel-vazio">Menos de {{ k_minimo }} cursos salvos como 1º colocado no período.</p>
+        {% else %}
+        <p class="painel-kpi__valor">{{ aderencia.taxa|floatformat:0 }}%</p>
+        <p class="painel-vazio">dos cursos salvos eram o 1º colocado</p>
+        <div class="painel-progresso" aria-hidden="true"><i style="width: {{ aderencia.taxa|floatformat:0 }}%"></i></div>
+        {% endif %}
+    </article>
+</div>
+
+<article class="painel-card painel-grade">
+    <h2 class="painel-card__titulo">Conversão por curso <span class="painel-ajuda" tabindex="0" data-dica="Quantas vezes o curso foi salvo na lista de interesse ÷ quantas vezes foi recomendado.">?</span></h2>
+    <div class="painel-tabela">
+        <table>
+            <thead><tr><th scope="col">Curso</th><th scope="col" class="numero">Salvo</th><th scope="col" class="numero">Taxa</th></tr></thead>
+            <tbody>
+                {% for linha in conversao %}
+                <tr>
+                    <td>{{ linha.nome_curso }}</td>
+                    <td class="numero">{% include "painel/_celula.html" with valor=linha.interessados suprimido=linha.suprimido %}</td>
+                    <td class="numero">{% if linha.taxa is None %}—{% else %}{{ linha.taxa|floatformat:0 }}%{% endif %}</td>
+                </tr>
+                {% empty %}<tr><td colspan="3">Nenhum curso ativo.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</article>
+
+<div class="painel-grade painel-grade--2">
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Cursos nunca recomendados</h2>
+        <ul class="painel-lista">
+            {% for curso in orfaos %}
+            <li><span>{{ curso.nome_curso }}</span><span class="painel-selo painel-selo--perigo">Alerta</span></li>
+            {% empty %}<li>Todos os cursos ativos já foram recomendados.</li>{% endfor %}
+        </ul>
+    </article>
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Cobertura de áreas <span class="painel-ajuda" tabindex="0" data-dica="Quantas alternativas do quiz dão peso a cada área. Zero = área que o quiz não mede.">?</span></h2>
+        <ul class="painel-lista">
+            {% for area in cobertura %}
+            <li><span>{{ area.nome }}</span><b {% if not area.alternativas %}class="painel-alerta"{% endif %}>{{ area.alternativas }}</b></li>
+            {% endfor %}
+        </ul>
+    </article>
+</div>
+{% endif %}
+{% endblock %}

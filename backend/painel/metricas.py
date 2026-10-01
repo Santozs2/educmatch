@@ -8,6 +8,7 @@ from collections import Counter
 from datetime import datetime, timedelta
 
 from django.db.models import Count, F, Q
+from django.db.models.functions import TruncDate, TruncMonth
 from django.utils import timezone
 
 from accounts.models import Interesse
@@ -197,3 +198,58 @@ def cobertura_de_areas():
         .values("slug", "nome", "alternativas")
         .order_by("alternativas", "nome")
     )
+
+def conversao_geral(inicio):
+    """Cursos salvos ÷ cursos recomendados no período, somando todos os cursos.
+
+    Com menos de K interesses, a taxa vira None: taxa x recomendações / 100
+    devolveria a contagem pequena que a supressão esconde.
+    """
+    from painel.privacidade import K_MINIMO
+
+    linhas = conversao_por_curso(inicio)
+    recomendado = sum(linha["recomendado"] for linha in linhas)
+    interessados = sum(linha["interessados"] for linha in linhas)
+    if not recomendado or interessados < K_MINIMO:
+        return None
+    return interessados / recomendado * 100
+
+
+def tentativas_por_dia(inicio):
+    """Testes por dia (até 62 dias) ou por mês (períodos maiores), em ordem."""
+    agora = timezone.now()
+    por_mes = inicio is None or (agora - inicio).days > 62
+    truncar = TruncMonth("criado_em") if por_mes else TruncDate("criado_em")
+    formato = "%m/%Y" if por_mes else "%d/%m"
+
+    linhas = (
+        Tentativa_de_resposta.objects
+        .filter(_no_periodo(inicio))
+        .annotate(dia=truncar)
+        .values("dia")
+        .annotate(total=Count("id"))
+        .order_by("dia")
+    )
+    return [{"rotulo": linha["dia"].strftime(formato), "total": linha["total"]} for linha in linhas]
+
+
+def atividade_recente():
+    """Contagens das últimas horas. Nunca uma linha por pessoa nem horário exato."""
+    agora = timezone.now()
+    return [
+        {
+            "icone": "fa-circle-check",
+            "rotulo": "testes concluídos na última hora",
+            "total": Tentativa_de_resposta.objects.filter(criado_em__gte=agora - timedelta(hours=1)).count(),
+        },
+        {
+            "icone": "fa-clipboard-list",
+            "rotulo": "testes concluídos nas últimas 24 horas",
+            "total": Tentativa_de_resposta.objects.filter(criado_em__gte=agora - timedelta(days=1)).count(),
+        },
+        {
+            "icone": "fa-heart",
+            "rotulo": "cursos salvos nas últimas 24 horas",
+            "total": Interesse.objects.filter(criado_em__gte=agora - timedelta(days=1)).exclude(status="removido").count(),
+        },
+    ]

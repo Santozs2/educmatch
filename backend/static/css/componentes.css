@@ -386,3 +386,65 @@ a.cartao:hover {
   grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
+
+
+/* ---------- Botões sólidos (regra do painel: nenhum botão fantasma) ----------
+   .botao é o principal (vermelho). As variantes abaixo trocam só o fundo:
+   todas são preenchidas, sem borda aparente e com alvo de 48px. */
+
+.botao--secundario {
+  border-color: var(--preto-2);
+  background: var(--preto-2);
+  color: var(--branco);
+}
+
+.botao--secundario:hover {
+  border-color: var(--preto);
+  background: var(--preto);
+  color: var(--branco);
+  box-shadow: 0 6px 16px rgba(9, 9, 11, 0.2);
+}
+
+.botao--suave {
+  border-color: var(--marca-claro);
+  background: var(--marca-claro);
+  color: var(--marca-escuro);
+}
+
+.botao--suave:hover {
+  border-color: #f9d6d3;
+  background: #f9d6d3;
+  color: var(--marca-escuro);
+  box-shadow: none;
+}
+
+.botao--neutro {
+  border-color: var(--gelo);
+  background: var(--gelo);
+  color: var(--preto-2);
+}
+
+.botao--neutro:hover {
+  border-color: #e4deda;
+  background: #e4deda;
+  color: var(--preto);
+  box-shadow: none;
+}
+
+.botao--perigo {
+  border-color: var(--erro);
+  background: var(--erro);
+  color: var(--branco);
+}
+
+.botao--perigo:hover {
+  border-color: #b91c1c;
+  background: #b91c1c;
+  color: var(--branco);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.22);
+}
+
+.botao--icone {
+  width: var(--alvo);
+  padding: 0;
+}
