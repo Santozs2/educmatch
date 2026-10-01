@@ -2,8 +2,9 @@ from django.db import transaction
 from django.http import Http404 
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.dateparse import parse_datetime
 from urllib.parse import urlencode
-from quiz.models import Questao, QuestionarioLink, Resposta, Tentativa_de_resposta
+from quiz.models import InicioDeQuiz, Questao, QuestionarioLink, Resposta, Tentativa_de_resposta
 from catalogo.models import Curso
 from accounts.models import Interesse
 from quiz.engine import recomendar
@@ -29,6 +30,20 @@ def areas_da_recomendacao(recomendacao):
         areas_norm.append(area_norm)
     return areas_norm
 
+def _registrar_inicio(request):
+    """Conta um início na primeira vez que este navegador abre a 1ª questão.
+
+    A marca na sessão impede contar de novo ao recarregar ou ao voltar para a
+    questão 1; ela só sai quando o quiz termina ou recomeça.
+    """
+    if request.session.get("quiz_iniciado_em"):
+        return
+    link = QuestionarioLink.objects.filter(
+        token=request.session.get("questionario_link_token"), ativo=True
+    ).first()
+    inicio = InicioDeQuiz.objects.create(questionario_link=link)
+    request.session["quiz_iniciado_em"] = inicio.criado_em.isoformat()
+
 def pagina_quiz(request):
     questoes = perguntas_ativas()
     
@@ -38,7 +53,10 @@ def pagina_quiz(request):
         if respondido_por and not etapa:
             request.session.pop("quiz_respostas", None)
             request.session.pop("quiz_respondido_por", None)
-
+            request.session.pop("quiz_iniciado_em", None)
+        if etapa == "1" or (respondido_por and not etapa):
+            _registrar_inicio(request)
+            
         respostas_salvas = request.session.get("quiz_respostas", {})
         for questao in questoes:
             marcada = respostas_salvas.get(str(questao.id))
@@ -90,6 +108,7 @@ def pagina_quiz(request):
             respondido_por=respondido_por,
             user=usuario,
             questionario_link=questionario_link,
+            iniciado_em=parse_datetime(request.session.get("quiz_iniciado_em") or ""),
         )
         Resposta.objects.bulk_create(
             [
@@ -102,6 +121,7 @@ def pagina_quiz(request):
     tentativas.append(tentativa.pk)
     request.session.pop("quiz_respostas", None)
     request.session.pop("quiz_respondido_por", None)
+    request.session.pop("quiz_iniciado_em", None)
     request.session.modified = True
     
     return redirect("quiz-resultado", pk=tentativa.pk)
@@ -115,6 +135,7 @@ def acessar_questionario(request, token):
     request.session["questionario_link_token"] = str(link.token)
     request.session.pop("quiz_respostas", None)
     request.session.pop("quiz_respondido_por", None)
+    request.session.pop("quiz_iniciado_em", None)
     return redirect("quiz-inicio")
 
 def resultado_pagina(request,pk):

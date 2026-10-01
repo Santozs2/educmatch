@@ -1,0 +1,114 @@
+/* Avaliação de fim de curso (página do aluno). */
+
+.avaliacao {
+  display: grid;
+  gap: 22px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.avaliacao__topo h1 {
+  margin-bottom: 4px;
+}
+
+.avaliacao__anonimo {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.avaliacao__pergunta {
+  margin: 0;
+  padding: 18px 0 0;
+  border: 0;
+  border-top: 1px solid var(--linha);
+}
+
+.avaliacao__pergunta legend {
+  padding: 0;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.avaliacao__pergunta--erro legend {
+  color: var(--erro);
+}
+
+.avaliacao__opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.avaliacao__opcoes--nps {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 6px;
+}
+
+/* O rádio continua no lugar (teclado e leitor de tela), só fica invisível. */
+.avaliacao__opcao {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--alvo);
+  min-height: var(--alvo);
+  padding: 0 14px;
+  border-radius: var(--raio-botao);
+  background: var(--gelo);
+  color: var(--tinta);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-rapida) var(--ease-padrao);
+}
+
+.avaliacao__opcao input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.avaliacao__opcao:hover {
+  background: #e4deda;
+}
+
+.avaliacao__opcao:has(input:checked) {
+  background: var(--marca);
+  color: var(--branco);
+}
+
+.avaliacao__opcao:has(input:focus-visible) {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+.avaliacao__opcoes--nps .avaliacao__opcao {
+  min-width: 0;
+  padding: 0;
+}
+
+.avaliacao__legenda {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0 0;
+  color: var(--texto-3);
+  font-size: var(--pequeno);
+}
+
+.avaliacao textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-botao);
+  font: inherit;
+}
+
+@media (max-width: 560px) {
+  /* 11 botões não cabem numa linha de celular: 0 a 5 em cima, 6 a 10 embaixo. */
+  .avaliacao__opcoes--nps {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}

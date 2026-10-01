@@ -1,4 +1,6 @@
-K_MINIMO = 5
+# Decisão do grupo (2026-10-01): o painel mostra todos os números, sem esconder
+# contagens pequenas. 0 desliga a supressão; para religar o k-anonimato, volte para 5.
+K_MINIMO = 0
 SUPRIMIDO = None
 
 
@@ -22,3 +24,19 @@ def suprimir_pequenos(linhas, campo="total", k=K_MINIMO):
 
 def periodo_tem_massa_suficiente(total_de_tentativas, k=K_MINIMO):
     return total_de_tentativas >= k
+
+
+def suprimir_campos(linhas, campos, k=K_MINIMO):
+    """suprimir_pequenos para tabelas com mais de uma coluna contada.
+
+    Cada campo é julgado sozinho e ganha a sua marca: "<campo>_suprimido".
+    """
+    resultado = []
+    for linha in linhas:
+        copia = dict(linha)
+        for campo in campos:
+            if copia.get(campo) is not None and copia[campo] < k:
+                copia[campo] = SUPRIMIDO
+                copia[f"{campo}_suprimido"] = True
+        resultado.append(copia)
+    return resultado

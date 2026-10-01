@@ -1,22 +1,14 @@
-<article class="painel__cartao">
-    <h2>{{ titulo }}</h2>
-    <table>
-        <caption class="visualmente-oculto">{{ titulo }}</caption>
-        <thead><tr><th scope="col">Curso</th><th scope="col">{{ coluna }}</th></tr></thead>
-        <tbody>
-            {% for linha in linhas %}
-            <tr>
-                <td>
-                    {{ linha.nome }}
-                    {% if not linha.suprimido %}
-                    <span class="painel__barra" style="--largura: {% widthratio linha.total total_de_tentativas 100 %}%" aria-hidden="true"></span>
-                    {% endif %}
-                </td>
-                <td>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="2">Nenhum dado no período.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<article class="painel-card">
+    <h2 class="painel-card__titulo">{{ titulo }}</h2>
+    <ol class="painel-ranking">
+        {% for linha in linhas %}
+        <li>
+            <span class="painel-ranking__pos">{{ forloop.counter|stringformat:"02d" }}</span>
+            <span class="painel-ranking__nome">{{ linha.nome }}</span>
+            <b>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</b>
+        </li>
+        {% empty %}
+        <li class="painel-vazio">Nenhum dado no período.</li>
+        {% endfor %}
+    </ol>
 </article>

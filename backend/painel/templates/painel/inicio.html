@@ -1,0 +1,94 @@
+{% extends "painel/base_painel.html" %}
+{% load static %}
+{% block titulo_painel %}Início{% endblock %}
+{% block titulo_pagina %}Olá, {{ user.first_name|default:"Coordenação" }}!{% endblock %}
+{% block subtitulo %}Resumo do quiz{% endblock %}
+
+{% block painel %}
+<div class="painel-kpis">
+    <article class="painel-card painel-kpi">
+        <h2>Testes realizados</h2>
+        <p class="painel-kpi__valor" data-contar>{{ total_de_tentativas }}</p>
+    </article>
+    <article class="painel-card painel-kpi">
+        <h2>Testes pelo link</h2>
+        <p class="painel-kpi__valor">{% if tem_massa %}{{ via_link }}{% else %}—{% endif %}</p>
+    </article>
+    <article class="painel-card painel-kpi">
+        <h2>Cursos ativos</h2>
+        <p class="painel-kpi__valor">{{ cursos_ativos }}</p>
+    </article>
+    <article class="painel-card painel-kpi">
+        <h2>Avaliações de curso</h2>
+        <p class="painel-kpi__valor">{{ avaliacoes_no_periodo }}</p>
+    </article>
+    <article class="painel-card painel-kpi">
+        <h2>Conversão <span class="painel-ajuda" tabindex="0" data-dica="Cursos salvos na lista de interesse ÷ cursos recomendados no período.">?</span></h2>
+        <p class="painel-kpi__valor">{% if conversao_geral is None %}—{% else %}{{ conversao_geral|floatformat:0 }}%{% endif %}</p>
+    </article>
+</div>
+
+{% if not tem_massa %}
+{% include "painel/_sem_massa.html" %}
+{% else %}
+<div class="painel-grade painel-grade--2-1">
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Testes ao longo do tempo</h2>
+        <div class="painel-grafico"><canvas id="grafico-serie" role="img" aria-label="Gráfico de linha com os testes do período"></canvas></div>
+        {% if k_minimo %}<p class="painel-vazio"><i class="fa-solid fa-lock" aria-hidden="true"></i> Dias com menos de {{ k_minimo }} testes ficam em branco na linha.</p>{% endif %}
+    </article>
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Demanda por área</h2>
+        <div class="painel-grafico painel-grafico--rosca"><canvas id="grafico-areas" role="img" aria-label="Gráfico de rosca com a área que mais pesou no 1º lugar"></canvas></div>
+        <ul class="painel-legenda">
+            {% for linha in demanda_por_area|slice:":5" %}
+            <li><span>{{ linha.nome }}</span><b>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</b></li>
+            {% empty %}<li>Nenhum dado.</li>{% endfor %}
+        </ul>
+    </article>
+</div>
+{{ serie|json_script:"dados-serie" }}
+{{ demanda_por_area|json_script:"dados-areas" }}
+{% endif %}
+
+<div class="painel-grade painel-grade--2-1">
+    <article class="painel-card painel-card--destaque">
+        <h2 class="painel-card__titulo">Link ativo do quiz</h2>
+        {% for link in links %}
+        <div class="painel-link">
+            <input class="painel-link__url" type="text" value="{{ link.url }}" readonly aria-label="Endereço do link">
+            <button type="button" class="botao botao--secundario" data-copiar><i class="fa-solid fa-copy" aria-hidden="true"></i> Copiar</button>
+        </div>
+        {% empty %}
+        <p class="painel-vazio">Nenhum link ativo. Use “Gerar link” no menu.</p>
+        {% endfor %}
+        {% if links %}
+        <form method="post" action="{% url 'painel-fechar-link' %}" data-confirmar="Fechar todos os links ativos? Quem tiver o endereço não consegue mais entrar." data-perigo>
+            {% csrf_token %}
+            <button type="submit" class="botao botao--perigo"><i class="fa-solid fa-ban" aria-hidden="true"></i> Fechar links</button>
+        </form>
+        {% endif %}
+    </article>
+
+    {% if tem_massa %}
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Atividade recente</h2>
+        <ul class="painel-atividade">
+            {% for item in atividade %}
+            <li>
+                <span class="painel-atividade__icone"><i class="fa-solid {{ item.icone }}" aria-hidden="true"></i></span>
+                <span><b>{% include "painel/_celula.html" with valor=item.total suprimido=item.suprimido %}</b> {{ item.rotulo }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </article>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts_painel %}
+{% if tem_massa %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script src="{% static 'js/painel-graficos.js' %}" defer></script>
+{% endif %}
+{% endblock %}

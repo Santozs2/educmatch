@@ -1,0 +1,88 @@
+{% extends "painel/base_painel.html" %}
+{% block titulo_painel %}Resultados das avaliações{% endblock %}
+{% block titulo_pagina %}Resultados das avaliações{% endblock %}
+{% block subtitulo %}{% if curso %}{{ curso.nome_curso }}{% else %}Todos os cursos{% endif %}{% endblock %}
+{% block acoes %}
+<a class="botao botao--secundario" href="{% url 'painel-avaliacoes' %}?{{ periodo_qs }}"><i class="fa-solid fa-link" aria-hidden="true"></i> Links das turmas</a>
+{% if avaliacoes_com_massa %}
+<a class="botao" href="{% url 'painel-avaliacoes-csv' %}?{{ periodo_qs }}{% if curso %}&amp;curso={{ curso.id }}{% endif %}"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV</a>
+{% endif %}
+{% endblock %}
+
+{% block painel %}
+<form class="painel-form-linha painel-grade" method="get">
+    <input type="hidden" name="periodo" value="{{ periodo }}">
+    {% if mes %}<input type="hidden" name="mes" value="{{ mes }}">{% endif %}
+    <label class="visualmente-oculto" for="curso">Curso</label>
+    <select id="curso" name="curso" class="painel-campo">
+        <option value="">Todos os cursos</option>
+        {% for opcao in cursos_avaliados %}
+        <option value="{{ opcao.id }}" {% if curso and curso.id == opcao.id %}selected{% endif %}>{{ opcao.nome_curso }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="botao">Filtrar</button>
+</form>
+
+<article class="painel-card painel-grade">
+    <h2 class="painel-card__titulo">Por curso <span class="painel-ajuda" tabindex="0" data-dica="NPS: % de notas 9 e 10 menos % de notas 0 a 6. Vai de -100 a 100. Média: das perguntas de 1 a 5.">?</span></h2>
+    <div class="painel-tabela">
+        <table>
+            <thead><tr><th scope="col">Curso</th><th scope="col" class="numero">Respostas</th><th scope="col" class="numero">NPS</th><th scope="col" class="numero">Média (1 a 5)</th></tr></thead>
+            <tbody>
+                {% for linha in resumo %}
+                <tr>
+                    <td>{{ linha.nome }}</td>
+                    <td class="numero">{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td>
+                    <td class="numero">{% if linha.nps is None %}—{% else %}{{ linha.nps }}{% endif %}</td>
+                    <td class="numero">{% if linha.media is None %}—{% else %}{{ linha.media|floatformat:1 }}{% endif %}</td>
+                </tr>
+                {% empty %}<tr><td colspan="4">Nenhuma avaliação no período.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</article>
+
+{% if not avaliacoes_com_massa %}
+<div class="painel-aviso" role="status">
+    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+    {% if k_minimo %}
+    <p><strong>Privacidade:</strong> as respostas por pergunta só aparecem para cursos com {{ k_minimo }} avaliações ou mais no período.</p>
+    {% else %}
+    <p>Nenhuma avaliação respondida neste filtro.</p>
+    {% endif %}
+</div>
+{% else %}
+{% if fora_do_todos %}
+<p class="painel-vazio"><i class="fa-solid fa-lock" aria-hidden="true"></i> {{ fora_do_todos }} curso(s) com menos de {{ k_minimo }} avaliações ficaram fora dos gráficos abaixo.</p>
+{% endif %}
+<div class="painel-grade painel-grade--2">
+    {% for bloco in blocos %}
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">{{ bloco.pergunta.ordem }}. {{ bloco.pergunta.texto }}</h2>
+        {% if bloco.pergunta.tipo == "nps" %}
+        <p class="painel-kpi__valor">NPS {% if bloco.nps is None %}—{% else %}{{ bloco.nps }}{% endif %}</p>
+        {% elif bloco.pergunta.tipo == "escala" %}
+        <p class="painel-kpi__valor">{% if bloco.media is None %}—{% else %}{{ bloco.media|floatformat:1 }}{% endif %} <small class="painel-vazio">de 5</small></p>
+        {% endif %}
+
+        {% if bloco.distribuicao %}
+        <ul class="painel-distribuicao">
+            {% for item in bloco.distribuicao %}
+            <li>
+                <span>{{ item.rotulo }}</span>
+                <div class="painel-progresso" aria-hidden="true"><i style="width: {{ item.largura }}%"></i></div>
+                <b>{% include "painel/_celula.html" with valor=item.total suprimido=item.suprimido %}</b>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="painel-vazio">{{ bloco.textos|length }} comentário(s), em ordem alfabética, sem data nem turma.</p>
+        <ul class="painel-comentarios">
+            {% for texto in bloco.textos %}<li>{{ texto }}</li>{% empty %}<li class="painel-vazio">Nenhum comentário.</li>{% endfor %}
+        </ul>
+        {% endif %}
+    </article>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

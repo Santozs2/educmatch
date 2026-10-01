@@ -56,6 +56,7 @@ class Tentativa_de_resposta(models.Model):
         related_name="tentativas",
     )
     respondido_por = models.TextField(blank=True)
+    iniciado_em = models.DateTimeField(null=True, blank=True)
     score = models.FloatField(default=0.0, validators=[MinValueValidator(0.0), MaxValueValidator(5)])   
     diferenca = models.FloatField(null=True, blank=True, help_text="Diferença entre o primeiro e o segundo colocado.")
     CONFIDENCE_CHOICE_NIVEIS = [
@@ -104,6 +105,23 @@ class QuestionarioLink(models.Model):
 
     def __str__(self):
         return f"Questionário {self.token}"
+
+class InicioDeQuiz(models.Model):
+    """Um quiz começado. Serve só para a taxa de conclusão do painel.
+
+    De propósito, não guarda usuário, nome nem sessão: é uma contagem, e o
+    painel nunca precisa saber quem começou.
+    """
+    criado_em = models.DateTimeField(auto_now_add=True, db_index=True)
+    questionario_link = models.ForeignKey(
+        QuestionarioLink, on_delete=models.SET_NULL, null=True, blank=True, related_name="inicios"
+    )
+
+    class Meta:
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        return f"Início em {self.criado_em:%d/%m/%Y %H:%M}"
 
 class Resposta(models.Model):
     tentativa = models.ForeignKey(Tentativa_de_resposta, on_delete=models.CASCADE, related_name="respostas")
