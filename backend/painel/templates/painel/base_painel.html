@@ -19,9 +19,19 @@
             <a class="painel-menu__item" href="{% url 'painel-quiz' %}?{{ periodo_qs }}" {% if secao == "quiz" %}aria-current="page"{% endif %}>
                 <i class="fa-solid fa-circle-question" aria-hidden="true"></i> Quiz
             </a>
+            <a class="painel-menu__item" href="{% url 'painel-cursos' %}?{{ periodo_qs }}" {% if secao == "cursos" %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Cursos e Áreas
+            </a>
+            <a class="painel-menu__item" href="{% url 'painel-links' %}?{{ periodo_qs }}" {% if secao == "links" %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-link" aria-hidden="true"></i> Links de acesso
+            </a>
+            <a class="painel-menu__item" href="{% url 'painel-interesse' %}?{{ periodo_qs }}" {% if secao == "interesse" %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-heart" aria-hidden="true"></i> Lista de interesse
+            </a>
         </nav>
         <form class="painel-menu__chamada" method="post" action="{% url 'painel-gerar-link' %}" data-confirmar="Gerar um novo link de acesso ao quiz?">
             {% csrf_token %}
+            <input type="hidden" name="voltar" value="{% if secao == 'links' %}painel-links{% else %}painel-dashboard{% endif %}">
             <strong>Gere um link e compartilhe o quiz com a turma.</strong>
             <button type="submit" class="botao botao--bloco"><i class="fa-solid fa-link" aria-hidden="true"></i> Gerar link</button>
         </form>
@@ -93,6 +103,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/painel.js' %}" defer></script>
+{# Bibliotecas da tela primeiro: com defer, a ordem do documento é a de execução. #}
 {% block scripts_painel %}{% endblock %}
+<script src="{% static 'js/painel.js' %}" defer></script>
 {% endblock %}

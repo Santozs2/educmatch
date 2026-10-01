@@ -1,7 +1,7 @@
 from urllib.parse import urlencode
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
@@ -107,6 +107,71 @@ def quiz_visao_geral(request):
     return render(request, "painel/quiz.html", contexto)
 
 
+@staff_member_required
+def cursos(request):
+    inicio, contexto = _contexto_base(request, "cursos")
+    linhas = metricas.desempenho_por_curso(inicio)
+    if contexto["tem_massa"]:
+        linhas = privacidade.suprimir_campos(linhas, ("em_primeiro", "no_top5"))
+        contexto["demanda_por_area"] = privacidade.suprimir_pequenos(metricas.demanda_por_area(inicio))
+    else:
+        for linha in linhas:
+            linha["em_primeiro"] = linha["no_top5"] = None
+    contexto["cursos"] = linhas
+    return render(request, "painel/cursos.html", contexto)
+
+
+@staff_member_required
+def links(request):
+    _, contexto = _contexto_base(request, "links")
+    linhas = privacidade.suprimir_pequenos(metricas.testes_por_link())
+    for linha in linhas:
+        linha["url"] = request.build_absolute_uri(
+            reverse("questionario-link", kwargs={"token": linha["token"]})
+        )
+    contexto["links"] = linhas
+    return render(request, "painel/links.html", contexto)
+
+
+@staff_member_required
+def interesse(request):
+    inicio, contexto = _contexto_base(request, "interesse")
+    if not contexto["tem_massa"]:
+        return render(request, "painel/interesse.html", contexto)
+
+    linhas = privacidade.suprimir_campos(
+        metricas.interesse_por_curso(inicio), ("total", "contatados", "principal")
+    )
+    for linha in linhas:
+        # O % sobre um total conhecido devolveria um número escondido: só sai se os dois saíram.
+        pode = linha["total"] is not None and linha["principal"] is not None
+        linha["taxa_principal"] = linha["principal"] / linha["total"] * 100 if pode else None
+
+    contexto.update({
+        "funil": privacidade.suprimir_pequenos(metricas.funil_de_interesse(inicio)),
+        "por_curso": linhas,
+    })
+    return render(request, "painel/interesse.html", contexto)
+
+
+# As ações de link voltam para a tela de onde vieram, mas só para uma destas.
+VOLTAS_PERMITIDAS = {"painel-dashboard", "painel-links"}
+
+
+def _voltar(request):
+    destino = request.POST.get("voltar")
+    return redirect(destino if destino in VOLTAS_PERMITIDAS else "painel-dashboard")
+
+
+@require_POST
+@staff_member_required
+def fechar_um_link(request, pk):
+    link = get_object_or_404(QuestionarioLink, pk=pk)
+    link.ativo = False
+    link.save()
+    return _voltar(request)
+
+
 @require_POST
 @staff_member_required
 def fechar_link(request):
@@ -114,11 +179,11 @@ def fechar_link(request):
     for link in ativo:
         link.ativo = False
         link.save()
-    return redirect("painel-dashboard")
+    return _voltar(request)
 
 
 @require_POST
 @staff_member_required
 def gerar_link(request):
     QuestionarioLink.objects.create(criado_por=request.user)
-    return redirect("painel-dashboard")
+    return _voltar(request)

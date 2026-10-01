@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from accounts.models import Interesse
 from catalogo.models import Area, Curso
-from quiz.models import Recomendacao, Tentativa_de_resposta
+from quiz.models import QuestionarioLink, Recomendacao, Tentativa_de_resposta
 
 PERIODOS = {
     "diario": {"label": "Diário", "dias": 1},
@@ -253,3 +253,62 @@ def atividade_recente():
             "total": Interesse.objects.filter(criado_em__gte=agora - timedelta(days=1)).exclude(status="removido").count(),
         },
     ]
+
+
+def desempenho_por_curso(inicio):
+    """Cada curso ativo com quantas vezes ficou em 1º e quantas entrou no Top 5."""
+    periodo = _no_periodo(inicio, "recomendacoes__tentativa__criado_em")
+    return list(
+        Curso.objects
+        .filter(is_active=True)
+        .annotate(
+            em_primeiro=Count("recomendacoes", filter=periodo & Q(recomendacoes__rank_final=1), distinct=True),
+            no_top5=Count("recomendacoes", filter=periodo, distinct=True),
+        )
+        .values(
+            "id", "nome_curso", "duracao", "inicio_dia", "fim_dia",
+            "em_primeiro", "no_top5", area=F("area_principal__nome"),
+        )
+        .order_by("area", "nome_curso")
+    )
+
+
+def testes_por_link(limite=20):
+    """Os links mais recentes, ativos ou fechados, com quantos testes cada um trouxe."""
+    return list(
+        QuestionarioLink.objects
+        .annotate(total=Count("tentativas"))
+        .values("id", "token", "criado_em", "ativo", "total")
+        .order_by("-criado_em")[:limite]
+    )
+
+
+def funil_de_interesse(inicio):
+    """Quantos cursos salvos estão em cada status, na ordem do funil."""
+    contagem = dict(
+        Interesse.objects
+        .filter(_no_periodo(inicio))
+        .values_list("status")
+        .annotate(total=Count("id"))
+    )
+    return [
+        {"status": chave, "rotulo": rotulo, "total": contagem.get(chave, 0)}
+        for chave, rotulo in Interesse.STATUS
+    ]
+
+
+def interesse_por_curso(inicio):
+    """Por curso: quantos salvaram, em que pé está o contato e quantos eram o 1º colocado."""
+    periodo = _no_periodo(inicio, "interessados__criado_em")
+    linhas = (
+        Curso.objects
+        .annotate(
+            total=Count("interessados", filter=periodo & ~Q(interessados__status="removido")),
+            contatados=Count("interessados", filter=periodo & Q(interessados__status="contatado")),
+            principal=Count("interessados", filter=periodo & Q(interessados__era_principal=True) & ~Q(interessados__status="removido")),
+        )
+        .filter(total__gt=0)
+        .values("id", "nome_curso", "total", "contatados", "principal", area=F("area_principal__nome"))
+        .order_by("-total", "nome_curso")
+    )
+    return list(linhas)

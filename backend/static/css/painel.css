@@ -506,6 +506,45 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Funil da lista de interesse e QR dos links */
+
+.painel-funil {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.painel-funil li {
+  display: grid;
+  gap: 4px;
+  border-left: 4px solid var(--marca);
+  background: var(--marca-clarinho);
+  text-align: center;
+}
+
+.painel-funil b {
+  color: var(--titulo);
+  font-size: 1.5rem;
+}
+
+.painel-qr {
+  width: 88px;
+  height: 88px;
+  padding: 4px;
+  border: 1px solid var(--linha);
+  border-radius: 8px;
+  background: var(--branco);
+}
+
+.painel-qr img,
+.painel-qr canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Modal de confirmação */
 
 .painel-modal {
@@ -601,6 +640,10 @@
 
   .painel-grade--2 {
     grid-template-columns: 1fr;
+  }
+
+  .painel-funil {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .painel-inferior {

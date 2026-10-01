@@ -1,0 +1,47 @@
+{% extends "painel/base_painel.html" %}
+{% block titulo_painel %}Lista de interesse{% endblock %}
+{% block titulo_pagina %}Lista de interesse{% endblock %}
+{% block subtitulo %}Cursos salvos pelos alunos, sem dados pessoais{% endblock %}
+
+{% block painel %}
+{% if not tem_massa %}
+{% include "painel/_sem_massa.html" %}
+{% else %}
+<ol class="painel-funil">
+    {% for etapa in funil %}
+    <li class="painel-card">
+        <span>{{ etapa.rotulo }}</span>
+        <b>{% include "painel/_celula.html" with valor=etapa.total suprimido=etapa.suprimido %}</b>
+    </li>
+    {% endfor %}
+</ol>
+
+<article class="painel-card">
+    <h2 class="painel-card__titulo">Por curso</h2>
+    <div class="painel-tabela">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Curso</th>
+                    <th scope="col">Área</th>
+                    <th scope="col" class="numero">Salvaram</th>
+                    <th scope="col" class="numero">Contatados</th>
+                    <th scope="col" class="numero">Era o 1º colocado <span class="painel-ajuda" tabindex="0" data-dica="Dos que salvaram o curso, quantos o tinham em 1º lugar no resultado.">?</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for linha in por_curso %}
+                <tr>
+                    <td>{{ linha.nome_curso }}</td>
+                    <td>{{ linha.area }}</td>
+                    <td class="numero">{% include "painel/_celula.html" with valor=linha.total suprimido=linha.total_suprimido %}</td>
+                    <td class="numero">{% include "painel/_celula.html" with valor=linha.contatados suprimido=linha.contatados_suprimido %}</td>
+                    <td class="numero">{% if linha.taxa_principal is None %}—{% else %}{{ linha.taxa_principal|floatformat:0 }}%{% endif %}</td>
+                </tr>
+                {% empty %}<tr><td colspan="5">Nenhum curso salvo no período.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</article>
+{% endif %}
+{% endblock %}

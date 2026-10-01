@@ -1,0 +1,57 @@
+{% extends "painel/base_painel.html" %}
+{% block titulo_painel %}Cursos e Áreas{% endblock %}
+{% block titulo_pagina %}Cursos e Áreas{% endblock %}
+{% block subtitulo %}Catálogo ativo e como cada curso aparece no ranking{% endblock %}
+{% block acoes %}
+<a class="botao" href="{% url 'admin:catalogo_curso_add' %}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Novo curso</a>
+{% endblock %}
+
+{% block painel %}
+{% if not tem_massa %}{% include "painel/_sem_massa.html" %}{% endif %}
+<div class="painel-grade painel-grade--2-1">
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Cursos ativos ({{ cursos|length }})</h2>
+        <div class="painel-tabela">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Curso</th>
+                        <th scope="col">Área</th>
+                        <th scope="col" class="numero">Duração</th>
+                        <th scope="col">Turma</th>
+                        <th scope="col" class="numero">Em 1º</th>
+                        <th scope="col" class="numero">No Top 5</th>
+                        <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for curso in cursos %}
+                    <tr>
+                        <td>{{ curso.nome_curso }}</td>
+                        <td>{{ curso.area }}</td>
+                        <td class="numero">{{ curso.duracao }}h</td>
+                        <td>{% if curso.inicio_dia %}{{ curso.inicio_dia|date:"d/m" }}–{{ curso.fim_dia|date:"d/m"|default:"?" }}{% else %}—{% endif %}</td>
+                        <td class="numero">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.em_primeiro suprimido=curso.em_primeiro_suprimido %}{% else %}—{% endif %}</td>
+                        <td class="numero">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.no_top5 suprimido=curso.no_top5_suprimido %}{% else %}—{% endif %}</td>
+                        <td><a class="botao botao--suave botao--icone" href="{% url 'admin:catalogo_curso_change' curso.id %}" aria-label="Editar {{ curso.nome_curso }}"><i class="fa-solid fa-pen" aria-hidden="true"></i></a></td>
+                    </tr>
+                    {% empty %}<tr><td colspan="7">Nenhum curso ativo.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Áreas mais fortes no 1º lugar</h2>
+        {% if tem_massa %}
+        <ul class="painel-lista">
+            {% for linha in demanda_por_area %}
+            <li><span>{{ linha.nome }}</span><b>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</b></li>
+            {% empty %}<li>Nenhum dado no período.</li>{% endfor %}
+        </ul>
+        {% else %}
+        <p class="painel-vazio">Aparece quando o período tiver {{ k_minimo }} testes ou mais.</p>
+        {% endif %}
+    </article>
+</div>
+{% endblock %}
