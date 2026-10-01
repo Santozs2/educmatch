@@ -45,7 +45,11 @@
 {% if not avaliacoes_com_massa %}
 <div class="painel-aviso" role="status">
     <i class="fa-solid fa-lock" aria-hidden="true"></i>
+    {% if k_minimo %}
     <p><strong>Privacidade:</strong> as respostas por pergunta só aparecem para cursos com {{ k_minimo }} avaliações ou mais no período.</p>
+    {% else %}
+    <p>Nenhuma avaliação respondida neste filtro.</p>
+    {% endif %}
 </div>
 {% else %}
 {% if fora_do_todos %}

@@ -3,10 +3,13 @@ from datetime import timedelta
 from django.urls import reverse
 
 from painel import metricas
-from painel.privacidade import K_MINIMO
 from painel.templatetags.painel_extras import duracao
 from quiz.models import InicioDeQuiz, Tentativa_de_resposta
 from quiz.tests.base import BaseEducMatch
+
+# Uma quantidade qualquer de testes ou respostas. O painel mostra tudo (K_MINIMO = 0),
+# então nenhum teste daqui depende da regra antiga dos 5.
+ALGUNS = 5
 
 
 class InicioDoQuizTest(BaseEducMatch):
@@ -62,26 +65,32 @@ class MetricasDeConclusaoTest(BaseEducMatch):
             tentativa.save(update_fields=["iniciado_em"])
 
     def test_taxa_de_conclusao(self):
-        for _ in range(K_MINIMO * 2):
+        for _ in range(ALGUNS * 2):
             InicioDeQuiz.objects.create()
-        self.concluir(K_MINIMO)
+        self.concluir(ALGUNS)
 
         self.assertEqual(metricas.taxa_de_conclusao(None), 50.0)
 
-    def test_taxa_some_com_poucos_inicios(self):
+    def test_taxa_com_um_inicio_aparece(self):
         InicioDeQuiz.objects.create()
 
+        self.assertEqual(metricas.taxa_de_conclusao(None), 0.0)
+
+    def test_taxa_sem_nenhum_inicio_e_vazia(self):
         self.assertIsNone(metricas.taxa_de_conclusao(None))
 
     def test_tempo_tipico_e_a_mediana(self):
-        self.concluir(K_MINIMO - 1, minutos=8)
+        self.concluir(ALGUNS - 1, minutos=8)
         self.concluir(1, minutos=60 * 24)  # aba esquecida aberta por um dia
 
         self.assertEqual(metricas.tempo_tipico(None), timedelta(minutes=8))
 
-    def test_tempo_some_com_poucas_tentativas(self):
-        self.concluir(K_MINIMO - 1)
+    def test_tempo_com_uma_tentativa_aparece(self):
+        self.concluir(1, minutos=8)
 
+        self.assertEqual(metricas.tempo_tipico(None), timedelta(minutes=8))
+
+    def test_tempo_sem_nenhuma_tentativa_e_vazio(self):
         self.assertIsNone(metricas.tempo_tipico(None))
 
     def test_formato_da_duracao(self):

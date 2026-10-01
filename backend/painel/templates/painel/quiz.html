@@ -48,7 +48,7 @@
     <article class="painel-card">
         <h2 class="painel-card__titulo">Aderência à recomendação <span class="painel-ajuda" tabindex="0" data-dica="Dos cursos salvos, quantos eram o 1º colocado do ranking no momento em que o aluno salvou.">?</span></h2>
         {% if aderencia.taxa is None %}
-        <p class="painel-vazio">Menos de {{ k_minimo }} cursos salvos como 1º colocado no período.</p>
+        <p class="painel-vazio">{% if k_minimo %}Menos de {{ k_minimo }} cursos salvos como 1º colocado no período.{% else %}Nenhum curso salvo no período.{% endif %}</p>
         {% else %}
         <p class="painel-kpi__valor">{{ aderencia.taxa|floatformat:0 }}%</p>
         <p class="painel-vazio">dos cursos salvos eram o 1º colocado</p>
