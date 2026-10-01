@@ -8,12 +8,14 @@ from collections import Counter
 from datetime import datetime, timedelta
 
 from django.db.models import Count, F, Q
-from django.db.models.functions import TruncDate, TruncMonth
 from django.utils import timezone
-
+from django.db.models.functions import TruncDate, TruncMonth
 from accounts.models import Interesse
 from catalogo.models import Area, Curso
-from quiz.models import QuestionarioLink, Recomendacao, Tentativa_de_resposta
+from quiz.models import InicioDeQuiz, Questao, QuestionarioLink, Recomendacao, Tentativa_de_resposta
+from collections import Counter
+from datetime import datetime, timedelta
+from statistics import median
 
 PERIODOS = {
     "diario": {"label": "Diário", "dias": 1},
@@ -198,63 +200,8 @@ def cobertura_de_areas():
         .values("slug", "nome", "alternativas")
         .order_by("alternativas", "nome")
     )
-
-def conversao_geral(inicio):
-    """Cursos salvos ÷ cursos recomendados no período, somando todos os cursos.
-
-    Com menos de K interesses, a taxa vira None: taxa x recomendações / 100
-    devolveria a contagem pequena que a supressão esconde.
-    """
-    from painel.privacidade import K_MINIMO
-
-    linhas = conversao_por_curso(inicio)
-    recomendado = sum(linha["recomendado"] for linha in linhas)
-    interessados = sum(linha["interessados"] for linha in linhas)
-    if not recomendado or interessados < K_MINIMO:
-        return None
-    return interessados / recomendado * 100
-
-
-def tentativas_por_dia(inicio):
-    """Testes por dia (até 62 dias) ou por mês (períodos maiores), em ordem."""
-    agora = timezone.now()
-    por_mes = inicio is None or (agora - inicio).days > 62
-    truncar = TruncMonth("criado_em") if por_mes else TruncDate("criado_em")
-    formato = "%m/%Y" if por_mes else "%d/%m"
-
-    linhas = (
-        Tentativa_de_resposta.objects
-        .filter(_no_periodo(inicio))
-        .annotate(dia=truncar)
-        .values("dia")
-        .annotate(total=Count("id"))
-        .order_by("dia")
-    )
-    return [{"rotulo": linha["dia"].strftime(formato), "total": linha["total"]} for linha in linhas]
-
-
-def atividade_recente():
-    """Contagens das últimas horas. Nunca uma linha por pessoa nem horário exato."""
-    agora = timezone.now()
-    return [
-        {
-            "icone": "fa-circle-check",
-            "rotulo": "testes concluídos na última hora",
-            "total": Tentativa_de_resposta.objects.filter(criado_em__gte=agora - timedelta(hours=1)).count(),
-        },
-        {
-            "icone": "fa-clipboard-list",
-            "rotulo": "testes concluídos nas últimas 24 horas",
-            "total": Tentativa_de_resposta.objects.filter(criado_em__gte=agora - timedelta(days=1)).count(),
-        },
-        {
-            "icone": "fa-heart",
-            "rotulo": "cursos salvos nas últimas 24 horas",
-            "total": Interesse.objects.filter(criado_em__gte=agora - timedelta(days=1)).exclude(status="removido").count(),
-        },
-    ]
-
-
+    
+    
 def desempenho_por_curso(inicio):
     """Cada curso ativo com quantas vezes ficou em 1º e quantas entrou no Top 5."""
     periodo = _no_periodo(inicio, "recomendacoes__tentativa__criado_em")
@@ -312,3 +259,97 @@ def interesse_por_curso(inicio):
         .order_by("-total", "nome_curso")
     )
     return list(linhas)
+
+
+def conversao_geral(inicio):
+    """Cursos salvos ÷ cursos recomendados no período, somando todos os cursos.
+
+    Com menos de K interesses, a taxa vira None: taxa x recomendações / 100
+    devolveria a contagem pequena que a supressão esconde.
+    """
+    from painel.privacidade import K_MINIMO
+
+    linhas = conversao_por_curso(inicio)
+    recomendado = sum(linha["recomendado"] for linha in linhas)
+    interessados = sum(linha["interessados"] for linha in linhas)
+    if not recomendado or interessados < K_MINIMO:
+        return None
+    return interessados / recomendado * 100
+
+
+def tentativas_por_dia(inicio):
+    """Testes por dia (até 62 dias) ou por mês (períodos maiores), em ordem."""
+    agora = timezone.now()
+    por_mes = inicio is None or (agora - inicio).days > 62
+    truncar = TruncMonth("criado_em") if por_mes else TruncDate("criado_em")
+    formato = "%m/%Y" if por_mes else "%d/%m"
+
+    linhas = (
+        Tentativa_de_resposta.objects
+        .filter(_no_periodo(inicio))
+        .annotate(dia=truncar)
+        .values("dia")
+        .annotate(total=Count("id"))
+        .order_by("dia")
+    )
+    return [{"rotulo": linha["dia"].strftime(formato), "total": linha["total"]} for linha in linhas]
+
+
+def atividade_recente():
+    """Contagens das últimas horas. Nunca uma linha por pessoa nem horário exato."""
+    agora = timezone.now()
+    return [
+        {
+            "icone": "fa-circle-check",
+            "rotulo": "testes concluídos na última hora",
+            "total": Tentativa_de_resposta.objects.filter(criado_em__gte=agora - timedelta(hours=1)).count(),
+        },
+        {
+            "icone": "fa-clipboard-list",
+            "rotulo": "testes concluídos nas últimas 24 horas",
+            "total": Tentativa_de_resposta.objects.filter(criado_em__gte=agora - timedelta(days=1)).count(),
+        },
+        {
+            "icone": "fa-heart",
+            "rotulo": "cursos salvos nas últimas 24 horas",
+            "total": Interesse.objects.filter(criado_em__gte=agora - timedelta(days=1)).exclude(status="removido").count(),
+        },
+    ]
+    
+
+def taxa_de_conclusao(inicio):
+    """Dos quizzes começados no período, quantos % viraram tentativa.
+
+    Só conta tentativas com iniciado_em: as antigas (antes da Etapa 3) não têm
+    início registrado e inflariam a taxa acima de 100%.
+    """
+    from painel.privacidade import K_MINIMO
+
+    comecados = InicioDeQuiz.objects.filter(_no_periodo(inicio)).count()
+    if comecados < K_MINIMO:
+        return None
+    concluidos = Tentativa_de_resposta.objects.filter(
+        _no_periodo(inicio, "iniciado_em"), iniciado_em__isnull=False
+    ).count()
+    return min(concluidos / comecados * 100, 100.0)
+
+
+def tempo_tipico(inicio):
+    """Mediana do tempo entre abrir a 1ª questão e ver o resultado.
+
+    Mediana, e não média: uma aba esquecida aberta por um dia puxaria a média
+    para horas, mas não mexe na mediana.
+    """
+    from painel.privacidade import K_MINIMO
+
+    pares = Tentativa_de_resposta.objects.filter(
+        _no_periodo(inicio), iniciado_em__isnull=False
+    ).values_list("iniciado_em", "criado_em")
+    duracoes = [criado - iniciado for iniciado, criado in pares]
+    if len(duracoes) < K_MINIMO:
+        return None
+    return median(duracoes)
+
+
+def questoes_ativas():
+    return Questao.objects.filter(is_active=True).count()

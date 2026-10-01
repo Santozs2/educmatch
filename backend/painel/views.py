@@ -71,6 +71,7 @@ def dashboard(request):
 @staff_member_required
 def quiz_visao_geral(request):
     inicio, contexto = _contexto_base(request, "quiz")
+    contexto["questoes_ativas"] = metricas.questoes_ativas()
     if not contexto["tem_massa"]:
         return render(request, "painel/quiz.html", contexto)
 
@@ -101,6 +102,8 @@ def quiz_visao_geral(request):
         "confianca": confianca,
         "aderencia": aderencia,
         "conversao": conversao,
+        "taxa_de_conclusao": metricas.taxa_de_conclusao(inicio),
+        "tempo_tipico": metricas.tempo_tipico(inicio),
         "orfaos": metricas.cursos_nunca_recomendados(),
         "cobertura": metricas.cobertura_de_areas(),
     })
