@@ -6,9 +6,12 @@ from django.utils import timezone
 
 from accounts.models import Interesse
 from painel import metricas
-from painel.privacidade import K_MINIMO
 from painel.tests.base import BasePainel
 from quiz.models import QuestionarioLink, Tentativa_de_resposta
+
+# Uma quantidade qualquer de testes ou respostas. O painel mostra tudo (K_MINIMO = 0),
+# então nenhum teste daqui depende da regra antiga dos 5.
+ALGUNS = 5
 
 
 PASTA_DE_TEMPLATES = Path(__file__).resolve().parents[1] / "templates" / "painel"
@@ -52,7 +55,7 @@ class CascaDoPainelTest(BasePainel):
                     self.assertNotIn(classe, texto)
 
     def test_tela_servida_tambem_nao_tem_botao_fantasma(self):
-        self.criar_tentativas(quantidade=K_MINIMO)
+        self.criar_tentativas(quantidade=ALGUNS)
         for tela in ("painel-dashboard", "painel-quiz", "painel-cursos", "painel-links", "painel-interesse"):
             corpo = self.client.get(reverse(tela)).content.decode()
             for classe in BOTOES_FANTASMA:
@@ -65,42 +68,43 @@ class MetricasDoInicioTest(BasePainel):
         super().setUp()
         self.client.force_login(self.criar_staff())
 
-    def test_dia_com_poucos_testes_some_da_serie(self):
-        tentativas = self.criar_tentativas(quantidade=K_MINIMO + 2)
+    def test_dia_com_poucos_testes_aparece_na_serie(self):
+        tentativas = self.criar_tentativas(quantidade=ALGUNS + 2)
         ontem = timezone.now() - timedelta(days=1)
         Tentativa_de_resposta.objects.filter(pk__in=[t.pk for t in tentativas[:2]]).update(criado_em=ontem)
 
         serie = self.client.get(reverse("painel-dashboard")).context["serie"]
 
-        self.assertEqual([linha["total"] for linha in serie], [None, K_MINIMO])
+        self.assertEqual([linha["total"] for linha in serie], [2, ALGUNS])
 
-    def test_atividade_recente_tambem_e_suprimida(self):
-        self.criar_tentativas(quantidade=K_MINIMO)
+    def test_atividade_recente_mostra_tudo(self):
+        self.criar_tentativas(quantidade=ALGUNS)
 
         atividade = self.client.get(reverse("painel-dashboard")).context["atividade"]
 
         testes_na_hora, _, cursos_salvos = atividade
-        self.assertEqual(testes_na_hora["total"], K_MINIMO)
-        self.assertIsNone(cursos_salvos["total"], "zero cursos salvos é menos que K")
+        self.assertEqual(testes_na_hora["total"], ALGUNS)
+        self.assertEqual(cursos_salvos["total"], 0)
 
-    def test_conversao_geral_some_com_poucos_interesses(self):
-        tentativas = self.criar_tentativas(quantidade=K_MINIMO)
+    def test_conversao_geral_com_um_interesse(self):
+        tentativas = self.criar_tentativas(quantidade=ALGUNS)
         curso = tentativas[0].recomendacoes.get(rank_final=1).curso
         Interesse.objects.create(usuario=self.criar_usuario("um@exemplo.com"), curso=curso)
 
-        self.assertIsNone(metricas.conversao_geral(None))
+        recomendacoes = sum(t.recomendacoes.count() for t in tentativas)
+        self.assertAlmostEqual(metricas.conversao_geral(None), 1 / recomendacoes * 100)
 
     def test_conversao_geral_e_salvos_sobre_recomendados(self):
-        tentativas = self.criar_tentativas(quantidade=K_MINIMO)
+        tentativas = self.criar_tentativas(quantidade=ALGUNS)
         curso = tentativas[0].recomendacoes.get(rank_final=1).curso
-        for i in range(K_MINIMO):
+        for i in range(ALGUNS):
             Interesse.objects.create(usuario=self.criar_usuario(f"aluno{i}@exemplo.com"), curso=curso)
 
         recomendacoes = sum(t.recomendacoes.count() for t in tentativas)
-        self.assertAlmostEqual(metricas.conversao_geral(None), K_MINIMO / recomendacoes * 100)
+        self.assertAlmostEqual(metricas.conversao_geral(None), ALGUNS / recomendacoes * 100)
 
-    def test_aderencia_some_com_poucos_primeiros(self):
-        tentativas = self.criar_tentativas(quantidade=K_MINIMO)
+    def test_aderencia_com_um_primeiro(self):
+        tentativas = self.criar_tentativas(quantidade=ALGUNS)
         curso = tentativas[0].recomendacoes.get(rank_final=1).curso
         Interesse.objects.create(
             usuario=self.criar_usuario("um@exemplo.com"), curso=curso, rank_snapshot=1, era_principal=True
@@ -108,7 +112,15 @@ class MetricasDoInicioTest(BasePainel):
 
         aderencia = self.client.get(reverse("painel-quiz")).context["aderencia"]
 
-        self.assertIsNone(aderencia["taxa"])
+        self.assertEqual(aderencia["taxa"], 100)
+
+    def test_aderencia_sem_nenhum_curso_salvo_nao_quebra(self):
+        self.criar_tentativas(quantidade=ALGUNS)
+
+        resposta = self.client.get(reverse("painel-quiz"))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIsNone(resposta.context["aderencia"]["taxa"])
 
 class TelasDeCadastroTest(BasePainel):
     """Etapa 2: Cursos e Áreas, Links de acesso e Lista de interesse."""
@@ -130,7 +142,7 @@ class TelasDeCadastroTest(BasePainel):
                 self.client.force_login(self.staff)
                 self.assertEqual(self.client.get(reverse(tela)).status_code, 200)
 
-    def test_testes_por_link_sao_suprimidos(self):
+    def test_testes_por_link_aparecem(self):
         self.client.force_login(self.staff)
         link = QuestionarioLink.objects.create(criado_por=self.staff)
         tentativas = self.criar_tentativas(quantidade=2)
@@ -138,8 +150,8 @@ class TelasDeCadastroTest(BasePainel):
 
         linhas = self.client.get(reverse("painel-links")).context["links"]
 
-        self.assertTrue(linhas[0]["suprimido"])
-        self.assertIsNone(linhas[0]["total"])
+        self.assertNotIn("suprimido", linhas[0])
+        self.assertEqual(linhas[0]["total"], 2)
 
     def test_fechar_um_link_nao_fecha_os_outros(self):
         self.client.force_login(self.staff)
@@ -164,25 +176,25 @@ class TelasDeCadastroTest(BasePainel):
 
     def test_lista_de_interesse_nao_mostra_quem_salvou(self):
         self.client.force_login(self.staff)
-        tentativas = self.criar_tentativas(quantidade=K_MINIMO)
+        tentativas = self.criar_tentativas(quantidade=ALGUNS)
         curso = tentativas[0].recomendacoes.get(rank_final=1).curso
-        emails = [f"pessoa{i}@exemplo.com" for i in range(K_MINIMO)]
+        emails = [f"pessoa{i}@exemplo.com" for i in range(ALGUNS)]
         for email in emails:
             Interesse.objects.create(usuario=self.criar_usuario(email), curso=curso, era_principal=True)
 
         resposta = self.client.get(reverse("painel-interesse"))
 
         linha = next(l for l in resposta.context["por_curso"] if l["id"] == curso.id)
-        self.assertEqual(linha["total"], K_MINIMO)
+        self.assertEqual(linha["total"], ALGUNS)
         self.assertEqual(linha["taxa_principal"], 100)
         for email in emails:
             self.assertNotContains(resposta, email)
 
-    def test_taxa_de_1o_colocado_some_se_a_contagem_for_pequena(self):
+    def test_taxa_de_1o_colocado_aparece_com_contagem_pequena(self):
         self.client.force_login(self.staff)
-        tentativas = self.criar_tentativas(quantidade=K_MINIMO)
+        tentativas = self.criar_tentativas(quantidade=ALGUNS)
         curso = tentativas[0].recomendacoes.get(rank_final=1).curso
-        for i in range(K_MINIMO):
+        for i in range(ALGUNS):
             Interesse.objects.create(
                 usuario=self.criar_usuario(f"pessoa{i}@exemplo.com"), curso=curso, era_principal=(i == 0)
             )
@@ -190,12 +202,12 @@ class TelasDeCadastroTest(BasePainel):
         linhas = self.client.get(reverse("painel-interesse")).context["por_curso"]
 
         linha = next(l for l in linhas if l["id"] == curso.id)
-        self.assertTrue(linha["principal_suprimido"])
-        self.assertIsNone(linha["taxa_principal"])
+        self.assertEqual(linha["principal"], 1)
+        self.assertEqual(linha["taxa_principal"], 1 / ALGUNS * 100)
 
     def test_funil_segue_a_ordem_dos_status(self):
         self.client.force_login(self.staff)
-        self.criar_tentativas(quantidade=K_MINIMO)
+        self.criar_tentativas(quantidade=ALGUNS)
 
         funil = self.client.get(reverse("painel-interesse")).context["funil"]
 

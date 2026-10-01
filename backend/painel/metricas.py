@@ -326,7 +326,7 @@ def taxa_de_conclusao(inicio):
     from painel.privacidade import K_MINIMO
 
     comecados = InicioDeQuiz.objects.filter(_no_periodo(inicio)).count()
-    if comecados < K_MINIMO:
+    if not comecados or comecados < K_MINIMO:
         return None
     concluidos = Tentativa_de_resposta.objects.filter(
         _no_periodo(inicio, "iniciado_em"), iniciado_em__isnull=False
@@ -346,7 +346,7 @@ def tempo_tipico(inicio):
         _no_periodo(inicio), iniciado_em__isnull=False
     ).values_list("iniciado_em", "criado_em")
     duracoes = [criado - iniciado for iniciado, criado in pares]
-    if len(duracoes) < K_MINIMO:
+    if not duracoes or len(duracoes) < K_MINIMO:
         return None
     return median(duracoes)
 

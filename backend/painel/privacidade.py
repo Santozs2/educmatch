@@ -1,4 +1,6 @@
-K_MINIMO = 5
+# Decisão do grupo (2026-10-01): o painel mostra todos os números, sem esconder
+# contagens pequenas. 0 desliga a supressão; para religar o k-anonimato, volte para 5.
+K_MINIMO = 0
 SUPRIMIDO = None
 
 

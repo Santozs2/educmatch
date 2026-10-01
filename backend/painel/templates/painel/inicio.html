@@ -35,7 +35,7 @@
     <article class="painel-card">
         <h2 class="painel-card__titulo">Testes ao longo do tempo</h2>
         <div class="painel-grafico"><canvas id="grafico-serie" role="img" aria-label="Gráfico de linha com os testes do período"></canvas></div>
-        <p class="painel-vazio"><i class="fa-solid fa-lock" aria-hidden="true"></i> Dias com menos de {{ k_minimo }} testes ficam em branco na linha.</p>
+        {% if k_minimo %}<p class="painel-vazio"><i class="fa-solid fa-lock" aria-hidden="true"></i> Dias com menos de {{ k_minimo }} testes ficam em branco na linha.</p>{% endif %}
     </article>
     <article class="painel-card">
         <h2 class="painel-card__titulo">Demanda por área</h2>

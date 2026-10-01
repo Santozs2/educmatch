@@ -100,7 +100,9 @@ def quiz_visao_geral(request):
     # Mesma regra da conversão: a taxa sobre um total conhecido devolveria o número pequeno.
     principal = aderencia["era_principal"]
     aderencia["taxa"] = (
-        principal / aderencia["com_snapshot"] * 100 if principal >= privacidade.K_MINIMO else None
+        principal / aderencia["com_snapshot"] * 100
+        if aderencia["com_snapshot"] and principal >= privacidade.K_MINIMO
+        else None
     )
 
     confianca = sup(metricas.distribuicao_de_confianca(inicio))
@@ -289,7 +291,10 @@ def avaliacoes_csv(request):
     inicio, _ = _contexto_base(request, "avaliacoes")
     _, cursos = _cursos_do_filtro(request, inicio)
     if not cursos:
-        messages.error(request, f"O CSV só sai para cursos com {privacidade.K_MINIMO} avaliações ou mais.")
+        if privacidade.K_MINIMO:
+            messages.error(request, f"O CSV só sai para cursos com {privacidade.K_MINIMO} avaliações ou mais.")
+        else:
+            messages.error(request, "Nenhuma avaliação neste filtro para exportar.")
         return redirect("painel-avaliacoes-resultados")
 
     resposta = HttpResponse(content_type="text/csv; charset=utf-8")
