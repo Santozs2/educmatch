@@ -52,6 +52,7 @@
     {% endblock %}
 
     <main class="conteudo" id="conteudo">
+        {% block mensagens %}
         {% if messages %}
         <ul class="mensagens" role="status">
             {% for mensagem in messages %}
@@ -59,6 +60,7 @@
             {% endfor %}
         </ul>
         {% endif %}
+        {% endblock %}
 
         {% block content %}{% endblock %}
     </main>

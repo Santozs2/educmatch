@@ -19,6 +19,10 @@
         <p class="painel-kpi__valor">{{ cursos_ativos }}</p>
     </article>
     <article class="painel-card painel-kpi">
+        <h2>Avaliações de curso</h2>
+        <p class="painel-kpi__valor">{{ avaliacoes_no_periodo }}</p>
+    </article>
+    <article class="painel-card painel-kpi">
         <h2>Conversão <span class="painel-ajuda" tabindex="0" data-dica="Cursos salvos na lista de interesse ÷ cursos recomendados no período.">?</span></h2>
         <p class="painel-kpi__valor">{% if conversao_geral is None %}—{% else %}{{ conversao_geral|floatformat:0 }}%{% endif %}</p>
     </article>
