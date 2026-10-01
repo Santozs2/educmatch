@@ -61,7 +61,12 @@
         pendente = null;
         modal.close();
     });
-
+    // QR dos links: o qrcode.min.js só é carregado na tela de links, antes deste arquivo.
+    if (window.QRCode) {
+        document.querySelectorAll("[data-qr]").forEach(function (caixa) {
+            new QRCode(caixa, { text: caixa.dataset.qr, width: 160, height: 160 });
+        });
+    }
     document.querySelectorAll("[data-copiar]").forEach(function (botao) {
         botao.addEventListener("click", function () {
             const campo = botao.parentElement.querySelector("input");
