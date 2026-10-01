@@ -1,9 +1,29 @@
 {% extends "painel/base_painel.html" %}
+{% load painel_extras %}
 {% block titulo_painel %}Quiz{% endblock %}
 {% block titulo_pagina %}Quiz — Visão geral{% endblock %}
 {% block subtitulo %}Desempenho da recomendação e cobertura da engine{% endblock %}
 
 {% block painel %}
+<div class="painel-kpis">
+    <article class="painel-card painel-kpi">
+        <h2>Testes concluídos</h2>
+        <p class="painel-kpi__valor">{{ total_de_tentativas }}</p>
+    </article>
+    <article class="painel-card painel-kpi">
+        <h2>% concluídos <span class="painel-ajuda" tabindex="0" data-dica="Dos quizzes começados no período, quantos chegaram ao resultado. Testes antigos, sem início registrado, ficam de fora.">?</span></h2>
+        <p class="painel-kpi__valor">{% if taxa_de_conclusao is None %}—{% else %}{{ taxa_de_conclusao|floatformat:0 }}%{% endif %}</p>
+    </article>
+    <article class="painel-card painel-kpi">
+        <h2>Tempo típico <span class="painel-ajuda" tabindex="0" data-dica="Mediana do tempo entre abrir a 1ª questão e ver o resultado.">?</span></h2>
+        <p class="painel-kpi__valor">{% if tempo_tipico is None %}—{% else %}{{ tempo_tipico|duracao }}{% endif %}</p>
+    </article>
+    <article class="painel-card painel-kpi">
+        <h2>Questões ativas</h2>
+        <p class="painel-kpi__valor">{{ questoes_ativas }}</p>
+    </article>
+</div>
+
 {% if not tem_massa %}
 {% include "painel/_sem_massa.html" %}
 {% else %}
