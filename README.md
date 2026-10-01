@@ -31,6 +31,7 @@ source .venv/Scripts/activate   # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env            # e ajuste DB_USER e DB_PASSWORD para o seu MySQL
 python manage.py migrate
+python manage.py createcachetable
 python manage.py seed_areas && python manage.py seed_cursos && python manage.py seed_questoes
 python manage.py runserver      # http://localhost:8000
 ```

@@ -136,3 +136,23 @@ ESCOLA = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 QUIZ_RECOMENDACAO_LIMIT = 5
+
+
+
+# Cache no banco: sobrevive a reinício do servidor. É ele que garante a mesma
+# resposta da LLM para o mesmo perfil na banca (Passo 9).
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "educmatch_cache",
+    }
+}
+
+# Camada de IA. Desligada por padrão: sem .env, o sistema é o da engine pura.
+# LLM_ENABLED=0 é o botão de pânico da defesa.
+LLM_ENABLED = os.environ.get("LLM_ENABLED", "0") == "1"
+LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "fake")  # gemini | fake
+LLM_MODEL = os.environ.get("LLM_MODEL", "")
+LLM_API_KEY = os.environ.get("LLM_API_KEY", "")
+LLM_TIMEOUT = float(os.environ.get("LLM_TIMEOUT", "8"))
+LLM_PROMPT_VERSION = os.environ.get("LLM_PROMPT_VERSION", "v1")

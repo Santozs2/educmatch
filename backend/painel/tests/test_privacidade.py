@@ -89,23 +89,26 @@ class AcessoAoPainelTest(BasePainel):
 
 
 class PrivacidadeNaTelaTest(BasePainel):
+    TELAS = ("painel-dashboard", "painel-quiz")
+
     def setUp(self):
         super().setUp()
         self.staff = self.criar_staff()
 
-    def abrir_painel(self):
+    def abrir_painel(self, tela="painel-dashboard"):
         self.client.force_login(self.staff)
-        return self.client.get(reverse("painel-dashboard"))
+        return self.client.get(reverse(tela))
 
     def test_sem_massa_so_o_total_sai_do_servidor(self):
         self.criar_tentativas(quantidade=K_MINIMO - 1)
 
-        contexto = self.abrir_painel().context
-
-        self.assertFalse(contexto["tem_massa"])
-        self.assertEqual(contexto["total_de_tentativas"], K_MINIMO - 1)
-        for chave in ("conversao", "top_primeiro", "confianca", "demanda_por_area"):
-            self.assertNotIn(chave, contexto)
+        for tela in self.TELAS:
+            with self.subTest(tela=tela):
+                contexto = self.abrir_painel(tela).context
+                self.assertFalse(contexto["tem_massa"])
+                self.assertEqual(contexto["total_de_tentativas"], K_MINIMO - 1)
+                for chave in ("conversao", "top_primeiro", "confianca", "demanda_por_area", "serie", "atividade"):
+                    self.assertNotIn(chave, contexto)
 
     def test_conversao_suprimida_nao_vaza_pela_taxa(self):
         """taxa x recomendado / 100 reconstruiria o número escondido."""
@@ -113,7 +116,7 @@ class PrivacidadeNaTelaTest(BasePainel):
         curso = tentativas[0].recomendacoes.get(rank_final=1).curso
         Interesse.objects.create(usuario=self.criar_usuario("um@exemplo.com"), curso=curso)
 
-        conversao = self.abrir_painel().context["conversao"]
+        conversao = self.abrir_painel("painel-quiz").context["conversao"]
 
         linha = next(l for l in conversao if l["id"] == curso.id)
         self.assertTrue(linha["suprimido"])
@@ -123,7 +126,7 @@ class PrivacidadeNaTelaTest(BasePainel):
     def test_confianca_tambem_e_suprimida(self):
         self.criar_tentativas(quantidade=K_MINIMO + 1)
 
-        confianca = self.abrir_painel().context["confianca"]
+        confianca = self.abrir_painel("painel-quiz").context["confianca"]
 
         for linha in confianca:
             if linha["total"] is not None:
@@ -134,7 +137,8 @@ class PrivacidadeNaTelaTest(BasePainel):
         nomes = ["Ana Zoraide", "Bento Kling", "Cleo Vasquez", "Dora Pimm", "Eli Nunes", "Fabi Ros"]
         self.criar_tentativas(nomes=nomes)
 
-        corpo = self.abrir_painel().content.decode()
-
-        for nome in nomes:
-            self.assertNotIn(nome, corpo)
+        for tela in self.TELAS:
+            corpo = self.abrir_painel(tela).content.decode()
+            for nome in nomes:
+                with self.subTest(tela=tela, nome=nome):
+                    self.assertNotIn(nome, corpo)
