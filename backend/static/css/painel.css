@@ -510,7 +510,7 @@
 
 .painel-funil {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin: 0 0 16px;
   padding: 0;
@@ -543,6 +543,56 @@
 .painel-qr canvas {
   width: 100% !important;
   height: 100% !important;
+}
+
+/* Avaliações de fim de curso */
+
+.painel-form-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.painel-form-linha .painel-campo {
+  flex: 1 1 220px;
+}
+
+.painel-distribuicao {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.painel-distribuicao li {
+  display: grid;
+  grid-template-columns: minmax(48px, 120px) 1fr 56px;
+  align-items: center;
+  gap: 10px;
+}
+
+.painel-distribuicao b {
+  text-align: right;
+}
+
+.painel-comentarios {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  margin: 8px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.painel-comentarios li {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--fundo);
+  font-size: 0.9rem;
 }
 
 /* Modal de confirmação */
@@ -640,10 +690,6 @@
 
   .painel-grade--2 {
     grid-template-columns: 1fr;
-  }
-
-  .painel-funil {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .painel-inferior {
