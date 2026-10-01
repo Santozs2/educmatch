@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Avaliação do curso{% endblock %}
+{% block estilos %}<link rel="stylesheet" href="{% static 'css/avaliacao.css' %}">{% endblock %}
+
+{% block content %}
+<form class="cartao avaliacao entrada" method="post" novalidate>
+    {% csrf_token %}
+    <header class="avaliacao__topo">
+        <p class="chip">Avaliação de fim de curso</p>
+        <h1>{{ link.curso.nome_curso }}</h1>
+        <p class="subtitulo">Turma {{ link.turma }} · leva uns 3 minutos.</p>
+        <p class="aviso avaliacao__anonimo" role="note">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            É anônimo: não pedimos nome nem e-mail, e a escola só vê os resultados somados da turma.
+        </p>
+    </header>
+
+    {% if form.errors %}
+    <p class="campo__erro avaliacao__resumo-erro" role="alert">Faltou responder algumas perguntas. Elas estão marcadas abaixo.</p>
+    {% endif %}
+
+    {% for pergunta, campo in form.campos_por_pergunta %}
+    <fieldset class="avaliacao__pergunta{% if campo.errors %} avaliacao__pergunta--erro{% endif %}">
+        <legend>
+            {{ forloop.counter }}. {{ pergunta.texto }}
+            {% if not pergunta.obrigatoria %}<span class="campo__opcional">(opcional)</span>{% endif %}
+        </legend>
+
+        {% if pergunta.tipo == "texto" %}
+        <label class="visualmente-oculto" for="{{ campo.id_for_label }}">{{ pergunta.texto }}</label>
+        {{ campo }}
+        {% else %}
+        <div class="avaliacao__opcoes avaliacao__opcoes--{{ pergunta.tipo }}">
+            {% for opcao in campo %}
+            <label class="avaliacao__opcao">{{ opcao.tag }}<span>{{ opcao.choice_label }}</span></label>
+            {% endfor %}
+        </div>
+        {% if pergunta.tipo == "nps" %}
+        <p class="avaliacao__legenda"><span>0 = nada provável</span><span>10 = com certeza</span></p>
+        {% elif pergunta.tipo == "escala" %}
+        <p class="avaliacao__legenda"><span>1 = muito ruim</span><span>5 = excelente</span></p>
+        {% endif %}
+        {% endif %}
+
+        {% for erro in campo.errors %}<p class="campo__erro" role="alert">{{ erro }}</p>{% endfor %}
+    </fieldset>
+    {% endfor %}
+
+    <button class="botao botao--bloco" type="submit">Enviar avaliação</button>
+</form>
+{% endblock %}
