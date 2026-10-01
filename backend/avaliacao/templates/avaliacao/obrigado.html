@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Avaliação enviada{% endblock %}
+
+{% block content %}
+<section class="cartao cartao--centro entrada">
+    <h1>Obrigado pela avaliação!</h1>
+    <p class="subtitulo">
+        {% if link %}Suas respostas sobre {{ link.curso.nome_curso }} foram registradas.{% else %}Suas respostas foram registradas.{% endif %}
+        Elas ajudam a escola a melhorar o curso para as próximas turmas.
+    </p>
+</section>
+{% endblock %}
