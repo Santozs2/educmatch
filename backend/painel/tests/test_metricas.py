@@ -1,3 +1,4 @@
+from catalogo.models import Area
 from painel import metricas
 from painel.tests.base import BasePainel
 
@@ -49,5 +50,19 @@ class MetricasTest(BasePainel):
 
     def test_cobertura_acusa_area_sem_questao(self):
         """A métrica que mostra o tamanho do buraco do instrumento."""
-        sem_questao = [a for a in metricas.cobertura_de_areas() if a["alternativas"] == 0]
-        self.assertTrue(sem_questao, "nenhuma área sem questão: confira o related_name")
+        Area.objects.create(nome="Área sem pergunta", descricao="Criada pelo teste", slug="sem-pergunta")
+        sem_questao = [a["slug"] for a in metricas.cobertura_de_areas() if a["alternativas"] == 0]
+        self.assertEqual(sem_questao, ["sem-pergunta"])
+
+
+class CoberturaDoQuizTest(BasePainel):
+    def test_toda_area_tem_pelo_menos_uma_alternativa(self):
+        """Área com zero alternativas é área que o quiz não mede: o curso
+        dela nasce com teto de afinidade abaixo de 1 e nunca compete igual."""
+        sem_pergunta = [a["nome"] for a in metricas.cobertura_de_areas() if a["alternativas"] == 0]
+        self.assertEqual(sem_pergunta, [], f"áreas sem pergunta no quiz: {sem_pergunta}")
+
+    def test_quiz_tem_10_perguntas(self):
+        from quiz.models import Questao
+
+        self.assertEqual(Questao.objects.filter(is_active=True).count(), 10)

@@ -137,6 +137,46 @@ QUESTOES = [
             },
         ],
     },
+    {
+        "texto": "Num projeto em equipe, qual parte você pegaria?",
+        "order": 7,
+        "alternativa": [
+            {"texto": "Organizar a equipe e resolver os conflitos", "peso": {"rh": 5, "marketing": 1}},
+            {"texto": "Controlar o orçamento e a planilha de custos", "peso": {"financas": 5, "ti": 1}},
+            {"texto": "Criar a identidade visual e a apresentação", "peso": {"design": 5, "marketing": 2}},
+            {"texto": "Construir a peça ou o protótipo na oficina", "peso": {"metalurgia": 3, "mecanica": 3}},
+        ],
+    },
+    {
+        "texto": "Qual destes lugares você gostaria de conhecer por dentro?",
+        "order": 8,
+        "alternativa": [
+            {"texto": "Uma fundição, com metal derretido e moldes", "peso": {"metalurgia": 5, "mecanica": 1}},
+            {"texto": "O departamento pessoal de uma grande empresa", "peso": {"rh": 5, "financas": 2}},
+            {"texto": "Uma agência de publicidade", "peso": {"marketing": 5, "design": 3}},
+            {"texto": "Uma sala de servidores e dados", "peso": {"ti": 4, "ia": 3}},
+        ],
+    },
+    {
+        "texto": "Qual resultado te deixaria mais orgulhoso(a)?",
+        "order": 9,
+        "alternativa": [
+            {"texto": "Uma solda perfeita, aprovada na inspeção", "peso": {"metalurgia": 5, "mecanica": 2}},
+            {"texto": "As contas da empresa fechando no azul no fim do mês", "peso": {"financas": 5, "rh": 1}},
+            {"texto": "Uma campanha que fez muita gente conhecer um produto", "peso": {"marketing": 5, "design": 2}},
+            {"texto": "Contratar a pessoa certa para uma vaga difícil", "peso": {"rh": 5, "marketing": 1}},
+        ],
+    },
+    {
+        "texto": "Com qual destes materiais você prefere lidar no dia a dia?",
+        "order": 10,
+        "alternativa": [
+            {"texto": "Chapas, tubos e perfis de aço", "peso": {"metalurgia": 4, "mecanica": 3}},
+            {"texto": "Relatórios, notas fiscais e planilhas", "peso": {"financas": 4, "rh": 2}},
+            {"texto": "Cores, fontes e imagens", "peso": {"design": 5, "marketing": 2}},
+            {"texto": "Fios, disjuntores e painéis elétricos", "peso": {"eletrica": 4, "eletromecanica": 2}},
+        ],
+    },
 ]
 
 
