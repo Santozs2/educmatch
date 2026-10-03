@@ -133,13 +133,10 @@ class PrivacidadeNaTelaTest(BasePainel):
         self.assertIsNotNone(linha["taxa"])
 
     def test_confianca_tambem_e_suprimida(self):
-        self.criar_tentativas(quantidade=ALGUNS + 1)
-
+        tentativas = self.criar_tentativas(quantidade=ALGUNS + 1)
         confianca = self.abrir_painel("painel-quiz").context["confianca"]
-
-        for linha in confianca:
-            if linha["total"] is not None:
-                self.assertGreaterEqual(linha["total"], ALGUNS)
+        self.assertTrue(all(linha["total"] is not None for linha in confianca))
+        self.assertEqual(sum(linha["total"] for linha in confianca), len(tentativas))
 
     def test_nenhum_nome_de_respondente_aparece_na_pagina(self):
         """A regra de privacidade, verificada no HTML servido."""
