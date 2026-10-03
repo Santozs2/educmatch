@@ -11,8 +11,8 @@ CORTE_MAXIMO = 0.8
 # Diferença ABSOLUTA de afinidade entre dois cursos. A mesma régua decide a
 # banda de confiança, o tie_set e a regra 2 do prompt (quando a LLM pode
 # trocar o 1º lugar): três lugares, um número só.
-EMPATE = 0.05
-BANDA_CONFIANCA_ALTA = 0.15
+EMPATE = 0.02
+BANDA_CONFIANCA_ALTA = 0.08
 CASAS = 6  # arredonda antes de comparar: 0.80 - 0.75 dá 0.05000000000000004
 
 def vetor_curso(curso):
