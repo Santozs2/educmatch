@@ -66,6 +66,15 @@ O teste `python manage.py test core` diz se deu certo.
 | `/meus-testes/`, `/meu-perfil/`, `/lista_interesse/` | área do aluno |
 | `/admin/` | admin do Django |
 
+## Deploy no Azure
+
+Publicado num App Service Linux no plano gratuito F1 (`rg-educmatch` / `educmatch-7249`), puxando a branch `main` deste repositório.
+
+- O Oryx instala o `backend/requirements.txt` (a pasta do app vem do app setting `PROJECT=backend`).
+- `backend/startup.sh` roda as migrações, os seeds e o `collectstatic` a cada boot e sobe o gunicorn.
+- Em produção o banco é SQLite em `/home/data/educmatch.sqlite3` (`DB_ENGINE=sqlite`), já que o MySQL gerenciado não tem camada gratuita permanente.
+- Para publicar o que está na `main`: `az webapp deployment source sync -g rg-educmatch -n educmatch-7249`
+
 ## Testes
 
 ```bash
