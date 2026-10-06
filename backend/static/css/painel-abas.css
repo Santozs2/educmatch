@@ -1,0 +1,767 @@
+/* Barra de abas do celular, folha "Mais" e os ajustes de responsividade do painel.
+   Carregado depois do painel.css (ver base_painel.html).
+
+   Os ícones das abas são SVG de contorno que se preenchem quando a aba fica ativa,
+   no espírito do "Outline-to-Fill Tab Icon Animations" (Jon Kantner):
+   https://codepen.io/jkantner/pen/rNbeEXg
+
+   Cada forma do SVG tem um papel:
+     .abas__forma  silhueta: fundo transparente -> cor da marca
+     .abas__furo   detalhe interno: traço na cor do texto -> cor do fundo da barra
+     .abas__linha  traço que nunca preenche (o cordão do capelo, por exemplo)
+
+   A animação só roda na troca de aba: no carregamento a barra vem com data-pristine. */
+
+.abas,
+.mais,
+.mais__fundo,
+.painel-barra__marca {
+  display: none;
+}
+
+.abas {
+  --abas-fundo: var(--superficie);
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 30;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--linha);
+  background: var(--abas-fundo);
+  box-shadow: 0 -6px 24px rgba(9, 9, 11, 0.09);
+}
+
+.abas__lista {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.abas__item {
+  flex: 1;
+  min-width: 0;
+}
+
+.abas__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 62px;
+  border: 0;
+  background: none;
+  color: var(--texto-2);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color calc(var(--dur-media) / 2) var(--ease-padrao);
+}
+
+/* Marcador fino no topo da aba ativa. */
+.abas__link::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 26px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--marca);
+  transform: translateX(-50%) scaleX(0);
+  transition: transform var(--dur-media) var(--ease-saida);
+}
+
+.abas__icone {
+  display: block;
+  width: 24px;
+  height: 24px;
+  overflow: visible;
+  pointer-events: none;
+  transition: transform var(--dur-media) var(--ease-saida);
+}
+
+.abas__forma,
+.abas__furo,
+.abas__linha {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    fill calc(var(--dur-media) / 2) var(--ease-padrao),
+    stroke calc(var(--dur-media) / 2) var(--ease-padrao);
+}
+
+.abas__forma {
+  fill: transparent;
+}
+
+.abas__nome {
+  position: absolute;
+  bottom: 7px;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition:
+    opacity var(--dur-media) var(--ease-saida),
+    transform var(--dur-media) var(--ease-saida);
+}
+
+.abas__parte-1,
+.abas__parte-2,
+.abas__parte-3 {
+  animation-duration: calc(var(--dur-media) * 2.5);
+  animation-timing-function: var(--ease-padrao);
+}
+
+/* Estado ativo: a cor vira a da marca, o ícone sobe e preenche, o nome aparece.
+   A folha "Mais" aberta (aria-expanded) vale como ativa. */
+.abas__link[aria-current="page"],
+.abas__link[aria-expanded="true"] {
+  color: var(--marca);
+}
+
+.abas__link[aria-current="page"]::before,
+.abas__link[aria-expanded="true"]::before {
+  transform: translateX(-50%) scaleX(1);
+}
+
+.abas__link[aria-current="page"] .abas__icone,
+.abas__link[aria-expanded="true"] .abas__icone {
+  transform: translateY(-7px);
+}
+
+.abas__link[aria-current="page"] .abas__forma,
+.abas__link[aria-expanded="true"] .abas__forma {
+  fill: currentColor;
+}
+
+.abas__link[aria-current="page"] .abas__furo,
+.abas__link[aria-expanded="true"] .abas__furo {
+  stroke: var(--abas-fundo);
+}
+
+.abas__link[aria-current="page"] .abas__nome,
+.abas__link[aria-expanded="true"] .abas__nome {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Uma animação por ícone, só quando ele acabou de ficar ativo. */
+.abas__icone--inicio .abas__parte-1 {
+  transform-origin: 12px 24px;
+}
+
+.abas__link[aria-current="page"] .abas__icone--inicio .abas__parte-1 {
+  animation-name: aba-casa-pula;
+}
+
+.abas__icone--quiz .abas__parte-1 {
+  transform-origin: 12px 10px;
+}
+
+.abas__link[aria-current="page"] .abas__icone--quiz .abas__parte-1 {
+  animation-name: aba-pergunta;
+}
+
+.abas__icone--avaliacoes .abas__parte-1 {
+  stroke-dasharray: 13;
+}
+
+.abas__link[aria-current="page"] .abas__icone--avaliacoes .abas__parte-1 {
+  animation-name: aba-risca;
+}
+
+.abas__icone--cursos .abas__parte-1 {
+  transform-origin: 12px 7.5px;
+}
+
+.abas__icone--cursos .abas__parte-2 {
+  transform-origin: 20.6px 9.2px;
+}
+
+.abas__link[aria-current="page"] .abas__icone--cursos .abas__parte-1 {
+  animation-name: aba-capelo;
+}
+
+.abas__link[aria-current="page"] .abas__icone--cursos .abas__parte-2 {
+  animation-name: aba-cordao;
+}
+
+.abas__icone--mais .abas__parte-1 { transform-origin: 4px 12px; }
+.abas__icone--mais .abas__parte-2 { transform-origin: 12px 12px; }
+.abas__icone--mais .abas__parte-3 { transform-origin: 20px 12px; }
+
+.abas__link[aria-expanded="true"] .abas__icone--mais .abas__parte-1 {
+  animation-name: aba-ponto;
+}
+
+.abas__link[aria-expanded="true"] .abas__icone--mais .abas__parte-2 {
+  animation-name: aba-ponto;
+  animation-delay: var(--escalonar);
+}
+
+.abas__link[aria-expanded="true"] .abas__icone--mais .abas__parte-3 {
+  animation-name: aba-ponto;
+  animation-delay: calc(var(--escalonar) * 2);
+}
+
+/* No carregamento a barra já vem com uma aba ativa: nada de animar sozinho. */
+.abas[data-pristine] .abas__parte-1,
+.abas[data-pristine] .abas__parte-2,
+.abas[data-pristine] .abas__parte-3 {
+  animation-duration: 0s;
+}
+
+@keyframes aba-casa-pula {
+  from, to { transform: scale(1, 1) translateY(0); }
+  20% { transform: scale(1.4, 0.78) translateY(0); }
+  40% { transform: scale(0.85, 1.18) translateY(-3px); }
+  60% { transform: scale(1.08, 0.92) translateY(0); }
+  80% { transform: scale(0.96, 1.04) translateY(0); }
+}
+
+@keyframes aba-pergunta {
+  from, to { transform: scale(1) translateY(0); }
+  25% { transform: scale(0.8) translateY(2px); }
+  55% { transform: scale(1.18) translateY(-2px); }
+  80% { transform: scale(0.95) translateY(0); }
+}
+
+@keyframes aba-risca {
+  from, 35% { stroke-dashoffset: 13; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes aba-capelo {
+  from, to { transform: rotate(0) translateY(0); }
+  30% { transform: rotate(-7deg) translateY(-1.5px); }
+  60% { transform: rotate(4deg) translateY(0); }
+  80% { transform: rotate(-2deg) translateY(0); }
+}
+
+@keyframes aba-cordao {
+  from, to { transform: rotate(0); }
+  25% { transform: rotate(16deg); }
+  50% { transform: rotate(-11deg); }
+  75% { transform: rotate(6deg); }
+}
+
+@keyframes aba-ponto {
+  from, to { transform: scale(1) translateY(0); }
+  40% { transform: scale(1.3) translateY(-2px); }
+  70% { transform: scale(0.9) translateY(0); }
+}
+
+/* ---------- Folha "Mais" ---------- */
+
+.mais {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 45;
+  max-height: 82vh;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 20px 20px 0 0;
+  background: var(--superficie);
+  box-shadow: 0 -18px 50px rgba(9, 9, 11, 0.26);
+  visibility: hidden;
+  transform: translateY(100%);
+  transition:
+    transform var(--dur-media) var(--ease-saida),
+    visibility var(--dur-media) step-end;
+}
+
+.mais.aberta {
+  visibility: visible;
+  transform: translateY(0);
+  transition-timing-function: var(--ease-saida), step-start;
+}
+
+/* Alça, para ficar claro que é uma folha que sobe. */
+.mais::before {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 4px;
+  margin: 0 auto 14px;
+  border-radius: var(--raio-pilula);
+  background: var(--linha);
+}
+
+.mais__fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  background: rgba(9, 9, 11, 0.5);
+  opacity: 0;
+  /* Fechado ele continua no DOM para poder animar: não pode capturar o toque. */
+  pointer-events: none;
+  transition: opacity var(--dur-media) var(--ease-padrao);
+}
+
+.mais__fundo.aberta {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mais__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.mais__topo .painel-perfil__texto {
+  display: grid;
+}
+
+.mais__nav {
+  display: grid;
+  gap: 6px;
+}
+
+.mais__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--alvo);
+  padding: 0 14px;
+  border-radius: 10px;
+  background: var(--fundo);
+  color: var(--tinta);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mais__item i {
+  width: 20px;
+  text-align: center;
+  color: var(--marca);
+}
+
+.mais__item[aria-current="page"] {
+  background: var(--marca);
+  color: var(--branco);
+}
+
+.mais__item[aria-current="page"] i {
+  color: var(--branco);
+}
+
+.mais__bloco {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.mais__titulo {
+  margin: 0;
+  color: var(--texto-3);
+  font-size: 0.75rem;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.mais .painel-periodo {
+  grid-template-columns: minmax(0, 1fr) auto;
+  display: grid;
+}
+
+.mais .painel-periodo__mes {
+  grid-column: 1 / -1;
+}
+
+.mais__acoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mais__acoes .botao {
+  padding: 0 12px;
+}
+
+.mais__acoes [aria-pressed="true"] {
+  border-color: var(--marca);
+  background: var(--marca);
+  color: var(--branco);
+}
+
+.mais > .botao {
+  margin-top: 16px;
+}
+
+/* Trava o fundo enquanto a folha está aberta. */
+body.sem-rolagem {
+  overflow: hidden;
+}
+
+/* ---------- Telas largas ---------- */
+
+@media (min-width: 1500px) {
+  .painel-kpis {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+/* ---------- Tablet: o menu lateral vira trilha de ícones ---------- */
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .painel-app {
+    --menu: 76px;
+  }
+
+  .painel-menu {
+    align-items: center;
+    gap: 12px;
+    padding: 14px 10px;
+  }
+
+  .painel-menu__rotulo {
+    display: none;
+  }
+
+  .painel-menu__marca {
+    padding: 6px;
+  }
+
+  .painel-menu__nav {
+    width: 100%;
+  }
+
+  .painel-menu__item {
+    position: relative;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .painel-menu__chamada {
+    width: 100%;
+    padding: 8px;
+    border: 0;
+    background: none;
+  }
+
+  .painel-menu__chamada .botao {
+    position: relative;
+    padding: 0;
+  }
+
+  /* Dica no hover/foco, já que o rótulo ficou escondido. */
+  .painel-menu__item:hover::after,
+  .painel-menu__item:focus-visible::after,
+  .painel-menu__chamada .botao:hover::after,
+  .painel-menu__chamada .botao:focus-visible::after {
+    content: attr(data-dica);
+    position: absolute;
+    left: calc(100% + 10px);
+    z-index: 50;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--preto);
+    color: var(--branco);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .painel-barra {
+    padding: 12px 18px;
+  }
+
+  .painel-perfil__texto {
+    display: none;
+  }
+}
+
+/* ---------- Celular ---------- */
+
+@media (max-width: 760px) {
+  .painel-app {
+    --menu: 0px;
+  }
+
+  /* No celular quem navega é a barra de abas; o menu lateral sai do caminho. */
+  .painel-menu {
+    display: none;
+  }
+
+  .abas,
+  .mais {
+    display: block;
+  }
+
+  .mais__fundo {
+    display: block;
+  }
+
+  .mais__fundo[hidden] {
+    display: none;
+  }
+
+  .painel-barra {
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .painel-barra__marca {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto;
+    color: var(--titulo);
+    text-decoration: none;
+  }
+
+  /* Período e "voltar ao teste" vivem na folha "Mais" neste tamanho. */
+  .painel-barra > .painel-periodo,
+  .painel-barra__teste {
+    display: none;
+  }
+
+  .painel-acessibilidade {
+    margin-left: 0;
+  }
+
+  .painel-perfil__texto {
+    display: none;
+  }
+
+  .painel-conteudo {
+    padding: 16px 14px calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .painel-cabecalho {
+    align-items: stretch;
+    gap: 12px;
+    padding-bottom: 12px;
+  }
+
+  .painel-cabecalho__acoes,
+  .painel-cabecalho__acoes form {
+    width: 100%;
+  }
+
+  .painel-cabecalho__acoes > * {
+    flex: 1 1 160px;
+  }
+
+  .painel-kpis {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .painel-kpi__valor {
+    font-size: 1.5rem;
+  }
+
+  .painel-grade {
+    gap: 12px;
+  }
+
+  .painel-grade--2 {
+    grid-template-columns: 1fr;
+  }
+
+  .painel-card {
+    padding: 14px;
+  }
+
+  .painel-grafico {
+    height: 220px;
+  }
+
+  .painel-grafico--rosca {
+    height: 180px;
+  }
+
+  .painel-funil {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+
+  /* O endereço do link não cabe ao lado do botão: empilha. */
+  .painel-link {
+    flex-wrap: wrap;
+  }
+
+  .painel-link__url {
+    flex: 1 1 100%;
+  }
+
+  .painel-link .botao {
+    flex: 1;
+  }
+
+  .painel-form-linha {
+    display: grid;
+  }
+
+  .painel-form-linha .painel-campo,
+  .painel-form-linha .botao,
+  .painel-form-linha select {
+    width: 100%;
+  }
+
+  .painel-distribuicao li {
+    grid-template-columns: 1fr auto;
+  }
+
+  .painel-distribuicao .painel-progresso {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  /* A dica do "?" não pode vazar da tela. */
+  .painel-ajuda:hover::after,
+  .painel-ajuda:focus::after {
+    width: min(240px, calc(100vw - 40px));
+  }
+
+  /* Modal vira folha de baixo, mais perto do dedo. */
+  .painel-modal {
+    width: 100%;
+    max-width: none;
+    margin: auto 0 0;
+    border-radius: 18px 18px 0 0;
+  }
+
+  /* ---------- Tabelas viram cartões ----------
+     Cada linha vira um cartão e cada célula mostra o nome da coluna
+     (data-rotulo), em vez de rolar uma tabela larga de lado. */
+  .painel-tabela {
+    overflow: visible;
+  }
+
+  .painel-tabela table {
+    display: block;
+    min-width: 0;
+  }
+
+  .painel-tabela thead {
+    display: none;
+  }
+
+  .painel-tabela tbody,
+  .painel-tabela tr,
+  .painel-tabela td {
+    display: block;
+    width: auto;
+  }
+
+  .painel-tabela tr {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--linha);
+    border-radius: 12px;
+    background: var(--fundo);
+  }
+
+  .painel-tabela tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .painel-tabela td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-top: 0;
+    text-align: right;
+  }
+
+  .painel-tabela td + td {
+    border-top: 1px dashed var(--linha);
+  }
+
+  .painel-tabela td[data-rotulo]::before {
+    content: attr(data-rotulo);
+    flex: none;
+    max-width: 48%;
+    color: var(--texto-3);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  /* Célula sem rótulo (QR, ações, aviso de lista vazia) ocupa a largura toda. */
+  .painel-tabela td:not([data-rotulo]) {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .painel-tabela td:not([data-rotulo]) .botao,
+  .painel-tabela td:not([data-rotulo]) form {
+    width: 100%;
+  }
+
+  /* Botão só de ícone não estica: continua um alvo quadrado de 48px. */
+  .painel-tabela td:not([data-rotulo]) .botao--icone {
+    width: var(--alvo);
+    margin: 0 auto;
+  }
+
+  /* O endereço do link precisa da linha toda: o rótulo vai para cima. */
+  .painel-tabela td:has(.painel-link) {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .painel-tabela td .painel-link {
+    margin: 0;
+  }
+}
+
+/* Telas bem estreitas: os KPIs só então viram uma coluna. */
+@media (max-width: 340px) {
+  .painel-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .abas__nome {
+    font-size: 0.6rem;
+  }
+}
+
+/* ---------- Alto contraste ---------- */
+
+:root.alto-contraste .abas {
+  border-top-width: 2px;
+}
+
+/* ---------- Quem pediu menos movimento ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .abas__parte-1,
+  .abas__parte-2,
+  .abas__parte-3 {
+    animation-duration: 0s;
+  }
+
+  .abas__icone,
+  .abas__nome,
+  .abas__link::before,
+  .mais,
+  .mais__fundo {
+    transition-duration: 1ms;
+  }
+}

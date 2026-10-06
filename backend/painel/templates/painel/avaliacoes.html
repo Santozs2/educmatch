@@ -36,15 +36,15 @@
                 {% for link in links %}
                 <tr>
                     <td>{% if link.ativo %}<div class="painel-qr" data-qr="{{ link.url }}" role="img" aria-label="QR code do link"></div>{% else %}—{% endif %}</td>
-                    <td><b>{{ link.curso__nome_curso }}</b><br><span class="painel-vazio">{{ link.turma }}</span></td>
-                    <td>
+                    <td data-rotulo="Curso e turma"><b>{{ link.curso__nome_curso }}</b><br><span class="painel-vazio">{{ link.turma }}</span></td>
+                    <td data-rotulo="Endereço">
                         <div class="painel-link">
                             <input class="painel-link__url" type="text" value="{{ link.url }}" readonly aria-label="Endereço do link">
                             {% if link.ativo %}<button type="button" class="botao botao--secundario" data-copiar><i class="fa-solid fa-copy" aria-hidden="true"></i> Copiar</button>{% endif %}
                         </div>
                     </td>
-                    <td class="numero">{% include "painel/_celula.html" with valor=link.total suprimido=link.suprimido %}</td>
-                    <td>{% if link.ativo %}<span class="painel-selo painel-selo--sucesso">Ativo</span>{% else %}<span class="painel-selo painel-selo--neutro">Fechado</span>{% endif %}</td>
+                    <td class="numero" data-rotulo="Respostas">{% include "painel/_celula.html" with valor=link.total suprimido=link.suprimido %}</td>
+                    <td data-rotulo="Status">{% if link.ativo %}<span class="painel-selo painel-selo--sucesso">Ativo</span>{% else %}<span class="painel-selo painel-selo--neutro">Fechado</span>{% endif %}</td>
                     <td>
                         {% if link.ativo %}
                         <form method="post" action="{% url 'painel-avaliacoes-fechar' link.id %}" data-confirmar="Fechar este link? A turma não consegue mais responder." data-perigo>

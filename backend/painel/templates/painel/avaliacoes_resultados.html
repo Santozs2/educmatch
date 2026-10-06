@@ -1,4 +1,4 @@
-{% extends "painel/base_painel.html" %}
+0{% extends "painel/base_painel.html" %}
 {% block titulo_painel %}Resultados das avaliações{% endblock %}
 {% block titulo_pagina %}Resultados das avaliações{% endblock %}
 {% block subtitulo %}{% if curso %}{{ curso.nome_curso }}{% else %}Todos os cursos{% endif %}{% endblock %}
@@ -31,10 +31,10 @@
             <tbody>
                 {% for linha in resumo %}
                 <tr>
-                    <td>{{ linha.nome }}</td>
-                    <td class="numero">{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td>
-                    <td class="numero">{% if linha.nps is None %}—{% else %}{{ linha.nps }}{% endif %}</td>
-                    <td class="numero">{% if linha.media is None %}—{% else %}{{ linha.media|floatformat:1 }}{% endif %}</td>
+                    <td data-rotulo="Curso">{{ linha.nome }}</td>
+                    <td class="numero" data-rotulo="Respostas">{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</td>
+                    <td class="numero" data-rotulo="NPS">{% if linha.nps is None %}—{% else %}{{ linha.nps }}{% endif %}</td>
+                    <td class="numero" data-rotulo="Média (1 a 5)">{% if linha.media is None %}—{% else %}{{ linha.media|floatformat:1 }}{% endif %}</td>
                 </tr>
                 {% empty %}<tr><td colspan="4">Nenhuma avaliação no período.</td></tr>{% endfor %}
             </tbody>

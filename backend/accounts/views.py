@@ -142,8 +142,14 @@ def aluno_perfil(request):
             "match": round(destaque.score * 100) if destaque else None,
             "data": tentativa.criado_em,
         })
+    interesses = (
+        Interesse.objects.filter(usuario=request.user)
+        .exclude(status="removido")
+        .select_related("curso", "curso__area_principal")
+    )
     return render(request, "quiz/aluno_perfil.html", {
         "total_de_testes": len(historico),
-        "total_na_lista": Interesse.objects.filter(usuario=request.user).exclude(status="removido").count(),
+        "total_na_lista": interesses.count(),
+        "interesses": interesses,
         "historico": historico,
     })

@@ -1,0 +1,69 @@
+{% comment %}
+   Barra de abas do celular. Os ícones são SVG de contorno que se preenchem ao
+   ficar ativos, no espírito do "Outline-to-Fill Tab Icon Animations" (Jon Kantner):
+   https://codepen.io/jkantner/pen/rNbeEXg
+
+   A aba ativa vem do servidor (aria-current). O painel.js só antecipa a troca no
+   toque, para a animação acontecer antes de a próxima página carregar, e usa
+   data-pristine para não animar no carregamento.
+{% endcomment %}
+<nav class="abas" aria-label="Seções do painel" data-pristine>
+    <ul class="abas__lista">
+        <li class="abas__item">
+            <a class="abas__link" href="{% url 'painel-dashboard' %}?{{ periodo_qs }}" {% if secao == "inicio" %}aria-current="page"{% endif %}>
+                <svg class="abas__icone abas__icone--inicio" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                    <polygon class="abas__forma abas__parte-1" points="12 1,23 10,23 23,16 23,16 14,8 14,8 23,1 23,1 10"/>
+                </svg>
+                <span class="abas__nome">Início</span>
+            </a>
+        </li>
+        <li class="abas__item">
+            <a class="abas__link" href="{% url 'painel-quiz' %}?{{ periodo_qs }}" {% if secao == "quiz" %}aria-current="page"{% endif %}>
+                <svg class="abas__icone abas__icone--quiz" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                    <path class="abas__forma" d="M5,2H19a3,3 0 0 1 3,3V13a3,3 0 0 1 -3,3H13L8,21V16H5a3,3 0 0 1 -3,-3V5A3,3 0 0 1 5,2Z"/>
+                    <g class="abas__parte-1">
+                        <path class="abas__furo" d="M9.6,7.4a2.45,2.45 0 1 1 2.45,2.45V11"/>
+                        <path class="abas__furo" d="M12.05,13v0.05"/>
+                    </g>
+                </svg>
+                <span class="abas__nome">Quiz</span>
+            </a>
+        </li>
+        <li class="abas__item">
+            <a class="abas__link" href="{% url 'painel-avaliacoes' %}?{{ periodo_qs }}" {% if secao == "avaliacoes" %}aria-current="page"{% endif %}>
+                <svg class="abas__icone abas__icone--avaliacoes" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                    <rect class="abas__forma" x="2.5" y="3.5" width="19" height="19.5" rx="3"/>
+                    <rect class="abas__forma" x="7.5" y="1" width="9" height="4.5" rx="2.25"/>
+                    <path class="abas__furo abas__parte-1" d="M7.75,13.5 11,16.75 16.25,11.5"/>
+                </svg>
+                <span class="abas__nome">Avaliações</span>
+            </a>
+        </li>
+        <li class="abas__item">
+            <a class="abas__link" href="{% url 'painel-cursos' %}?{{ periodo_qs }}" {% if secao == "cursos" %}aria-current="page"{% endif %}>
+                <svg class="abas__icone abas__icone--cursos" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                    <path class="abas__forma" d="M5.5,9.8v4.4c0,1.6 2.9,2.9 6.5,2.9s6.5,-1.3 6.5,-2.9V9.8"/>
+                    <polygon class="abas__forma abas__parte-1" points="12 2.5,23 7.5,12 12.5,1 7.5"/>
+                    <g class="abas__parte-2">
+                        <path class="abas__linha" d="M20.6,9.2V15.2"/>
+                        <circle class="abas__forma" cx="20.6" cy="16.8" r="1.4"/>
+                    </g>
+                </svg>
+                <span class="abas__nome">Cursos</span>
+            </a>
+        </li>
+        <li class="abas__item">
+            <button type="button" class="abas__link" data-abrir-mais aria-controls="painel-mais" aria-expanded="false"
+                    {% if secao == "interesse" or secao == "links" %}aria-current="page"{% endif %}>
+                <svg class="abas__icone abas__icone--mais" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                    <circle class="abas__forma abas__parte-1" cx="4" cy="12" r="2.2"/>
+                    <circle class="abas__forma abas__parte-2" cx="12" cy="12" r="2.2"/>
+                    <circle class="abas__forma abas__parte-3" cx="20" cy="12" r="2.2"/>
+                </svg>
+                <span class="abas__nome">Mais</span>
+            </button>
+        </li>
+    </ul>
+</nav>
+
+{% include "painel/_mais.html" %}

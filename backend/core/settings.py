@@ -34,6 +34,17 @@ ALLOWED_HOSTS = [
     ).split(",")
     if h and h.strip()
 ]
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o and o.strip()
+]
+
+if not DEBUG:
+    # Atrás do proxy do Azure App Service o HTTPS termina no front-end.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 INSTALLED_APPS = [
@@ -59,6 +70,7 @@ LOGOUT_REDIRECT_URL = 'quiz-inicio'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,6 +100,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+DB_ENGINE = os.environ.get("DB_ENGINE", "mysql")
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
@@ -96,8 +110,15 @@ DATABASES = {
         "PASSWORD": os.environ.get("DB_PASSWORD", ""),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "3306"),
+        "OPTIONS": {"ssl": {"ca": os.environ["DB_SSL_CA"]}} if os.environ.get("DB_SSL_CA") else {},
     }
 }
+
+if DB_ENGINE == "sqlite":
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.environ.get("DB_NAME", str(BASE_DIR / "db.sqlite3")),
+    }
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -125,6 +146,16 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    # Manifest só em produção: ele exige collectstatic, que os testes não rodam.
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+        if DEBUG
+        else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    },
+}
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 

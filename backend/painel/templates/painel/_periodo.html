@@ -1,0 +1,15 @@
+{% comment %}
+   Filtro de período. Aparece na barra do topo (sufixo "barra") e dentro da folha
+   "Mais" no celular (sufixo "mais"); os ids mudam para não repetir.
+{% endcomment %}
+<form class="painel-periodo" method="get" aria-label="Período" data-periodo>
+    <label class="visualmente-oculto" for="periodo-{{ sufixo }}">Período</label>
+    <select id="periodo-{{ sufixo }}" name="periodo" class="painel-campo" data-periodo-escolha>
+        {% for chave, config in periodos.items %}
+        <option value="{{ chave }}" {% if periodo == chave %}selected{% endif %}>{{ config.label }}</option>
+        {% endfor %}
+    </select>
+    <label class="visualmente-oculto" for="mes-{{ sufixo }}">Mês</label>
+    <input id="mes-{{ sufixo }}" type="month" name="mes" value="{{ mes }}" class="painel-campo painel-periodo__mes" data-periodo-mes>
+    <button type="submit" class="botao">Aplicar</button>
+</form>
