@@ -2,6 +2,7 @@
 # Inicialização no Azure App Service (Linux). Os seeds usam update_or_create,
 # então rodar a cada boot não duplica nada.
 set -e
+cd "$(dirname "$0")"
 
 mkdir -p /home/data
 
