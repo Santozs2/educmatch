@@ -1,13 +1,22 @@
-/* Painel: menu no celular, confirmação antes de POST, copiar link e campo de mês.
-   Sem JS o painel continua funcionando: os forms enviam direto e o mês fica visível. */
+/* Painel: folha "Mais" do celular, animação da troca de aba, confirmação antes de
+   POST, copiar link e campo de mês.
+   Sem JS o painel continua navegável: as abas e o menu lateral são links de verdade,
+   os forms enviam direto e o campo de mês fica visível. */
 (function () {
-    const menu = document.getElementById("painel-menu");
-    const fundo = document.querySelector("[data-fechar-menu]");
-    const abridores = document.querySelectorAll("[data-abrir-menu]");
+    // ---------- Folha "Mais" (celular) ----------
+    const folha = document.getElementById("painel-mais");
+    const fundo = document.querySelector(".mais__fundo");
+    const abridores = document.querySelectorAll("[data-abrir-mais]");
+    const fechadores = document.querySelectorAll("[data-fechar-mais]");
 
-    function alternarMenu(abrir) {
-        menu.classList.toggle("aberto", abrir);
-        fundo.hidden = !abrir;
+    function alternarMais(abrir) {
+        if (!folha) return;
+        folha.classList.toggle("aberta", abrir);
+        if (fundo) {
+            fundo.hidden = false;
+            fundo.classList.toggle("aberta", abrir);
+        }
+        document.body.classList.toggle("sem-rolagem", abrir);
         abridores.forEach(function (botao) {
             botao.setAttribute("aria-expanded", String(abrir));
         });
@@ -15,25 +24,49 @@
 
     abridores.forEach(function (botao) {
         botao.addEventListener("click", function () {
-            alternarMenu(!menu.classList.contains("aberto"));
+            alternarMais(!folha.classList.contains("aberta"));
         });
     });
-    fundo.addEventListener("click", function () {
-        alternarMenu(false);
+    fechadores.forEach(function (botao) {
+        botao.addEventListener("click", function () {
+            alternarMais(false);
+        });
     });
     document.addEventListener("keydown", function (evento) {
-        if (evento.key === "Escape") alternarMenu(false);
+        if (evento.key === "Escape") alternarMais(false);
     });
 
-    // O campo de mês só aparece quando o período escolhido é "Mês".
-    const periodo = document.getElementById("periodo");
-    const mes = document.getElementById("mes");
-    function mostrarMes() {
-        mes.hidden = periodo.value !== "mes";
+    // ---------- Barra de abas ----------
+    // A aba ativa vem do servidor. No toque a troca é antecipada para a animação
+    // do ícone (contorno -> preenchido) rodar antes da próxima página carregar.
+    const abas = document.querySelector(".abas");
+    if (abas) {
+        abas.addEventListener("click", function (evento) {
+            const alvo = evento.target.closest(".abas__link");
+            if (!alvo || alvo.hasAttribute("aria-expanded")) return;
+            abas.removeAttribute("data-pristine");
+            const atual = abas.querySelector('[aria-current="page"]');
+            if (atual && atual !== alvo) atual.removeAttribute("aria-current");
+            alvo.setAttribute("aria-current", "page");
+        });
     }
-    periodo.addEventListener("change", mostrarMes);
-    mostrarMes();
 
+    // ---------- Período ----------
+    // O campo de mês só aparece quando o período escolhido é "Mês". O filtro existe
+    // duas vezes no HTML (barra do topo e folha "Mais"), por isso o laço.
+    document.querySelectorAll("[data-periodo]").forEach(function (form) {
+        const escolha = form.querySelector("[data-periodo-escolha]");
+        const mes = form.querySelector("[data-periodo-mes]");
+        if (!escolha || !mes) return;
+
+        function mostrarMes() {
+            mes.hidden = escolha.value !== "mes";
+        }
+        escolha.addEventListener("change", mostrarMes);
+        mostrarMes();
+    });
+
+    // ---------- Confirmação ----------
     // Todo form com data-confirmar passa por um <dialog> antes de enviar.
     const modal = document.getElementById("painel-confirmar");
     const ok = modal.querySelector("[data-confirmar-ok]");
@@ -61,7 +94,9 @@
         pendente = null;
         modal.close();
     });
-    // QR dos links: o qrcode.min.js só é carregado na tela de links, antes deste arquivo.
+
+    // ---------- QR e copiar ----------
+    // O qrcode.min.js só é carregado nas telas de links, antes deste arquivo.
     if (window.QRCode) {
         document.querySelectorAll("[data-qr]").forEach(function (caixa) {
             new QRCode(caixa, { text: caixa.dataset.qr, width: 160, height: 160 });

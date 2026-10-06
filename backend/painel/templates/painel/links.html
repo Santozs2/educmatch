@@ -1,6 +1,6 @@
 {% extends "painel/base_painel.html" %}
-{% block titulo_painel %}Links de acesso{% endblock %}
-{% block titulo_pagina %}Links de acesso{% endblock %}
+{% block titulo_painel %}Links do quiz{% endblock %}
+{% block titulo_pagina %}Links do quiz{% endblock %}
 {% block subtitulo %}Endereços para a turma responder o quiz{% endblock %}
 {% block acoes %}
 <form method="post" action="{% url 'painel-gerar-link' %}" data-confirmar="Gerar um novo link de acesso ao quiz?">
@@ -28,15 +28,15 @@
                 {% for link in links %}
                 <tr>
                     <td>{% if link.ativo %}<div class="painel-qr" data-qr="{{ link.url }}" role="img" aria-label="QR code do link"></div>{% else %}—{% endif %}</td>
-                    <td>
+                    <td data-rotulo="Endereço">
                         <div class="painel-link">
                             <input class="painel-link__url" type="text" value="{{ link.url }}" readonly aria-label="Endereço do link">
                             {% if link.ativo %}<button type="button" class="botao botao--secundario" data-copiar><i class="fa-solid fa-copy" aria-hidden="true"></i> Copiar</button>{% endif %}
                         </div>
                     </td>
-                    <td>{{ link.criado_em|date:"d/m/Y H:i" }}</td>
-                    <td class="numero">{% include "painel/_celula.html" with valor=link.total suprimido=link.suprimido %}</td>
-                    <td>{% if link.ativo %}<span class="painel-selo painel-selo--sucesso">Ativo</span>{% else %}<span class="painel-selo painel-selo--neutro">Fechado</span>{% endif %}</td>
+                    <td data-rotulo="Criado em">{{ link.criado_em|date:"d/m/Y H:i" }}</td>
+                    <td class="numero" data-rotulo="Testes">{% include "painel/_celula.html" with valor=link.total suprimido=link.suprimido %}</td>
+                    <td data-rotulo="Status">{% if link.ativo %}<span class="painel-selo painel-selo--sucesso">Ativo</span>{% else %}<span class="painel-selo painel-selo--neutro">Fechado</span>{% endif %}</td>
                     <td>
                         {% if link.ativo %}
                         <form method="post" action="{% url 'painel-fechar-um-link' link.id %}" data-confirmar="Fechar este link? Quem tiver o endereço não consegue mais entrar." data-perigo>

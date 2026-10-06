@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+from accounts.models import Interesse
 from catalogo.models import Curso
 from quiz.models import Tentativa_de_resposta
 from quiz.tests.base import BaseEducMatch
@@ -44,6 +45,18 @@ class TodaPaginaAbreTest(BaseEducMatch):
         ):
             with self.subTest(url=url):
                 self.abrir(url)
+
+    def test_perfil_carrega_lista_de_interesse(self):
+        usuario = self.criar_usuario()
+        self.client.force_login(usuario)
+        curso = Curso.objects.filter(is_active=True).first()
+        Interesse.objects.create(usuario=usuario, curso=curso)
+
+        resposta = self.client.get(reverse("aluno-perfil"))
+
+        self.assertIn("interesses", resposta.context)
+        self.assertEqual(len(resposta.context["interesses"]), 1)
+        self.assertContains(resposta, curso.nome_curso)
 
     def test_painel_para_staff(self):
         self.client.force_login(self.criar_usuario("coord@exemplo.com", is_staff=True))

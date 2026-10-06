@@ -1,0 +1,55 @@
+{# Folha "Mais" do celular: tudo o que não cabe nas quatro abas. #}
+<div class="mais__fundo" data-fechar-mais hidden></div>
+<section class="mais" id="painel-mais" aria-label="Mais opções do painel">
+    <header class="mais__topo">
+        <div class="painel-perfil">
+            <span class="painel-perfil__avatar" aria-hidden="true">{{ user.first_name|default:user.email|first|upper }}</span>
+            <span class="painel-perfil__texto"><b>{{ user.first_name|default:"Coordenação" }}</b><small>Staff</small></span>
+        </div>
+        <button type="button" class="botao botao--neutro botao--icone" data-fechar-mais aria-label="Fechar">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+    </header>
+
+    <nav class="mais__nav" aria-label="Seções do painel">
+        <a class="mais__item" href="{% url 'painel-dashboard' %}?{{ periodo_qs }}" {% if secao == "inicio" %}aria-current="page"{% endif %}>
+            <i class="fa-solid fa-house" aria-hidden="true"></i> Início
+        </a>
+        <a class="mais__item" href="{% url 'painel-quiz' %}?{{ periodo_qs }}" {% if secao == "quiz" %}aria-current="page"{% endif %}>
+            <i class="fa-solid fa-circle-question" aria-hidden="true"></i> Quiz
+        </a>
+        <a class="mais__item" href="{% url 'painel-avaliacoes' %}?{{ periodo_qs }}" {% if secao == "avaliacoes" %}aria-current="page"{% endif %}>
+            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Avaliações
+        </a>
+        <a class="mais__item" href="{% url 'painel-cursos' %}?{{ periodo_qs }}" {% if secao == "cursos" %}aria-current="page"{% endif %}>
+            <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Cursos e Áreas
+        </a>
+        <a class="mais__item" href="{% url 'painel-interesse' %}?{{ periodo_qs }}" {% if secao == "interesse" %}aria-current="page"{% endif %}>
+            <i class="fa-solid fa-heart" aria-hidden="true"></i> Lista de interesse
+        </a>
+        <a class="mais__item" href="{% url 'painel-links' %}?{{ periodo_qs }}" {% if secao == "links" %}aria-current="page"{% endif %}>
+            <i class="fa-solid fa-link" aria-hidden="true"></i> Links do quiz
+        </a>
+    </nav>
+
+    <div class="mais__bloco">
+        <h2 class="mais__titulo">Período</h2>
+        {% include "painel/_periodo.html" with sufixo="mais" %}
+    </div>
+
+    <div class="mais__bloco">
+        <h2 class="mais__titulo">Acessibilidade</h2>
+        <div class="mais__acoes">
+            <button type="button" class="botao botao--suave" data-alternar="fonte-grande">Fonte grande</button>
+            <button type="button" class="botao botao--suave" data-alternar="alto-contraste">Alto contraste</button>
+        </div>
+    </div>
+
+    <form class="mais__bloco" method="post" action="{% url 'painel-gerar-link' %}" data-confirmar="Gerar um novo link de acesso ao quiz?">
+        {% csrf_token %}
+        <input type="hidden" name="voltar" value="{% if secao == 'links' %}painel-links{% else %}painel-dashboard{% endif %}">
+        <button type="submit" class="botao botao--bloco"><i class="fa-solid fa-link" aria-hidden="true"></i> Gerar link do quiz</button>
+    </form>
+
+    <a href="{{ url_do_quiz }}" class="botao botao--secundario botao--bloco">Voltar ao teste</a>
+</section>

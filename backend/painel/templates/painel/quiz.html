@@ -65,9 +65,9 @@
             <tbody>
                 {% for linha in conversao %}
                 <tr>
-                    <td>{{ linha.nome_curso }}</td>
-                    <td class="numero">{% include "painel/_celula.html" with valor=linha.interessados suprimido=linha.suprimido %}</td>
-                    <td class="numero">{% if linha.taxa is None %}—{% else %}{{ linha.taxa|floatformat:0 }}%{% endif %}</td>
+                    <td data-rotulo="Curso">{{ linha.nome_curso }}</td>
+                    <td class="numero" data-rotulo="Salvo">{% include "painel/_celula.html" with valor=linha.interessados suprimido=linha.suprimido %}</td>
+                    <td class="numero" data-rotulo="Taxa">{% if linha.taxa is None %}—{% else %}{{ linha.taxa|floatformat:0 }}%{% endif %}</td>
                 </tr>
                 {% empty %}<tr><td colspan="3">Nenhum curso ativo.</td></tr>{% endfor %}
             </tbody>

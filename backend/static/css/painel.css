@@ -10,7 +10,7 @@
   --menu: 248px;
   --barra: 72px;
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* ---------- Menu lateral ---------- */
@@ -621,11 +621,6 @@
   margin-top: 18px;
 }
 
-.painel-inferior,
-.painel-fundo {
-  display: none;
-}
-
 /* ---------- Alto contraste ---------- */
 
 :root.alto-contraste .painel-card {
@@ -642,87 +637,4 @@
   }
 }
 
-/* ---------- Celular ---------- */
-
-@media (max-width: 760px) {
-  .painel-app {
-    --menu: 0px;
-  }
-
-  .painel-menu {
-    width: min(300px, 86vw);
-    transform: translateX(-100%);
-    transition: transform var(--dur-media) var(--ease-saida);
-  }
-
-  .painel-menu.aberto {
-    transform: none;
-    box-shadow: 20px 0 60px rgba(0, 0, 0, 0.25);
-  }
-
-  .painel-fundo:not([hidden]) {
-    position: fixed;
-    inset: 0;
-    z-index: 35;
-    display: block;
-    background: rgba(9, 9, 11, 0.48);
-  }
-
-  .painel-barra {
-    padding: 10px 14px;
-  }
-
-  .painel-barra__menu {
-    display: inline-flex;
-  }
-
-  .painel-perfil {
-    display: none;
-  }
-
-  .painel-conteudo {
-    padding: 18px 14px 96px;
-  }
-
-  .painel-kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .painel-grade--2 {
-    grid-template-columns: 1fr;
-  }
-
-  .painel-inferior {
-    position: fixed;
-    inset: auto 0 0 0;
-    z-index: 30;
-    display: flex;
-    justify-content: space-around;
-    gap: 6px;
-    padding: 6px;
-    background: var(--preto);
-  }
-
-  .painel-inferior a,
-  .painel-inferior button {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    min-height: 56px;
-    border: 0;
-    border-radius: 8px;
-    background: #17171a;
-    color: #d4d4d8;
-    font: inherit;
-    font-size: 0.75rem;
-    text-decoration: none;
-  }
-
-  .painel-inferior [aria-current="page"] {
-    background: var(--marca);
-    color: var(--branco);
-  }
-}
+/* O celular, a trilha de icones do tablet e a barra de abas estao no painel-abas.css. */

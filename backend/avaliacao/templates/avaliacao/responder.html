@@ -34,13 +34,17 @@
         {% else %}
         <div class="avaliacao__opcoes avaliacao__opcoes--{{ pergunta.tipo }}">
             {% for opcao in campo %}
+            {% if pergunta.tipo == "escala" %}
+            <label class="avaliacao__opcao" title="{{ opcao.choice_label }} de 5 estrelas">{{ opcao.tag }}<i class="fa-solid fa-star" aria-hidden="true"></i><span class="visualmente-oculto">{{ opcao.choice_label }} de 5 estrelas</span></label>
+            {% else %}
             <label class="avaliacao__opcao">{{ opcao.tag }}<span>{{ opcao.choice_label }}</span></label>
+            {% endif %}
             {% endfor %}
         </div>
         {% if pergunta.tipo == "nps" %}
         <p class="avaliacao__legenda"><span>0 = nada provável</span><span>10 = com certeza</span></p>
         {% elif pergunta.tipo == "escala" %}
-        <p class="avaliacao__legenda"><span>1 = muito ruim</span><span>5 = excelente</span></p>
+        <p class="avaliacao__legenda"><span>1 = Ruim</span><span>5 = excelente</span></p>
         {% endif %}
         {% endif %}
 

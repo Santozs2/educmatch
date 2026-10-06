@@ -2,65 +2,65 @@
 {% load static %}
 {% block title %}{% block titulo_painel %}Painel{% endblock %} · Painel{% endblock %}
 {% block classe_body %}pagina-painel{% endblock %}
-{% block estilos %}<link rel="stylesheet" href="{% static 'css/painel.css' %}">{% endblock %}
+{% block estilos %}
+<link rel="stylesheet" href="{% static 'css/painel.css' %}">
+<link rel="stylesheet" href="{% static 'css/painel-abas.css' %}">
+{% endblock %}
 {% block topo %}{% endblock %}
 {% block rodape %}{% endblock %}
-+{% block mensagens %}{% endblock %}
+{% block mensagens %}{% endblock %}
 
 {% block content %}
 <div class="painel-app">
+    {% comment %}
+   Desktop: menu inteiro. Tablet: só os ícones (ver .painel-menu--rail no CSS).
+       Celular: o menu sai de cena e quem navega é a barra de abas de baixo.
+{% endcomment %}
     <aside class="painel-menu" id="painel-menu" aria-label="Menu do painel">
         <a class="painel-menu__marca" href="{% url 'painel-dashboard' %}?{{ periodo_qs }}">
-            <span class="painel-menu__selo" aria-hidden="true">E</span> EducMatch
+            <span class="painel-menu__selo" aria-hidden="true">E</span>
+            <span class="painel-menu__rotulo">EducMatch</span>
         </a>
         <nav class="painel-menu__nav">
-            <a class="painel-menu__item" href="{% url 'painel-dashboard' %}?{{ periodo_qs }}" {% if secao == "inicio" %}aria-current="page"{% endif %}>
-                <i class="fa-solid fa-house" aria-hidden="true"></i> Início
+            <a class="painel-menu__item" href="{% url 'painel-dashboard' %}?{{ periodo_qs }}" data-dica="Início" {% if secao == "inicio" %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-house" aria-hidden="true"></i> <span class="painel-menu__rotulo">Início</span>
             </a>
-            <a class="painel-menu__item" href="{% url 'painel-quiz' %}?{{ periodo_qs }}" {% if secao == "quiz" %}aria-current="page"{% endif %}>
-                <i class="fa-solid fa-circle-question" aria-hidden="true"></i> Quiz
+            <a class="painel-menu__item" href="{% url 'painel-quiz' %}?{{ periodo_qs }}" data-dica="Quiz" {% if secao == "quiz" %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-circle-question" aria-hidden="true"></i> <span class="painel-menu__rotulo">Quiz</span>
             </a>
-            <a class="painel-menu__item" href="{% url 'painel-avaliacoes' %}?{{ periodo_qs }}" {% if secao == "avaliacoes" %}aria-current="page"{% endif %}>
-                <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Avaliações
+            <a class="painel-menu__item" href="{% url 'painel-avaliacoes' %}?{{ periodo_qs }}" data-dica="Avaliações" {% if secao == "avaliacoes" %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> <span class="painel-menu__rotulo">Avaliações</span>
             </a>
-             <a class="painel-menu__item" href="{% url 'painel-cursos' %}?{{ periodo_qs }}" {% if secao == "cursos" %}aria-current="page"{% endif %}>
-                <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Cursos e Áreas
+            <a class="painel-menu__item" href="{% url 'painel-cursos' %}?{{ periodo_qs }}" data-dica="Cursos e Áreas" {% if secao == "cursos" %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> <span class="painel-menu__rotulo">Cursos e Áreas</span>
             </a>
-            <a class="painel-menu__item" href="{% url 'painel-links' %}?{{ periodo_qs }}" {% if secao == "links" %}aria-current="page"{% endif %}>
-                <i class="fa-solid fa-link" aria-hidden="true"></i> Links de acesso
+            <a class="painel-menu__item" href="{% url 'painel-interesse' %}?{{ periodo_qs }}" data-dica="Lista de interesse" {% if secao == "interesse" %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-heart" aria-hidden="true"></i> <span class="painel-menu__rotulo">Lista de interesse</span>
             </a>
-            <a class="painel-menu__item" href="{% url 'painel-interesse' %}?{{ periodo_qs }}" {% if secao == "interesse" %}aria-current="page"{% endif %}>
-                <i class="fa-solid fa-heart" aria-hidden="true"></i> Lista de interesse
+            <a class="painel-menu__item" href="{% url 'painel-links' %}?{{ periodo_qs }}" data-dica="Links do quiz" {% if secao == "links" %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-link" aria-hidden="true"></i> <span class="painel-menu__rotulo">Links do quiz</span>
             </a>
         </nav>
         <form class="painel-menu__chamada" method="post" action="{% url 'painel-gerar-link' %}" data-confirmar="Gerar um novo link de acesso ao quiz?">
             {% csrf_token %}
             <input type="hidden" name="voltar" value="{% if secao == 'links' %}painel-links{% else %}painel-dashboard{% endif %}">
-            <strong>Gere um link e compartilhe o quiz com a turma.</strong>
-            <button type="submit" class="botao botao--bloco"><i class="fa-solid fa-link" aria-hidden="true"></i> Gerar link</button>
+            <strong class="painel-menu__rotulo">Gere um link e compartilhe o quiz com a turma.</strong>
+            <button type="submit" class="botao botao--bloco" data-dica="Gerar link">
+                <i class="fa-solid fa-link" aria-hidden="true"></i> <span class="painel-menu__rotulo">Gerar link</span>
+            </button>
         </form>
     </aside>
-    <div class="painel-fundo" data-fechar-menu hidden></div>
 
     <div class="painel-principal">
         <header class="painel-barra">
-            <button type="button" class="botao botao--secundario botao--icone painel-barra__menu" data-abrir-menu aria-controls="painel-menu" aria-expanded="false" aria-label="Abrir menu">
-                <i class="fa-solid fa-bars" aria-hidden="true"></i>
-            </button>
+            <a class="painel-barra__marca" href="{% url 'painel-dashboard' %}?{{ periodo_qs }}" aria-label="Início do painel">
+                <span class="painel-menu__selo" aria-hidden="true">E</span>
+                <b>EducMatch</b>
+            </a>
 
-            <form class="painel-periodo" method="get" aria-label="Período">
-                <label class="visualmente-oculto" for="periodo">Período</label>
-                <select id="periodo" name="periodo" class="painel-campo">
-                    {% for chave, config in periodos.items %}
-                    <option value="{{ chave }}" {% if periodo == chave %}selected{% endif %}>{{ config.label }}</option>
-                    {% endfor %}
-                </select>
-                <label class="visualmente-oculto" for="mes">Mês</label>
-                <input id="mes" type="month" name="mes" value="{{ mes }}" class="painel-campo painel-periodo__mes">
-                <button type="submit" class="botao">Aplicar</button>
-            </form>
+            {% include "painel/_periodo.html" with sufixo="barra" %}
 
-            <a href="{{ url_do_quiz }}" class="botao botao--secundario" aria-label="Voltar ao teste">Voltar ao teste</a>
+            <a href="{{ url_do_quiz }}" class="botao botao--secundario painel-barra__teste" aria-label="Voltar ao teste">Voltar ao teste</a>
 
             <details class="painel-acessibilidade">
                 <summary class="botao botao--neutro botao--icone" aria-label="Acessibilidade">
@@ -94,16 +94,11 @@
             </ul>
             {% endif %}
 
-
             {% block painel %}{% endblock %}
         </div>
     </div>
 
-    <nav class="painel-inferior" aria-label="Menu do painel (celular)">
-        <a href="{% url 'painel-dashboard' %}?{{ periodo_qs }}" {% if secao == "inicio" %}aria-current="page"{% endif %}><i class="fa-solid fa-house" aria-hidden="true"></i>Início</a>
-        <a href="{% url 'painel-quiz' %}?{{ periodo_qs }}" {% if secao == "quiz" %}aria-current="page"{% endif %}><i class="fa-solid fa-circle-question" aria-hidden="true"></i>Quiz</a>
-        <button type="button" data-abrir-menu aria-controls="painel-menu" aria-expanded="false"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i>Mais</button>
-    </nav>
+    {% include "painel/_abas.html" %}
 </div>
 
 <dialog class="painel-modal" id="painel-confirmar" aria-labelledby="painel-confirmar-titulo">

@@ -32,11 +32,11 @@
             <tbody>
                 {% for linha in por_curso %}
                 <tr>
-                    <td>{{ linha.nome_curso }}</td>
-                    <td>{{ linha.area }}</td>
-                    <td class="numero">{% include "painel/_celula.html" with valor=linha.total suprimido=linha.total_suprimido %}</td>
-                    <td class="numero">{% include "painel/_celula.html" with valor=linha.contatados suprimido=linha.contatados_suprimido %}</td>
-                    <td class="numero">{% if linha.taxa_principal is None %}—{% else %}{{ linha.taxa_principal|floatformat:0 }}%{% endif %}</td>
+                    <td data-rotulo="Curso">{{ linha.nome_curso }}</td>
+                    <td data-rotulo="Área">{{ linha.area }}</td>
+                    <td class="numero" data-rotulo="Salvaram">{% include "painel/_celula.html" with valor=linha.total suprimido=linha.total_suprimido %}</td>
+                    <td class="numero" data-rotulo="Contatados">{% include "painel/_celula.html" with valor=linha.contatados suprimido=linha.contatados_suprimido %}</td>
+                    <td class="numero" data-rotulo="Era o 1º">{% if linha.taxa_principal is None %}—{% else %}{{ linha.taxa_principal|floatformat:0 }}%{% endif %}</td>
                 </tr>
                 {% empty %}<tr><td colspan="5">Nenhum curso salvo no período.</td></tr>{% endfor %}
             </tbody>

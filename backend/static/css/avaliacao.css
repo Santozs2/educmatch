@@ -37,7 +37,7 @@
 .avaliacao__opcoes {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 20px;
 }
 
 .avaliacao__opcoes--nps {
@@ -89,6 +89,45 @@
   min-width: 0;
   padding: 0;
 }
+
+.avaliacao__opcoes--escala {
+  gap: 8px;
+}
+
+.avaliacao__opcoes--escala .avaliacao__opcao {
+  min-width: 50px;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  color: #a8a29e;
+  font-size: 34px;
+  transition: color var(--dur-rapida) var(--ease-padrao), transform var(--dur-rapida) var(--ease-padrao);
+}
+
+.avaliacao__opcoes--escala .avaliacao__opcao:hover {
+  background: transparent;  
+  color: #ffca28;
+  transform: scale(1.1);
+}
+
+.avaliacao__opcoes--escala .avaliacao__opcao:has(input:checked) {
+  background: transparent;
+  color: #ffca28;
+}
+
+.avaliacao__opcoes--escala:has(input[value="1"]:is(:checked, :hover)) .avaliacao__opcao:nth-child(-n+1),
+.avaliacao__opcoes--escala:has(input[value="2"]:is(:checked, :hover)) .avaliacao__opcao:nth-child(-n+2),
+.avaliacao__opcoes--escala:has(input[value="3"]:is(:checked, :hover)) .avaliacao__opcao:nth-child(-n+3),
+.avaliacao__opcoes--escala:has(input[value="4"]:is(:checked, :hover)) .avaliacao__opcao:nth-child(-n+4),
+.avaliacao__opcoes--escala:has(input[value="5"]:is(:checked, :hover)) .avaliacao__opcao:nth-child(-n+5) {
+  color: #ffca28;
+}
+
+
+.avaliacao__opcoes--escala:has(input:hover) .avaliacao__opcao {
+  color: #a8a29e;
+}
+
 
 .avaliacao__legenda {
   display: flex;

@@ -27,12 +27,12 @@
                 <tbody>
                     {% for curso in cursos %}
                     <tr>
-                        <td>{{ curso.nome_curso }}</td>
-                        <td>{{ curso.area }}</td>
-                        <td class="numero">{{ curso.duracao }}h</td>
-                        <td>{% if curso.inicio_dia %}{{ curso.inicio_dia|date:"d/m" }}–{{ curso.fim_dia|date:"d/m"|default:"?" }}{% else %}—{% endif %}</td>
-                        <td class="numero">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.em_primeiro suprimido=curso.em_primeiro_suprimido %}{% else %}—{% endif %}</td>
-                        <td class="numero">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.no_top5 suprimido=curso.no_top5_suprimido %}{% else %}—{% endif %}</td>
+                        <td data-rotulo="Curso">{{ curso.nome_curso }}</td>
+                        <td data-rotulo="Área">{{ curso.area }}</td>
+                        <td class="numero" data-rotulo="Duração">{{ curso.duracao }}h</td>
+                        <td data-rotulo="Turma">{% if curso.inicio_dia %}{{ curso.inicio_dia|date:"d/m" }}–{{ curso.fim_dia|date:"d/m"|default:"?" }}{% else %}—{% endif %}</td>
+                        <td class="numero" data-rotulo="Em 1º">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.em_primeiro suprimido=curso.em_primeiro_suprimido %}{% else %}—{% endif %}</td>
+                        <td class="numero" data-rotulo="No Top 5">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.no_top5 suprimido=curso.no_top5_suprimido %}{% else %}—{% endif %}</td>
                         <td><a class="botao botao--suave botao--icone" href="{% url 'admin:catalogo_curso_change' curso.id %}" aria-label="Editar {{ curso.nome_curso }}"><i class="fa-solid fa-pen" aria-hidden="true"></i></a></td>
                     </tr>
                     {% empty %}<tr><td colspan="7">Nenhum curso ativo.</td></tr>{% endfor %}
