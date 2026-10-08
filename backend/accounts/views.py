@@ -78,12 +78,6 @@ def remover_interesse(request, pk):
     remover_da_lista(interesse)
     return redirect('lista_interesse')
 
-@login_required
-def interesse_remover(request, pk):
-    item = get_object_or_404(Interesse, pk=pk, usuario=request.user)
-    item.delete()
-    return redirect("lista_interesse")
-
 
 @require_POST
 def salvar_interesse(request):

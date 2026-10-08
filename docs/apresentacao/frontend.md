@@ -1,18 +1,29 @@
-# Front: o que apresentar
+---
+title: "Apresentação · Front (templates, scripts, CSS e acessibilidade)"
+aliases: ["Front na apresentação", "O que apresentar do front"]
+tags: [tcc, apresentacao, front, templates, css, acessibilidade]
+status: pronto
+projeto: TCC
+atualizado: 2026-10-08
+---
 
-Não existe SPA nem build (sem Node, sem bundler). O front é **HTML renderizado pelo Django + CSS + 3 scripts pequenos**. A frase que resume:
+> [!info] Apresentação: [[README|🎤 Roteiro]] · [[engine|🧮 Engine]] · [[backend|⚙️ Backend]] · **🎨 Front** · [[ia|🤖 Camada de IA]] · [[demo-e-perguntas|🎬 Demo e banca]]
 
-> **Melhoria progressiva:** tudo funciona só com HTML e CSS. O JavaScript apenas deixa a experiência mais confortável. Se o JS falhar, o aluno ainda consegue responder o quiz e ver o resultado.
+# 🎨 Front: o que apresentar
 
-Ordem sugerida: **estrutura dos templates → quiz.html (o truque do `:target`) → scripts → componentes → CSS por tokens → acessibilidade**.
+> [!abstract] O que esta nota é
+> Não existe SPA nem build: nada de Node, nada de bundler. O front é **HTML renderizado pelo Django + CSS por tokens + 5 scripts pequenos**. Ordem sugerida: **templates → o truque do `quiz.html` → resultado → painel → scripts → CSS → acessibilidade**.
+
+> [!quote] A frase que resume
+> **Melhoria progressiva:** tudo funciona só com HTML e CSS. O JavaScript apenas deixa a experiência mais confortável. Se o JS falhar, o aluno ainda responde o quiz e vê o resultado, e a coordenação ainda navega pelo painel.
 
 ---
 
-## 1. Estrutura dos templates (HTMLs)
+## 🗂️ 1. Estrutura dos templates
 
 ```
 backend/templates/
-├─ base.html                 esqueleto de todas as páginas (herança)
+├─ base.html                 esqueleto de todas as páginas do aluno (herança)
 ├─ componentes/              pedaços reutilizáveis ({% include %})
 │  ├─ _anel.html             anel de afinidade (SVG)
 │  ├─ _barra.html            barra de afinidade / progresso
@@ -20,114 +31,117 @@ backend/templates/
 │  ├─ _secretaria.html       cartão de contato da escola
 │  └─ _topo_voltar.html      topo simples com "Voltar"
 └─ quiz/
-   ├─ quiz.html              telas 01 a 08 (intro, perguntas, "analisando")
-   ├─ resultado.html         tela 09 (resultado)
+   ├─ quiz.html              telas 01 a 08 (intro, 10 perguntas, "analisando")
+   ├─ resultado.html         tela 09 (1º lugar em destaque + 4 alternativas)
+   ├─ aluno_perfil.html      "Meu perfil"
    └─ link_invalido.html     link fechado ou inexistente
 
 backend/<app>/templates/<app>/
-├─ accounts/  entrar, criar_conta, lista, tentativas, perfil
-├─ catalogo/  curso_detalhe (tela 10)
-└─ painel/    dashboard, _celula (número ou "—"), _ranking
+├─ accounts/   entrar, criar_conta, lista, tentativas
+├─ catalogo/   curso_detalhe (tela 10)
+├─ avaliacao/  responder, obrigado, link_invalido
+└─ painel/     base_painel + 7 telas + pedaços (_abas, _mais, _periodo, _celula, _ranking, _sem_massa)
 ```
 
-### `base.html`: o que mostrar
+### `base.html`
 
-- **Herança de templates:** blocos `title`, `estilos`, `topo`, `content`, `rodape` e `scripts`. Cada tela carrega **só o CSS dela** no bloco `estilos` (`quiz.css`, `resultado.css`, `painel.css`...).
-- **Skip link** "Pular para o conteúdo" e `<main id="conteudo">` (acessibilidade para teclado e leitor de tela).
-- Menu do usuário com `<details>/<summary>`: **abre e fecha sem JavaScript**. O link "Painel" só aparece para `user.is_staff`.
-- Mensagens do Django (`messages`) com `role="status"`.
-- Script **inline no `<head>`**, antes do CSS, que lê o `localStorage` e aplica `fonte-grande` / `alto-contraste` **antes da página pintar**. Assim não há "piscada" de tema.
-- Os scripts carregam com `defer` no final.
-- Dados da escola vêm do **context processor** `core.contexto.escola` (`{{ escola.nome }}` em qualquer template).
-
----
-
-## 2. `quiz.html`: o truque central do front ★
-
-**Uma página, várias perguntas, sem JavaScript.**
-
-- Cada pergunta é um `<fieldset id="questao-N">`. Os botões "Próxima" e "Voltar" são **links** `href="#questao-N"`.
-- O CSS usa **`:target`** (`quiz.css`): mostra só o fieldset cujo id está no `#` da URL. Trocar de pergunta = trocar o `#`.
-- Se o aluno enviar faltando resposta, a view guarda o que já foi respondido na sessão e redireciona para `#questao-<primeira em branco>`.
-- A barra de progresso é calculada no template com `{% widthratio %}` e passada ao CSS por variáveis (`--valor`, `--de`, `--seguinte`) para animar de onde a pergunta anterior parou.
-- Semântica: `<fieldset>` + `<legend>` + `<input type="radio">` dentro de `<label>`. O leitor de tela anuncia a pergunta e as opções corretamente.
-- A tela "Analisando seu perfil" (tela 08) só aparece com JS (`hidden` por padrão).
+| O que tem | Por quê |
+|---|---|
+| Blocos `title`, `estilos`, `topo`, `mensagens`, `content`, `rodape`, `scripts` | **Herança:** cada tela carrega só o CSS dela no bloco `estilos` |
+| Skip link "Pular para o conteúdo" + `<main id="conteudo">` | Teclado e leitor de tela pulam o menu |
+| Menu do usuário com `<details>/<summary>` | **Abre e fecha sem JavaScript**. O link "Painel" só aparece para `user.is_staff` |
+| Script **inline no `<head>`**, antes do CSS | Lê o `localStorage` e aplica `fonte-grande`/`alto-contraste` **antes da página pintar**: o tema não "pisca" |
+| Dados da escola via **context processor** `core.contexto.escola` | `{{ escola.nome }}` em qualquer template, vindo do `.env` |
 
 ---
 
-## 3. Scripts (`backend/static/js/`)
+## ⭐ 2. `quiz.html`: o truque central
 
-Todos em **IIFE** `(function () { ... })()`: não poluem o escopo global. Todos saem cedo se o elemento não existe na página (`if (!form) return;`).
+**Uma página, 10 perguntas, sem JavaScript.**
 
-### `quiz.js`: conforto no quiz (≈ 110 linhas)
+- Cada pergunta é um `<fieldset id="questao-N">`. "Próxima" e "Voltar" são **links** `href="#questao-N"`.
+- O CSS usa **`:target`** (`quiz.css`): mostra só o fieldset cujo id está no `#` da URL. **Trocar de pergunta = trocar o `#`.**
+- Enviou faltando resposta? A view guarda o que já foi respondido **na sessão** e redireciona para `#questao-<primeira em branco>`.
+- Barra de progresso: `{% widthratio %}` no template, passada ao CSS por variáveis (`--valor`, `--de`, `--seguinte`) para animar de onde a pergunta anterior parou.
+- Semântica: `<fieldset>` + `<legend>` + `<input type="radio">` dentro de `<label>`. O leitor de tela anuncia a pergunta e as opções.
 
-Cinco melhorias, todas sobre o HTML que já funciona:
+> [!tip] Na demo, mostre a URL
+> Responda duas perguntas e aponte para a barra de endereço: `#questao-2`, `#questao-3`… É a forma mais rápida de mostrar que **o quiz é navegação, não JavaScript**.
 
-1. **Avanço automático** ao marcar uma opção com mouse ou dedo, depois de uma pausa (`PAUSA_AO_MARCAR`) para o clique ser visto. Com **teclado** não avança sozinho: as setas trocam a opção a cada toque e o aluno seria jogado para a próxima pergunta antes de escolher (`pointerdown` × `keydown` decidem o modo).
-2. **Enter avança** em vez de enviar o formulário pela metade. Se a pergunta está em branco, mostra o aviso (com animação de "tremer" reiniciada via `void aviso.offsetWidth`).
-3. **Foco** vai para o `<legend>` da pergunta nova no `hashchange`: o leitor de tela anuncia a pergunta. Isso cobre também o voltar/avançar do navegador.
-4. **No envio**, se faltar resposta, vai para a primeira em branco; senão mostra a tela "Analisando".
-5. **Direção da animação:** grava `data-direcao="avancar|voltar"` no form **antes** do `#` mudar, para a pergunta entrar pelo lado certo.
+## 🏆 3. `resultado.html`: a engine na tela
 
-Padrões para citar: **delegação de eventos** (um listener no form, não um por botão), `closest()`, `dataset`, `setTimeout`/`clearTimeout` para não agendar dois avanços.
-
-### `movimento.js`: números que contam
-
-- Qualquer elemento com `data-contar` (ex.: `87%`) conta de 0 até o valor com `requestAnimationFrame` e *easing* `1 − (1 − t)⁴`.
-- Lê a duração do **token CSS** `--dur-preencher`, então número, anel e barra andam no mesmo ritmo.
-- Respeita **`prefers-reduced-motion`**: com "reduzir movimento" ligado, sai sem animar. Sem JS, o número já está no HTML.
-
-### `acessibilidade.js`: fonte grande e alto contraste
-
-- Botões com `data-alternar="fonte-grande"` ou `data-alternar="alto-contraste"` ligam uma classe no `<html>`.
-- Atualiza `aria-pressed` (o leitor de tela sabe se está ligado) e salva no `localStorage` dentro de `try/catch` (navegação privada não quebra a página).
-- ⚠️ **Hoje nenhum template tem um botão `data-alternar`.** O script e os tokens existem, mas o usuário não tem como ligar. Ou adicione os dois botões no topo do `base.html` antes da apresentação, ou apresente como "infraestrutura pronta" e não prometa na demo.
-
-### Script do painel (inline em `painel/dashboard.html`)
-
-- Gráficos com **Chart.js** (CDN) alimentados pelo contexto do Django, modais de confirmação para gerar e fechar link e botão "Copiar" com `navigator.clipboard`.
-- Veja o aviso sobre os estilos inline deste arquivo em [demo-e-perguntas.md](demo-e-perguntas.md#antes-de-apresentar-corrigir-ou-ter-resposta).
+| Bloco | De onde vem |
+|---|---|
+| Anel de afinidade do 1º lugar | `round(score × 100)`, a afinidade do [[engine|cosseno]] |
+| "Por que este curso?" | `explicacao.top_areas`: as 3 áreas que mais pesaram, com percentual e barra |
+| Aviso de empate | Aparece quando `confidence_band == "baixa"` |
+| "Também combinam com você" | As outras 4, na ordem **`rank_final`** |
+| Salvar curso / Ver detalhes | Lista de interesse e tela 10 (afinidade daquele aluno com o curso) |
 
 ---
 
-## 4. Componentes
+## 📊 4. O painel da coordenação
 
-| Componente | Como funciona | Destaque |
-| --- | --- | --- |
-| `_anel.html` | SVG com 2 círculos; o CSS desenha o arco a partir de `--valor` | `role="img"` + `aria-label="87% de afinidade"`; o número visual fica `aria-hidden` para não ser lido duas vezes |
-| `_barra.html` | `<span>` com `width` guiada por `--valor`; parâmetro `escura` | Reusada no resultado, no detalhe do curso e no progresso do quiz |
-| `_campo.html` | label + input + ajuda + erros | Erro com `role="alert"`; marca "(opcional)" sozinho a partir do form do Django |
-| `_secretaria.html` | Contato da escola vindo do `settings.ESCOLA` | Telefone vira link `tel:` já limpo com o filtro `cut` |
+| Peça | Arquivo | O que faz |
+|---|---|---|
+| Esqueleto | `painel/base_painel.html` | **Menu lateral** no computador; no celular, uma **barra de abas** embaixo (`_abas.html`) e a folha **"Mais"** (`_mais.html`) |
+| Filtro de período | `_periodo.html` | Diário · Mensal · Anual · Mês escolhido. Os links do menu levam o filtro junto |
+| Número ou "—" | `_celula.html` | Um lugar só decide como mostrar um número suprimido |
+| 7 telas | `inicio`, `quiz`, `cursos`, `links`, `interesse`, `avaliacoes`, `avaliacoes_resultados` | Ver a tabela de telas em [[backend|⚙️ Backend]] |
+| Atalho | botão **"Voltar ao teste"** | Abre o quiz pelo link ativo, para a coordenação testar como aluno |
 
-Uso: `{% include "componentes/_anel.html" with valor=destaque.match %}`. **Um componente = um lugar para corrigir.**
+> [!note] 🎓 Os gráficos recebem os dados por `json_script`
+> `{{ serie|json_script:"dados-serie" }}` escreve um `<script type="application/json">` seguro (sem risco de injeção) que o `painel-graficos.js` lê e entrega ao **Chart.js**. Se o Chart.js não carregar (sem internet na sala), o script avisa no console e **os números continuam nas legendas**.
 
 ---
 
-## 5. CSS por tokens (`backend/static/css/`)
+## 🧠 5. Scripts (`backend/static/js/`)
+
+Todos em **IIFE** `(function () { ... })()`, sem poluir o escopo global, e todos **saem cedo** se o elemento não existe na página (`if (!form) return;`).
+
+| Script | Linhas | O que faz |
+|---|:-:|---|
+| `quiz.js` | ~110 | **Enter avança** (e não envia pela metade); aviso que "treme" se a pergunta está em branco; **foco no `<legend>`** a cada pergunta (o leitor de tela anuncia); direção da animação (`data-direcao`); no envio, volta para a 1ª em branco ou mostra a tela **"Analisando"** |
+| `movimento.js` | ~30 | Números com `data-contar` contam de 0 até o valor (`requestAnimationFrame`, *easing* `1 − (1 − t)⁴`), no ritmo do token `--dur-preencher`. Respeita **`prefers-reduced-motion`** |
+| `acessibilidade.js` | ~25 | Botões `data-alternar` ligam `fonte-grande`/`alto-contraste` no `<html>`, atualizam `aria-pressed` e salvam no `localStorage` (dentro de `try/catch`: navegação privada não quebra) |
+| `painel.js` | ~110 | Folha "Mais" no celular, animação da troca de aba, **confirmação antes de cada POST** (gerar e fechar link), botão **Copiar** (`navigator.clipboard`) e campo de mês |
+| `painel-graficos.js` | ~50 | Gráficos da tela Início com **Chart.js**, nas cores dos tokens (`--marca`) |
+
+Padrões para citar: **delegação de eventos** (um listener no form, não um por botão), `closest()`, `dataset`, `hashchange`.
+
+> [!warning] Dois detalhes do `quiz.js` para ter resposta pronta
+> 1. **O avanço automático foi desligado:** marcar uma opção não troca mais de pergunta, e quem avança é o botão "Próxima" ou o Enter. As variáveis `PAUSA_AO_MARCAR` e `pelaTeclado` ficaram sem uso. É limpeza pendente, não bug.
+> 2. **A tela "Analisando" segura o envio por 1,5 s de propósito** (`setTimeout`). A engine responde em milissegundos; a pausa é uma escolha de experiência, para o aluno perceber que houve análise. Se perguntarem, diga isso. Com a camada de IA, a espera passa a ser real.
+
+---
+
+## 🎛️ 6. CSS por tokens (`backend/static/css/`)
 
 | Arquivo | Conteúdo |
-| --- | --- |
-| `tokens.css` | Variáveis: cores, fontes, espaçamentos, raios, sombras e **tempos/curvas de movimento**. Também redefine tokens em `:root.fonte-grande` e `:root.alto-contraste`. |
-| `base.css` | Reset, tipografia, layout, topo/rodapé, **keyframes num só lugar**, View Transitions, `prefers-reduced-motion` |
+|---|---|
+| `tokens.css` | Variáveis: cores, fontes, espaços, raios, sombras, **tempos e curvas de movimento**. Redefine os tokens em `:root.fonte-grande` e `:root.alto-contraste` |
+| `base.css` | Reset, tipografia, layout, topo/rodapé, keyframes num só lugar, View Transitions, `prefers-reduced-motion` |
 | `componentes.css` | Botões, cartões, chips, campos, anel, barra |
-| `quiz.css`, `resultado.css`, `curso.css`, `conta.css`, `painel.css` | Um por tela, carregado só onde é usado |
+| `quiz.css` · `resultado.css` · `curso.css` · `conta.css` · `avaliacao.css` | Uma folha por tela, carregada só onde é usada |
+| `painel.css` · `painel-abas.css` | Painel e a navegação por abas do celular |
 
-Pontos para citar:
-
-- **Nomenclatura BEM** em português: `.quiz-passo__topo`, `.botao--bloco`, `.destaque__info`.
-- **Tokens:** para trocar a cor da marca, altera-se **uma** variável. O alto contraste e a fonte grande são só **outros valores dos mesmos tokens**.
-- **Animações só com CSS:** o anel e as barras enchem por `transition`/`@keyframes` a partir de `--valor`. Entradas escalonadas com `.entrada` + `--i`.
-- **View Transitions API** (`@view-transition`): troca de página suave, com o topo parado (`view-transition-name: topo`). Navegador sem suporte apenas troca a página normalmente.
-- **`prefers-reduced-motion: reduce`** desliga tudo isso.
+- **BEM em português:** `.quiz-passo__topo`, `.botao--bloco`, `.destaque__info`.
+- **Tokens:** trocar a cor da marca = mudar **uma** variável. Alto contraste e fonte grande são **outros valores dos mesmos tokens**.
+- **Animações só com CSS:** anel e barras enchem por `transition` a partir de `--valor`; as entradas são escalonadas com `.entrada` + `--i`.
+- **View Transitions API:** troca de página suave com o topo parado. Navegador sem suporte apenas troca a página.
 
 ---
 
-## 6. Acessibilidade (resumo para um slide)
+## ♿ 7. Acessibilidade (um slide)
 
 - HTML semântico: `fieldset/legend`, `label`, `nav` com `aria-label`, `main`, `header`, `footer`.
-- Navegação completa por teclado (Enter no quiz, foco gerenciado, skip link).
-- ARIA só onde falta semântica: `aria-current` no período do painel, `aria-pressed`, `role="alert"`, `role="status"`, `aria-live="polite"`.
-- Fonte grande e alto contraste persistentes (tokens + script prontos; falta o botão na tela, ver acima), e respeito a "reduzir movimento".
-- Ícones do Font Awesome sempre com `aria-hidden="true"`.
+- Teclado do começo ao fim: skip link, Enter no quiz, foco gerenciado a cada pergunta.
+- ARIA só onde falta semântica: `aria-current` no menu e no período, `aria-pressed`, `aria-expanded` na folha "Mais", `role="alert"`, `role="status"`.
+- **Fonte grande e alto contraste** com os botões no painel (menu lateral e folha "Mais"), persistentes no navegador.
+- Respeito a "reduzir movimento" em CSS **e** em JS. Ícones sempre com `aria-hidden="true"`.
 
-> Na demo, **mostre o quiz sendo respondido só com o teclado** (Tab, setas, Enter). Leva 20 segundos e marca pontos. Se os botões de acessibilidade forem adicionados, ligue também o alto contraste.
+> [!warning] Os botões de acessibilidade estão só no **painel**
+> Na área do aluno (quiz e resultado) o script e os tokens funcionam, mas **não há botão na tela**: quem já ligou no painel vê o tema aplicado, porque o `base.html` lê o `localStorage`. Ou acrescentem os dois botões no topo do `base.html`, ou mostrem o recurso **pelo painel** na demo.
+
+> [!tip] 20 segundos que marcam pontos
+> Responda duas perguntas **só com o teclado** (Tab, setas, Enter) e depois ligue o **alto contraste** no painel.
