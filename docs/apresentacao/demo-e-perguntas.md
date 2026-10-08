@@ -1,135 +1,176 @@
-# Demo ao vivo, perguntas da banca e checklist
+---
+title: "Apresentação · Demo ao vivo, perguntas da banca e checklist"
+aliases: ["Demo e banca", "Perguntas da banca", "Checklist da véspera"]
+tags: [tcc, apresentacao, demo, banca, checklist]
+status: pronto
+projeto: TCC
+atualizado: 2026-10-08
+---
+
+> [!info] Apresentação: [[README|🎤 Roteiro]] · [[engine|🧮 Engine]] · [[backend|⚙️ Backend]] · [[frontend|🎨 Front]] · [[ia|🤖 Camada de IA]] · **🎬 Demo e banca**
+
+# 🎬 Demo ao vivo, perguntas da banca e checklist
+
+> [!abstract] O que esta nota é
+> O roteiro da demo, minuto a minuto; as perguntas mais prováveis, com resposta curta; o que ainda precisa ser corrigido **ou** ter resposta pronta; e o checklist da véspera.
 
 ---
 
-## Antes de apresentar: corrigir ou ter resposta
+## 🔧 1. Antes de apresentar: corrigir ou ter resposta
 
-Encontrei estes pontos ao revisar o código para a apresentação. Os itens 1 e 2 já foram corrigidos; o **2b** ainda quebra o painel nesta máquina.
+Pontos encontrados ao revisar o código em 2026-10-08 (`develop` em `06baffc`):
 
-| # | Onde | Problema | O que fazer |
-| --- | --- | --- | --- |
-| 1 | `painel/templates/painel/dashboard.html`, gráfico "Top 3" | Usava `l.curso__nome_curso`, mas a métrica devolve a chave **`nome`**: rótulos vazios. | ✅ Corrigido (commit `276e746`, branch `docs/apresentacao`). |
-| 2 | Mesmo gráfico | Total suprimido (< 5) virava **`None`** no JavaScript → `ReferenceError` → nenhum gráfico desenhava. | ✅ Corrigido no mesmo commit: suprimidos ficam fora do gráfico. Entra na `main` com o PR de `docs/apresentacao`. |
-| 2b | MySQL da máquina da demo | `core.tests` falha: as **tabelas de fuso** estão vazias, e aí todo filtro por período do painel volta vazio, sem erro. | Carregar `timezone_posix.sql` (README, seção "Tabelas de fuso") **antes** da demo. |
-| 3 | Mesmo arquivo | Estilos inline e cores fixas fogem do padrão de tokens do resto do front. | Se não der tempo de mover para `painel.css`, **não abra esse arquivo** na parte de front. Mostre `quiz.html` e `resultado.html`. |
-| 4 | `base.html` | O `acessibilidade.js` existe, mas nenhum botão `data-alternar` está na tela. | Adicionar os botões ou não prometer o recurso. |
-| 5 | `quiz/views.py` e `templates/quiz/dashboard.html`, `templates/quiz/curso_detalhe.html` | Código do dashboard antigo, **sem rota** (`/quiz/dashboard/` só redireciona para `/painel/`). | Resposta pronta: "é legado da primeira versão; o painel novo substituiu e o endereço antigo redireciona com 301. Fica como limpeza pendente." |
-| 6 | `quiz/engine.py` | A função se chama `recomedacao` (erro de digitação) e existe uma `banda()` que não é usada. | Não é bug, mas alguém pode notar. Admita como débito técnico. |
+| # | Onde | O que é | O que fazer |
+|:-:|---|---|---|
+| 1 | MySQL da máquina da demo | Sem as **tabelas de fuso**, todo filtro por período do painel volta vazio, **sem erro** | Carregar o `timezone_posix.sql` (README, "Tabelas de fuso") e conferir com `python manage.py test core` |
+| 2 | `painel/privacidade.py` | `K_MINIMO = 0`: a supressão de números pequenos está **desligada** (decisão de 2026-10-01) | Ter a resposta pronta (§3). **Não** dizer que o painel suprime |
+| 3 | `quiz/views.py`, `templates/quiz/dashboard.html`, `templates/quiz/curso_detalhe.html` | Código do dashboard antigo, **sem rota** (`/quiz/dashboard/` redireciona com 301 para `/painel/`) | Remover antes ou responder: *"legado da 1ª versão; o painel novo substituiu"* |
+| 4 | `static/js/quiz.js` | `PAUSA_AO_MARCAR` e `pelaTeclado` ficaram sem uso depois que o avanço automático foi desligado | Limpeza de 2 linhas. Se não der tempo, não abra esse trecho |
+| 5 | `static/js/quiz.js` | A tela "Analisando" segura o envio por **1,5 s** de propósito | Resposta: escolha de experiência; a engine leva milissegundos |
+| 6 | `templates/base.html` | Botões de fonte grande e alto contraste só existem **no painel** | Acrescentar no topo do aluno, ou mostrar pelo painel na demo |
+| 7 | `backend/.env.example` | Os acentos de `ESCOLA_NOME` e `ESCOLA_ENDERECO` estão quebrados (`SÃ£o JosÃ©`) | Corrigir se o arquivo for aparecer no slide de configuração |
+| 8 | Camada de IA | Em construção (Passo 7) | Na banca, mostrar **só o que estiver mesclado** (ver [[ia|🤖 IA]]) |
 
-> Rode `python manage.py test` **depois** de qualquer correção e antes de sair de casa.
+> [!success] Já resolvidos desde a última versão desta nota
+> `recomedacao` virou **`recomendar`** · a `banda()` foi documentada (fica reservada para o fallback e o tom do prompt da IA; ainda não é chamada) · o **`tie_set` é preenchido** · a régua de empate foi **calibrada** para o quiz de 10 perguntas · os gráficos do painel foram refeitos com `json_script` · os botões de acessibilidade entraram no painel.
+
+> [!warning] Rode a suíte depois de qualquer correção
+> `python manage.py test` → **150 testes**. Faça isso também antes de sair de casa.
 
 ---
 
-## Roteiro da demo (5 min)
+## 🎥 2. Roteiro da demo (5 min)
 
-**Preparação (na véspera):**
+**Preparação, na véspera:**
 
 ```bash
 cd backend
 python manage.py migrate
-python manage.py seed_areas && python manage.py seed_cursos && python manage.py seed_questoes
+python manage.py createcachetable
+python manage.py seed_areas && python manage.py seed_cursos && python manage.py seed_questoes && python manage.py seed_avaliacao
 python manage.py createsuperuser        # conta da coordenação
 python manage.py runserver
 ```
 
-Responda o quiz **pelo menos 5 vezes** (perfis diferentes). Senão o painel mostra só o total, que é o comportamento correto de privacidade mas não impressiona. Deixe também uma conta de aluno criada.
+Responda o quiz **várias vezes, com perfis diferentes**, para o painel ter números e o gráfico ter forma. Deixe também uma conta de aluno criada.
 
 **Na hora, duas janelas lado a lado:** a normal (coordenação logada) e uma **anônima** (aluno).
 
-| Passo | Tela | O que falar |
-| --- | --- | --- |
-| 1 | `/painel/` (coordenação) → **Gerar link** | "A coordenação gera um link com token UUID para distribuir na escola." |
-| 2 | Cola o link na janela anônima | "O token vai para a sessão; a tentativa sai marcada como 'via link'." |
-| 3 | Responde o quiz **com o teclado** e depois com o mouse | Barra de progresso, avanço automático, Enter, foco. "Sem JS isso tudo funciona pelo `#` da URL." |
-| 4 | Tela "Analisando" → **Resultado** | Anel de afinidade, "Por que este curso?" (a **explicação** da engine), outros cursos com barras. |
-| 5 | **Salvar** um curso sem estar logado | Vai para o login e, ao entrar, o curso já está salvo: interesse pendente + signal que adota a tentativa anônima. |
-| 6 | `/lista_interesse/` e `/meus-testes/` | Snapshot: posição e afinidade do momento em que salvou. |
-| 7 | Volta ao `/painel/` | Números atualizados, período 30/90/365, "—" onde a contagem é < 5. **Fecha o link** e mostra que ele passa a dar "link inválido". |
+| # | Tela | O que falar |
+|:-:|---|---|
+| 1 | `/painel/` → **Gerar link** | "A coordenação gera um link com token UUID para distribuir na escola." |
+| 2 | Cola o link na janela anônima | "O token vai para a sessão, e a tentativa sai marcada como 'via link'." |
+| 3 | Responde **com o teclado** (Tab, setas, Enter) e aponta para a URL | "Cada pergunta é um `#questao-N`. Sem JavaScript, isso tudo funciona." |
+| 4 | Tela "Analisando" → **Resultado** | Anel de afinidade e **"Por que este curso?"**: *"esta é a explicação da engine, as áreas que mais pesaram"* |
+| 5 | ⭐ **O aviso de empate** | Truque: responda **sempre a 1ª alternativa**. Dá Robô de Soldagem (0,8622) × Caldeireiro (0,8514), a confiança sai **baixa** e o aviso aparece. *"O sistema não finge certeza."* |
+| 6 | **Salvar** um curso sem estar logado | Vai para o login e, ao entrar, o curso **já está salvo**: interesse pendente + signal que adota a tentativa anônima |
+| 7 | `/lista_interesse/` e `/meus-testes/` | Snapshot: a posição e a afinidade **do momento** em que salvou |
+| 8 | `/painel/quiz/` | Distribuição de confiança, cursos em 1º, **taxa de conclusão** e **tempo típico** (mediana) |
+| 9 | `/painel/avaliacoes/` → gera link de avaliação → responde na janela anônima | "Anônima **por desenho**: o model não tem onde guardar quem respondeu, nem a hora." Mostra o NPS |
+| 10 | **Fecha o link** do quiz | E mostra que ele passa a dar "link inválido" |
 
-Plano B: grave um vídeo curto da demo funcionando e deixe prints no slide. Se o MySQL ou a rede falhar, você segue.
-
----
-
-## Perguntas prováveis da banca (com resposta curta)
-
-### Sobre a engine
-
-**Por que similaridade de cosseno?**
-Porque compara o *formato* do perfil, não a intensidade. Dois alunos com as mesmas preferências relativas recebem a mesma recomendação, mesmo que um tenha marcado pesos maiores. E o resultado já sai entre 0 e 1, pronto para virar porcentagem.
-
-**Por que não usar machine learning ou IA?**
-Não há dados históricos rotulados (quem fez qual curso e se deu certo) para treinar. O cosseno é **explicável**, **determinístico** e **auditável** pela coordenação: dá para dizer exatamente por que um curso apareceu. IA fica como evolução futura, para escrever o texto da explicação, por exemplo, não para decidir o ranking.
-
-**De onde vêm os pesos?**
-Foram definidos pelo grupo com base no catálogo (12 áreas, 20 cursos, 73 pesos, nos seeds) e são editáveis pelo admin. Validar os pesos com orientadores da escola é um próximo passo.
-
-**O que é a "confiança"?**
-É o quanto o 1º colocado se separou do 2º, em relação ao 1º. Abaixo de 5% é "baixa" e o sistema avisa o aluno em vez de fingir certeza.
-
-**E se der empate?**
-A confiança sai "baixa" e o aviso aparece. O campo `tie_set` existe no model para registrar empates, mas ainda não é preenchido. Fale isso como limitação.
-
-### Sobre o backend
-
-**Por que Django com templates e não API + React?**
-O projeto começou com React e migrou. Com templates há um deploy só, nenhuma API pública para proteger, sessão e CSRF nativos, e o quiz funciona sem JS. O `djangorestframework` continua instalado caso uma API seja necessária no futuro.
-
-**Como evitam que alguém veja o resultado de outra pessoa?**
-Tentativa com dono só o dono vê; tentativa anônima só no navegador que respondeu (o id fica na sessão). Fora disso é 404, que não revela se o id existe. A regra está num lugar só (`quiz/permissoes.py`) e tem teste.
-
-**E se o aluno responder anônimo e depois criar conta?**
-O signal `user_logged_in` adota as tentativas que estão na sessão daquele navegador e ainda não têm dono.
-
-**Como garantem consistência ao salvar o quiz?**
-Tentativa, respostas e recomendações são gravadas dentro de `transaction.atomic()`. Se a engine falhar, nada fica pela metade.
-
-**E performance?**
-`select_related`/`prefetch_related` para evitar N+1, `bulk_create` para respostas e recomendações, índices em `criado_em` e `(rank, curso)` para o painel. Com 20 cursos o cálculo é instantâneo; com 180 cursos (a escala do SENAI) continua linear.
-
-**Como tratam LGPD no painel?**
-k-anonimato com k = 5: com menos de 5 tentativas no período, só o total aparece; qualquer contagem menor que 5 vira "—", e a taxa correspondente também é escondida para não deixar deduzir o número. Nenhum nome ou e-mail aparece no painel.
-
-**Qual a cobertura de testes?**
-64 testes cobrindo engine (inclusive isolada do banco), rotas, controle de acesso, lista de interesse, adoção de tentativa, métricas e privacidade.
-
-### Sobre o front
-
-**O que acontece sem JavaScript?**
-O quiz funciona: cada pergunta é um `#questao-N` e o CSS `:target` mostra a da vez. O JS só adiciona avanço automático, Enter, foco e a tela "Analisando".
-
-**Como pensaram acessibilidade?**
-HTML semântico, navegação por teclado com foco gerenciado, ARIA onde falta semântica, respeito a "reduzir movimento" e tokens prontos para fonte grande e alto contraste.
-
-**Por que CSS puro e não Bootstrap ou Tailwind?**
-O protótipo tinha uma identidade própria. Com tokens em CSS puro o resultado é leve, sem build e fiel ao design, e o tema de alto contraste é só outro conjunto de valores.
-
-### Perguntas "armadilha"
-
-- **"Isso é um sistema de recomendação de verdade?"** Sim: é uma recomendação *baseada em conteúdo* (content-based), com perfil e itens no mesmo espaço vetorial. Não é *filtragem colaborativa*, que exigiria histórico de outros usuários.
-- **"O que vocês fariam diferente?"** Validar os pesos com especialistas, remover o código legado, cobrir o painel com teste de template e medir a aceitação real (quantos alunos se matricularam no curso recomendado).
+> [!tip] Plano B
+> Grave um vídeo curto da demo funcionando e deixe prints no slide. Se o MySQL, o Wi-Fi ou o projetor falharem, você segue. O Chart.js vem de CDN: **sem internet, os gráficos não desenham**, mas os números continuam nas legendas.
 
 ---
 
-## Limitações e próximos passos (slide final)
+## ❓ 3. Perguntas prováveis da banca
 
-1. Pesos definidos pelo grupo, ainda sem validação empírica.
-2. Empate registrado só pela confiança (`tie_set` ainda vazio).
-3. Código legado do dashboard antigo a remover.
-4. Integração com o sistema de matrícula (SGSET) e trilha de cursos: fora do escopo atual.
-5. Camada de IA para gerar a explicação em linguagem natural: proposta, não implementada.
+### 🧮 Sobre a engine (as mais importantes)
+
+> [!question] Por que similaridade de cosseno?
+> Porque compara o **formato** do perfil, não a intensidade. Dois alunos com as mesmas preferências relativas recebem a mesma recomendação, mesmo que um tenha marcado pesos maiores. E o resultado já sai entre 0 e 1, pronto para virar porcentagem.
+
+> [!question] Por que não usar machine learning ou IA para recomendar?
+> Não há histórico rotulado (quem fez qual curso e se deu certo) para treinar. O cosseno é **explicável**, **determinístico** e **auditável**: dá para dizer exatamente por que um curso apareceu. A IA entra para **explicar**, e só pode trocar o 1º lugar onde a engine mostrou empate.
+
+> [!question] De onde vêm os pesos?
+> Foram definidos pelo grupo a partir do catálogo (12 áreas, 20 cursos, 73 pesos de curso e 80 de alternativa), estão em seeds reproduzíveis e são editáveis no admin. Validá-los com a coordenação é o próximo passo. A avaliação de fim de curso já pergunta *"o curso combinou com o que o quiz mostrou?"*.
+
+> [!question] O que é a confiança? E o empate?
+> É a diferença **absoluta** de afinidade entre o 1º e o 2º: ≥ 0,08 é alta, de 0,02 a 0,08 é média e < 0,02 é **baixa** (empate). No empate a tela avisa o aluno, e o `tie_set` guarda os cursos empatados. A régua de 0,02 foi **calibrada** medindo milhares de perfis com o comando `medir_empate`.
+
+> [!question] Algum curso aparece demais?
+> Sim, e nós medimos: em 5.000 perfis sorteados, **Automação Industrial** fica em 1º em 25,7% das vezes, porque tem peso em muitas áreas. As duas especializações de inspeção de solda **nunca** ficam em 1º (mas aparecem no top 5). Os 20 cursos aparecem no top 5 em algum momento. Ajusta-se no admin, mudando pesos.
+
+> [!question] Como sabem que o cálculo está certo?
+> Testes automatizados do cosseno sem banco, uma **conta feita à mão** que bate com o sistema (ver [[engine#✏️ 3. Uma conta feita à mão (coloque num slide)|🧮 Engine]]) e uma simulação de 5.000 perfis.
+
+> [!question] E a performance?
+> Um ranking dos 20 cursos leva **≈ 0,9 ms**. A recomendação completa faz **12 consultas, sempre**, não importa quantas respostas: `select_related`/`prefetch_related` evitam o N+1. Como o custo cresce **linearmente** com o número de cursos, ainda seria instantâneo com o catálogo inteiro do SENAI.
+
+### 🤖 Sobre a camada de IA
+
+> [!question] O que a IA faz, então?
+> Recebe os 5 cursos que a engine escolheu e escreve a explicação em linguagem natural. Só pode trocar o 1º lugar por um curso do `tie_set`. Se falhar, demorar ou responder errado, vale a ordem da engine.
+
+> [!question] E se a internet cair na hora?
+> `LLM_ENABLED=0` no `.env` desliga a camada inteira, e o sistema volta a ser só a engine. A engine grava **antes** de qualquer chamada de rede.
+
+> [!question] Vocês mandam dados dos alunos para o Google?
+> Não. O payload leva só áreas, cursos e números: nada de nome, e-mail ou usuário. Há um teste que garante isso.
+
+### ⚙️ Sobre o backend
+
+> [!question] Por que Django com templates e não API + React?
+> O projeto começou com React e migrou. Com templates há um deploy só, nenhuma API pública para proteger, sessão e CSRF nativos, e o quiz funciona sem JS.
+
+> [!question] Como impedem que alguém veja o resultado de outra pessoa?
+> Tentativa com dono, só o dono vê; anônima, só o navegador que respondeu. Fora disso é 404, que não revela se o id existe. A regra está num lugar só (`quiz/permissoes.py`) e tem teste.
+
+> [!question] E se o aluno responder sem conta e criar a conta depois?
+> O signal `user_logged_in` adota as tentativas que estão na sessão **daquele navegador** e que ainda não têm dono.
+
+> [!question] Como garantem consistência ao salvar o quiz?
+> Tentativa, respostas e recomendações são gravadas dentro de `transaction.atomic()`. Se algo falhar, nada fica pela metade.
+
+> [!question] E a LGPD no painel?
+> O painel é restrito à coordenação e **nunca mostra nome nem e-mail**: as métricas não leem `user` nem `respondido_por`, só contam cursos. Construímos o **k-anonimato** (números menores que k viram "—", e a taxa correspondente também some, para não deixar deduzir o número), testamos e deixamos como chave. Para o volume de uma escola, o grupo decidiu mostrar todos os números (`K_MINIMO = 0`). Religar é mudar um número.
+
+> [!question] E a avaliação de fim de curso, é anônima mesmo?
+> **Por desenho.** O model não tem campo para usuário, nome, e-mail ou IP, e guarda só o **dia**, não a hora. Não é uma promessa: não há onde guardar.
+
+> [!question] Qual a cobertura de testes?
+> **150 testes**: engine (inclusive isolada do banco), empate, `rank_final`, rotas, controle de acesso, lista de interesse, adoção de tentativa, métricas, privacidade e avaliação. A CI roda tudo num MySQL a cada PR.
+
+### 🎨 Sobre o front
+
+> [!question] O que acontece sem JavaScript?
+> O quiz funciona: cada pergunta é um `#questao-N` e o CSS `:target` mostra a da vez. O painel também: as abas são links e os formulários enviam direto. O JS só adiciona conforto.
+
+> [!question] Por que CSS puro e não Bootstrap ou Tailwind?
+> O protótipo tinha identidade própria. Com tokens em CSS puro, o resultado é leve, sem build e fiel ao design, e o alto contraste é só outro conjunto de valores.
+
+### 🪤 Perguntas "armadilha"
+
+- **"Isso é um sistema de recomendação de verdade?"** Sim: é uma recomendação **baseada em conteúdo** (*content-based*), com perfil e itens no mesmo espaço vetorial. Não é *filtragem colaborativa*, que exigiria histórico de outros alunos.
+- **"O que vocês fariam diferente?"** Validar os pesos com a coordenação antes, remover o código legado mais cedo e medir a aceitação real (quantos se matricularam no curso recomendado).
+- **"O empate de 0,02 não é arbitrário?"** Foi calibrado: o `medir_empate` mostra que, com 0,02, cerca de 1 em cada 3 perfis sorteados fica em empate. Com tentativas reais, o mesmo comando mede de novo.
 
 ---
 
-## Checklist da véspera
+## 🧭 4. Limitações e próximos passos (slide final)
 
-- [x] Itens 1 e 2 da tabela do topo corrigidos (gráficos do painel)
-- [ ] PR de `docs/apresentacao` mergeado (traz a correção dos gráficos)
-- [ ] `python manage.py test` → **OK** (print no slide)
-- [ ] Banco com seeds + ≥ 5 tentativas + 1 superusuário + 1 aluno
+1. **Pesos** definidos pelo grupo, ainda sem validação empírica (a pergunta 6 da avaliação vai medir).
+2. **Cursos generalistas** aparecem mais em 1º (Automação Industrial em 25,7% dos perfis simulados).
+3. **Camada de IA** em construção: arquitetura, campos e travas prontos; experimento comparativo por fazer.
+4. **k-anonimato** construído e testado, mas desligado no painel por decisão do grupo.
+5. **Código legado** do dashboard antigo a remover.
+6. Integração com o sistema de matrícula (SGSET): fora do escopo atual.
+
+---
+
+## ✅ 5. Checklist da véspera
+
+- [ ] `python manage.py test` → **OK, 150 testes** (print no slide)
 - [ ] Tabelas de fuso do MySQL carregadas (`python manage.py test core`)
-- [ ] Demo ensaiada do começo ao fim **cronometrada**
+- [ ] Banco com os 4 seeds + várias tentativas + 1 superusuário + 1 aluno + 1 link de avaliação respondido
+- [ ] Testado o truque do empate (sempre a 1ª alternativa → aviso de confiança baixa)
+- [ ] `LLM_ENABLED` com o valor certo para o que vai ser mostrado (na dúvida, `0`)
+- [ ] Itens 3 a 7 da §1 corrigidos **ou** com resposta ensaiada
+- [ ] Demo ensaiada do começo ao fim, **cronometrada**
 - [ ] Vídeo ou prints de backup
-- [ ] Cada integrante sabe explicar a parte que escreveu **e** a engine
+- [ ] **Cada integrante sabe explicar a engine** e a parte que escreveu
 - [ ] Conta à mão do cosseno pronta num slide
 - [ ] Zoom do navegador e do editor em 125–150% (o projetor não perdoa)
-- [ ] Abas abertas na ordem: `models.py` → `engine.py` → `web_views.py` → `privacidade.py` → `quiz.html` → `quiz.js`
+- [ ] Abas abertas na ordem: `engine.py` → `models.py` → `web_views.py` → `metricas.py` → `privacidade.py` → `quiz.html` → `quiz.js`
