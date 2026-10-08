@@ -4,6 +4,8 @@ from django.conf import settings
 
 from quiz.engine import TOP3, perfil_vetor
 from quiz.llm import LLMResponse, get_provider
+from quiz.prompt import montar_prompt
+from quiz.seralizers import Entrega, validate_delivery
 
 
 def build_payload(attempt):
@@ -46,13 +48,16 @@ def build_payload(attempt):
     }
 
 
-def deliver(attempt) -> LLMResponse | None:
-    """Chama a LLM para esta tentativa. Com a IA desligada, não chama nada."""
+def deliver(attempt) -> Entrega | None:
+    """A entrega da LLM, já revisada. Com a IA desligada, não chama nada.
+
+    Saída fora do contrato vira LLMInvalidOutput: nada inválido sai daqui.
+    """
     if not settings.LLM_ENABLED:
         return None
     payload = build_payload(attempt)
     if not payload["candidatos"]:
         return None
-    # Provisório, até que o contrato seja definido: o prompt é o JSON, e a saída é o JSON.
-    prompt = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-    return get_provider().complete(prompt)
+    prompt = montar_prompt(payload, settings.LLM_PROMPT_VERSION)
+    resposta = get_provider().complete(prompt)
+    return validate_delivery(resposta.text, payload)

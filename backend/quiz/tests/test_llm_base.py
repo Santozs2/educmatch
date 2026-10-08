@@ -112,9 +112,9 @@ class EntregaTest(BaseEducMatch):
     def test_ligada_com_fake_devolve_os_cinco_candidatos(self):
         tentativa = self.criar_tentativa()
 
-        saida = json.loads(deliver(tentativa).text)
+        entrega = deliver(tentativa)
 
-        entregues = [saida["principal"]["course_id"]] + [a["course_id"] for a in saida["alternativas"]]
+        entregues = entrega.ordem
         esperados = list(
             tentativa.recomendacoes.order_by("rank_engine").values_list("curso_id", flat=True)
         )

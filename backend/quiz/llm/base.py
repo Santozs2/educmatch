@@ -13,6 +13,8 @@ class LLMTimeout(LLMError):
 class LLMUnavailable(LLMError):
     """Sem provedor: nome desconhecido, sem chave, sem crédito ou sem rede."""
 
+class LLMInvalidOutput(LLMError):
+    """A resposta chegou, mas quebra o contrato de saída (Passo 8)."""
 
 @dataclass(frozen=True)
 class LLMResponse:
