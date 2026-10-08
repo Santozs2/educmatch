@@ -3,7 +3,7 @@ from unittest import mock
 
 from django.test import SimpleTestCase, override_settings
 
-from educmatch.backend.quiz.delivery import build_payload, deliver
+from quiz.delivery import build_payload, deliver
 from quiz.llm import FakeProvider, LLMProvider, LLMResponse, LLMUnavailable, get_provider
 from quiz.tests.base import BaseEducMatch
 
@@ -104,7 +104,7 @@ class EntregaTest(BaseEducMatch):
     @override_settings(LLM_ENABLED=False)
     def test_desligada_nao_chama_nenhum_provedor(self):
         tentativa = self.criar_tentativa()
-        with mock.patch("quiz.entrega.get_provider") as provedor:
+        with mock.patch("quiz.delivery.get_provider") as provedor:
             self.assertIsNone(deliver(tentativa))
         provedor.assert_not_called()
 
@@ -135,6 +135,6 @@ class EntregaTest(BaseEducMatch):
         from quiz.models import Tentativa_de_resposta
 
         vazia = Tentativa_de_resposta.objects.create(respondido_por="")
-        with mock.patch("quiz.entrega.get_provider") as provedor:
+        with mock.patch("quiz.delivery.get_provider") as provedor:
             self.assertIsNone(deliver(vazia))
         provedor.assert_not_called()
