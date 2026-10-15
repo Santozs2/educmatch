@@ -7,7 +7,7 @@ nunca de pessoas, e é o que deixa estes números testáveis sem navegador.
 from collections import Counter
 from datetime import datetime, timedelta
 
-from django.db.models import Count, F, Q
+from django.db.models import Avg, Count, F, Q
 from django.utils import timezone
 from django.db.models.functions import TruncDate, TruncMonth
 from accounts.models import Interesse
@@ -353,3 +353,36 @@ def tempo_tipico(inicio):
 
 def questoes_ativas():
     return Questao.objects.filter(is_active=True).count()
+
+
+def camada_de_ia(inicio):
+    """Passo 11: o que a LLM fez no período. Só conta tentativas em que ela foi chamada.
+
+    Divergência e cache são sobre as entregas da LLM (sem fallback). A latência
+    ignora o cache: servir do banco leva milissegundos e esconderia a da API.
+    """
+    chamadas = Tentativa_de_resposta.objects.filter(_no_periodo(inicio)).exclude(llm_model="")
+    total = chamadas.count()
+    if not total:
+        return None
+    entregues = chamadas.filter(used_fallback=False)
+    n_entregues = entregues.count()
+    latencias = list(
+        chamadas.filter(cache_hit=False, latency_ms__isnull=False).values_list("latency_ms", flat=True)
+    )
+    tokens = chamadas.filter(tokens_out__isnull=False).aggregate(entrada=Avg("tokens_in"), saida=Avg("tokens_out"))
+    # Quando a LLM trocou o 1º lugar, qual dos dois o aluno salvou?
+    salvos = Interesse.objects.filter(
+        _no_periodo(inicio), tentativa_origem__diverged=True
+    ).exclude(status="removido")
+    return {
+        "chamadas": total,
+        "fallback": (total - n_entregues) / total * 100,
+        "divergencia": entregues.filter(diverged=True).count() / n_entregues * 100 if n_entregues else None,
+        "cache": entregues.filter(cache_hit=True).count() / n_entregues * 100 if n_entregues else None,
+        "latencia_mediana": median(latencias) if latencias else None,
+        "tokens_entrada": tokens["entrada"],
+        "tokens_saida": tokens["saida"],
+        "seguiu_ia": salvos.filter(rank_snapshot=1).exclude(rank_engine_snapshot=1).count(),
+        "seguiu_engine": salvos.filter(rank_engine_snapshot=1).exclude(rank_snapshot=1).count(),
+    }

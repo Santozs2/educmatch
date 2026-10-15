@@ -121,6 +121,7 @@ def quiz_visao_geral(request):
         "tempo_tipico": metricas.tempo_tipico(inicio),
         "orfaos": metricas.cursos_nunca_recomendados(),
         "cobertura": metricas.cobertura_de_areas(),
+        "camada_de_ia": metricas.camada_de_ia(inicio),
     })
     return render(request, "painel/quiz.html", contexto)
 
