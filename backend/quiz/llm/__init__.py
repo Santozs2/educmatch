@@ -19,3 +19,13 @@ def get_provider() -> LLMProvider:
         return PROVIDERS[settings.LLM_PROVIDER]()
     except KeyError:
         raise LLMUnavailable(f"provedor não implementado: {settings.LLM_PROVIDER!r}") from None
+    
+from quiz.llm.base import (
+    LLMError, LLMInvalidOutput, LLMProvider, LLMResponse, LLMTimeout, LLMUnavailable,
+)
+from quiz.llm.fake import FakeProvider
+
+__all__ = [
+    "FakeProvider", "LLMError", "LLMInvalidOutput", "LLMProvider", "LLMResponse", "LLMTimeout",
+    "LLMUnavailable", "get_provider",
+]
