@@ -158,7 +158,7 @@ def resultado_pagina(request,pk):
             "match": round(rec.score * 100),
             "curso": rec.curso,
             "areas": areas_da_recomendacao(rec),
-            
+            "texto": rec.llm_text,  # vazio sem LLM ou no fallback: a tela mostra a descrição
         }
         for rec in recomendacoes
     ]
