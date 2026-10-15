@@ -18,7 +18,7 @@ atualizado: 2026-10-08
 | Nota | Para quê | Quem deve dominar |
 |---|---|---|
 | [[engine\|🧮 Engine]] | Cosseno, funções, conta à mão, régua de empate e **métricas de 5.000 perfis** | **Todo o grupo** |
-| [[backend\|⚙️ Backend]] | Models, views, painel (métricas e privacidade), avaliação, deploy e 203 testes | Quem fez o backend |
+| [[backend\|⚙️ Backend]] | Models, views, painel (métricas e privacidade), avaliação, deploy e 209 testes | Quem fez o backend |
 | [[frontend\|🎨 Front]] | Templates, o truque do `:target`, painel, scripts, CSS por tokens e acessibilidade | Quem fez o front |
 | [[ia\|🤖 Camada de IA]] | Como a LLM entra **sem tirar o lugar da engine**, as travas e o status | Quem está fazendo a LLM |
 | [[demo-e-perguntas\|🎬 Demo e banca]] | Roteiro da demo, perguntas prováveis, pendências e checklist da véspera | **Todo o grupo** |
@@ -39,7 +39,7 @@ Tudo o que for mostrado precisa voltar para essa frase. Se a banca lembrar de um
 | | | | |
 |:-:|:-:|:-:|:-:|
 | **12** áreas | **20** cursos | **10** questões × 4 alternativas | **153** pesos (73 de curso + 80 de alternativa) |
-| **6** apps Django | **203** testes automatizados | **0** rotas de API pública | **1** deploy (Azure App Service) |
+| **6** apps Django | **209** testes automatizados | **0** rotas de API pública | **1** deploy (Azure App Service) |
 | **≈ 0,9 ms** por ranking | **12** consultas por recomendação, sempre | **34%** dos perfis com empate no topo | **20/20** cursos aparecem no top 5 |
 
 > [!note] De onde vêm os números
@@ -58,7 +58,7 @@ Tudo o que for mostrado precisa voltar para essa frase. Se a banca lembrar de um
 | 5 | Backend | 2 min | | Models (com o snapshot), controle de acesso, painel e avaliação anônima |
 | 6 | Front | 2 min | | `:target` no quiz, melhoria progressiva, tokens e acessibilidade |
 | 7 | Camada de IA | 1 min | | "A engine decide, a LLM entrega": travas e status. Ver [[ia\|🤖 IA]] |
-| 8 | Qualidade e limites | 2 min | | 203 testes, CI, `transaction.atomic`, e os limites ditos com honestidade |
+| 8 | Qualidade e limites | 2 min | | 209 testes, CI, `transaction.atomic`, e os limites ditos com honestidade |
 
 > [!tip] Preencham a coluna "Quem mostra"
 > Cada pessoa apresenta a parte que **escreveu**, porque é dela que vão vir as perguntas mais difíceis. Mas **todos** precisam saber explicar a engine.

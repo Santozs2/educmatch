@@ -9,10 +9,7 @@
 {% block topo %}
 <header class="topo">
     <div class="topo__inner curso-topo">
-        {% if tentativa_id %}
         <a class="voltar" href="{% url 'quiz-resultado' tentativa_id %}">Voltar para o meu resultado</a>
-        {% else %}
-        {% endif %}
     </div>
 </header>
 {% endblock %}

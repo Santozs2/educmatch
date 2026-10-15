@@ -22,7 +22,11 @@
         {% for item in interesses %}
         <li class="linha entrada" style="--i: {{ forloop.counter }}">
             <div class="linha__info">
-                <a class="linha__titulo" href="{% url 'curso-detalhe' item.curso.id %}">{{ item.curso.nome_curso }}</a>
+                {% if item.tentativa_origem_id %}
+                <a class="linha__titulo" href="{% url 'curso-detalhe' item.curso.id %}?tentativa={{ item.tentativa_origem_id }}">{{ item.curso.nome_curso }}</a>
+                {% else %}
+                <span class="linha__titulo">{{ item.curso.nome_curso }}</span>
+                {% endif %}
                 <p class="linha__descricao">{{ item.curso.descricao }}</p>
             </div>
             <ul class="chips linha__chips">
