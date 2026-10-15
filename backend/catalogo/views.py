@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import Interesse
 from catalogo.models import Curso
@@ -10,15 +10,17 @@ def curso_detalhe(request, pk):
         Curso.objects.select_related("area_principal"), pk=pk, is_active=True
     )
 
-    # De onde a pessoa veio: permite "voltar para o meu resultado", mostrar a
-    # afinidade dela com este curso e salvar o interesse com o snapshot certo.
+    # O detalhe só existe a partir de um resultado: é ele que dá a afinidade,
+    # o "voltar para o meu resultado" e o snapshot certo ao salvar o interesse.
     tentativa_id = request.GET.get("tentativa", "")
     tentativa = tentativa_visivel(request, int(tentativa_id)) if tentativa_id.isdigit() else None
+    if tentativa is None:
+        return redirect("quiz-inicio")
 
-    afinidade = None
-    if tentativa:
-        rec = tentativa.recomendacoes.filter(curso=curso).first()
-        afinidade = round(rec.score * 100) if rec else None
+    rec = tentativa.recomendacoes.filter(curso=curso).first()
+    if rec is None:
+        # Curso que não está neste resultado: volta para o resultado.
+        return redirect("quiz-resultado", pk=tentativa.pk)
 
     salvo = (
         request.user.is_authenticated
@@ -27,7 +29,7 @@ def curso_detalhe(request, pk):
     )
     return render(request, "catalogo/curso_detalhe.html", {
         "curso": curso,
-        "tentativa_id": tentativa.pk if tentativa else "",
-        "afinidade": afinidade,
+        "tentativa_id": tentativa.pk,
+        "afinidade": round(rec.score * 100),
         "salvo": salvo,
     })

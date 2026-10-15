@@ -35,7 +35,7 @@ Pontos encontrados ao revisar o código em 2026-10-08 (`develop` em `06baffc`):
 > `recomedacao` virou **`recomendar`** · a `banda()` foi documentada (fica reservada para o fallback e o tom do prompt da IA; ainda não é chamada) · o **`tie_set` é preenchido** · a régua de empate foi **calibrada** para o quiz de 10 perguntas · os gráficos do painel foram refeitos com `json_script` · os botões de acessibilidade entraram no painel.
 
 > [!warning] Rode a suíte depois de qualquer correção
-> `python manage.py test` → **203 testes**. Faça isso também antes de sair de casa.
+> `python manage.py test` → **209 testes**. Faça isso também antes de sair de casa.
 
 ---
 
@@ -131,7 +131,7 @@ Responda o quiz **várias vezes, com perfis diferentes**, para o painel ter núm
 > **Por desenho.** O model não tem campo para usuário, nome, e-mail ou IP, e guarda só o **dia**, não a hora. Não é uma promessa: não há onde guardar.
 
 > [!question] Qual a cobertura de testes?
-> **203 testes**: engine (inclusive isolada do banco), empate, `rank_final`, rotas, controle de acesso, lista de interesse, adoção de tentativa, métricas, privacidade e avaliação. A CI roda tudo num MySQL a cada PR.
+> **209 testes**: engine (inclusive isolada do banco), empate, `rank_final`, rotas, controle de acesso, lista de interesse, adoção de tentativa, métricas, privacidade e avaliação. A CI roda tudo num MySQL a cada PR.
 
 ### 🎨 Sobre o front
 
@@ -162,7 +162,7 @@ Responda o quiz **várias vezes, com perfis diferentes**, para o painel ter núm
 
 ## ✅ 5. Checklist da véspera
 
-- [ ] `python manage.py test` → **OK, 203 testes** (print no slide)
+- [ ] `python manage.py test` → **OK, 209 testes** (print no slide)
 - [ ] Tabelas de fuso do MySQL carregadas (`python manage.py test core`)
 - [ ] Banco com os 4 seeds + várias tentativas + 1 superusuário + 1 aluno + 1 link de avaliação respondido
 - [ ] Testado o truque do empate (sempre a 1ª alternativa → aviso de confiança baixa)

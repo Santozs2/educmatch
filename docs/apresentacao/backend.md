@@ -16,7 +16,7 @@ atualizado: 2026-10-08
 > A engine tem nota própria ([[engine|🧮 Engine]]) porque é o coração do trabalho: **gaste mais tempo nela do que aqui**.
 
 > [!success] Conferido no código em 2026-10-08
-> Base: `develop` em `06baffc`. Suíte: **203 testes** (atualizado em 2026-10-15, com a camada de IA). Sem nenhuma rota de API pública.
+> Base: `develop` em `06baffc`. Suíte: **209 testes** (atualizado em 2026-10-15). Sem nenhuma rota de API pública.
 
 ---
 
@@ -93,7 +93,7 @@ Todas são **function-based views**, menos o login (`EntrarView`, herda de `Logi
 | `/` | `pagina_quiz` | **GET** mostra a intro e as perguntas e registra o **início** (`InicioDeQuiz`, uma vez por navegador). **POST** valida: faltou resposta → guarda na sessão e volta para a 1ª em branco (`#questao-N`), funcionando **sem JS**. Completo → cria `Tentativa` + `Resposta` (`bulk_create`) + chama a engine dentro de `transaction.atomic()` e redireciona (**Post/Redirect/Get**) |
 | `/questionario/<uuid>/` | `acessar_questionario` | Link inválido ou fechado → página própria com **404**. Válido → token na sessão; a tentativa sai "via link" |
 | `/resultado/<id>/` | `resultado_pagina` | **Contrato C6:** tentativa com dono, só o dono vê; anônima, só o navegador que respondeu. Fora disso, **404** (e não 403, para não revelar que o id existe). Mostra a ordem **`rank_final`** |
-| `/cursos/<id>/` | `curso_detalhe` | Com `?tentativa=<id>`, mostra a afinidade daquele aluno usando `tentativa_visivel()`: **a mesma regra** do resultado, num lugar só (`quiz/permissoes.py`) |
+| `/cursos/<id>/` | `curso_detalhe` | **Só abre a partir de um resultado** (`?tentativa=<id>`) que a pessoa pode ver, com `tentativa_visivel()`: **a mesma regra** do resultado, num lugar só (`quiz/permissoes.py`). Sem resultado, volta para o início do quiz; curso fora do resultado, volta para o resultado. A Minha lista abre o curso com o resultado de onde ele foi salvo |
 | `/entrar/`, `/cadastro_usuario/` | `EntrarView`, `cadastrar_conta` | Login por e-mail e cadastro |
 | `/interesse/salvar/` | `salvar_interesse` | Sem login → guarda como **interesse pendente** na sessão e manda para o login com `?next=`. Ao entrar, o interesse é gravado sozinho: **o aluno não perde o clique** |
 | `/lista_interesse/`, `/meus-testes/`, `/meu-perfil/` | `@login_required` | Área do aluno |
@@ -171,11 +171,11 @@ Técnicas para citar:
 
 ---
 
-## ✅ 7. Qualidade e testes: 203 testes
+## ✅ 7. Qualidade e testes: 209 testes
 
 | App | Testes | O que prova |
 |---|:-:|---|
-| `quiz` | **111** | Cosseno sem banco (`test_engine_puro`), motor gravando, empate e régua (`test_empate`, `test_medir_empate`), `rank_final` (`test_rank_final`), contratos, telas, rotas, início do quiz, controle de acesso ao resultado e **a camada de IA** (49: provedor, prompt, validação, cache, fallback, tela e experimento) |
+| `quiz` | **117** | Cosseno sem banco (`test_engine_puro`), motor gravando, empate e régua (`test_empate`, `test_medir_empate`), `rank_final` (`test_rank_final`), contratos, telas, rotas, início do quiz, controle de acesso ao resultado e ao detalhe do curso, e **a camada de IA** (49: provedor, prompt, validação, cache, fallback, tela e experimento) |
 | `painel` | **59** | Métricas, supressão e taxas escondidas (`test_privacidade`), telas do painel, avaliações e o bloco "Camada de IA" |
 | `accounts` | **19** | Snapshot do interesse (C4), rotas da conta (C5) e adoção da tentativa (C6) |
 | `avaliacao` | **11** | A resposta **não tem onde** guardar quem respondeu, guarda o dia e não a hora, link fechado dá 404, o mesmo navegador não envia duas vezes |

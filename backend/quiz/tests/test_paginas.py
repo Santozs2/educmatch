@@ -22,12 +22,12 @@ class TodaPaginaAbreTest(BaseEducMatch):
     def test_paginas_publicas(self):
         self.responder_tudo()
         tentativa = Tentativa_de_resposta.objects.latest("id")
-        curso = Curso.objects.filter(is_active=True).first()
+        curso = tentativa.recomendacoes.get(rank_final=1).curso
 
         for url in (
             reverse("quiz-inicio"),
             reverse("quiz-resultado", args=[tentativa.pk]),
-            reverse("curso-detalhe", args=[curso.pk]),
+            reverse("curso-detalhe", args=[curso.pk]) + f"?tentativa={tentativa.pk}",
             reverse("entrar"),
             reverse("cadastro_usuario"),
         ):

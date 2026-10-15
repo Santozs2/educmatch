@@ -109,11 +109,10 @@ def remover_interesse_por_curso(request):
         Interesse, usuario=request.user, curso_id=request.POST.get("curso_id")
     )
     remover_da_lista(interesse)
-    destino = reverse("curso-detalhe", args=[interesse.curso_id])
     tentativa_id = request.POST.get("tentativa_id", "")
     if tentativa_id.isdigit():
-        destino += f"?tentativa={tentativa_id}"
-    return redirect(destino)
+        return redirect(reverse("curso-detalhe", args=[interesse.curso_id]) + f"?tentativa={tentativa_id}")
+    return redirect("lista_interesse")
 
 @login_required
 def minhas_tentativas(request):

@@ -39,8 +39,8 @@ class TelasDoAlunoTest(BaseEducMatch):
         self.assertContains(resposta, reverse("quiz-resultado", args=[tentativa.pk]))
         self.assertEqual(resposta.context["afinidade"], round(rec.score * 100))
 
-    def test_detalhe_nao_mostra_tentativa_de_outro_navegador(self):
-        """C6 no detalhe: ?tentativa= de outra pessoa não vira link nem afinidade."""
+    def test_detalhe_nao_abre_com_tentativa_de_outro_navegador(self):
+        """C6 no detalhe: o resultado de outra pessoa não abre o curso para mim."""
         outro = self.client_class(SERVER_NAME="localhost")
         outro.post("/", self.payload_do_quiz())
         alheia = Tentativa_de_resposta.objects.latest("id")
@@ -48,8 +48,7 @@ class TelasDoAlunoTest(BaseEducMatch):
 
         resposta = self.client.get(reverse("curso-detalhe", args=[curso.pk]) + f"?tentativa={alheia.pk}")
 
-        self.assertIsNone(resposta.context["afinidade"])
-        self.assertNotContains(resposta, reverse("quiz-resultado", args=[alheia.pk]))
+        self.assertRedirects(resposta, reverse("quiz-inicio"), fetch_redirect_response=False)
 
     def test_curso_desativado_nao_tem_pagina(self):
         curso = Curso.objects.first()
