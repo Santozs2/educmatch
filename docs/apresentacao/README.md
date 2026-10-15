@@ -120,5 +120,4 @@ Fim do curso ──────────► /avaliacao/<uuid>/   anônima ─
 > - **Dizer "a IA recomenda".** Quem recomenda é a **engine** (cosseno, determinística). A IA, quando estiver ligada, **explica** e só desempata onde há empate.
 > - **Dizer que o painel suprime números pequenos.** Hoje `K_MINIMO = 0`: o mecanismo existe e é testado, mas está desligado por decisão do grupo.
 > - **Fazer a demo com o banco vazio.** Rode os seeds e tenha várias tentativas com perfis diferentes.
-> - **Abrir os arquivos legados** (`quiz/views.py`, `templates/quiz/dashboard.html`, `templates/quiz/curso_detalhe.html`) sem a resposta pronta (ver [[demo-e-perguntas|🎬 Demo e banca]]).
 > - **Ligar a IA na demo sem ter testado a chave no mesmo dia.** Rode `python manage.py testar_llm` antes; na dúvida, `LLM_ENABLED=0`.

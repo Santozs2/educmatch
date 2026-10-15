@@ -20,6 +20,9 @@ db.sqlite3
 local_settings.py
 *.sql
 
+# Obsidian: configuração pessoal do editor (muda a cada nota aberta)
+docs/.obsidian/
+
 # Variáveis de ambiente
 .env
 .env.local

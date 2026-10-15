@@ -18,21 +18,17 @@ atualizado: 2026-10-08
 
 ## 🔧 1. Antes de apresentar: corrigir ou ter resposta
 
-Pontos encontrados ao revisar o código em 2026-10-08 (`develop` em `06baffc`):
+Pontos encontrados ao revisar o código (atualizado em 2026-10-15):
 
 | # | Onde | O que é | O que fazer |
 |:-:|---|---|---|
 | 1 | MySQL da máquina da demo | Sem as **tabelas de fuso**, todo filtro por período do painel volta vazio, **sem erro** | Carregar o `timezone_posix.sql` (README, "Tabelas de fuso") e conferir com `python manage.py test core` |
 | 2 | `painel/privacidade.py` | `K_MINIMO = 0`: a supressão de números pequenos está **desligada** (decisão de 2026-10-01) | Ter a resposta pronta (§3). **Não** dizer que o painel suprime |
-| 3 | `quiz/views.py`, `templates/quiz/dashboard.html`, `templates/quiz/curso_detalhe.html` | Código do dashboard antigo, **sem rota** (`/quiz/dashboard/` redireciona com 301 para `/painel/`) | Remover antes ou responder: *"legado da 1ª versão; o painel novo substituiu"* |
-| 4 | `static/js/quiz.js` | `PAUSA_AO_MARCAR` e `pelaTeclado` ficaram sem uso depois que o avanço automático foi desligado | Limpeza de 2 linhas. Se não der tempo, não abra esse trecho |
-| 5 | `static/js/quiz.js` | A tela "Analisando" segura o envio por **1,5 s** de propósito | Resposta: escolha de experiência; a engine leva milissegundos |
-| 6 | `templates/base.html` | Botões de fonte grande e alto contraste só existem **no painel** | Acrescentar no topo do aluno, ou mostrar pelo painel na demo |
-| 7 | `backend/.env.example` | Os acentos de `ESCOLA_NOME` e `ESCOLA_ENDERECO` estão quebrados (`SÃ£o JosÃ©`) | Corrigir se o arquivo for aparecer no slide de configuração |
-| 8 | Camada de IA | Código pronto (Passos 7 a 11); falta a chave e o experimento | Rodar `testar_llm` no dia; na dúvida, `LLM_ENABLED=0` (ver [[ia|🤖 IA]]) |
+| 3 | `static/js/quiz.js` | A tela "Analisando" segura o envio por **1,5 s** de propósito | Resposta: escolha de experiência; a engine leva milissegundos |
+| 4 | Camada de IA | Código pronto (Passos 7 a 11); falta a chave e o experimento | Rodar `testar_llm` no dia; na dúvida, `LLM_ENABLED=0` (ver [[ia|🤖 IA]]) |
 
 > [!success] Já resolvidos desde a última versão desta nota
-> `recomedacao` virou **`recomendar`** · a `banda()` foi documentada (fica reservada para o fallback e o tom do prompt da IA; ainda não é chamada) · o **`tie_set` é preenchido** · a régua de empate foi **calibrada** para o quiz de 10 perguntas · os gráficos do painel foram refeitos com `json_script` · os botões de acessibilidade entraram no painel.
+> `recomedacao` virou **`recomendar`** · a `banda()` foi documentada (fica reservada para o fallback e o tom do prompt da IA; ainda não é chamada) · o **`tie_set` é preenchido** · a régua de empate foi **calibrada** para o quiz de 10 perguntas · os gráficos do painel foram refeitos com `json_script` · os botões de acessibilidade entraram no painel **e no rodapé do aluno** · o código legado do dashboard antigo foi **removido** · o `quiz.js` perdeu as 2 variáveis sem uso · `docs/.obsidian/` saiu do Git.
 
 > [!warning] Rode a suíte depois de qualquer correção
 > `python manage.py test` → **203 testes**. Faça isso também antes de sair de casa.
@@ -155,8 +151,7 @@ Responda o quiz **várias vezes, com perfis diferentes**, para o painel ter núm
 2. **Cursos generalistas** aparecem mais em 1º (Automação Industrial em 25,7% dos perfis simulados).
 3. **Camada de IA** com o código pronto e testado; o experimento comparativo com a LLM real e a avaliação humana ainda por fazer.
 4. **k-anonimato** construído e testado, mas desligado no painel por decisão do grupo.
-5. **Código legado** do dashboard antigo a remover.
-6. Integração com o sistema de matrícula (SGSET): fora do escopo atual.
+5. Integração com o sistema de matrícula (SGSET): fora do escopo atual.
 
 ---
 
