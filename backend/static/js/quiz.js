@@ -5,9 +5,6 @@
     const passos = Array.from(form.querySelectorAll("[data-passo]"));
     const analisando = document.querySelector("[data-analisando]");
 
-    // Tempo para a pessoa ver a opção sendo marcada antes de trocar de pergunta
-    const PAUSA_AO_MARCAR = 300;
-    
     function passoAtual() {
         return passos.find((passo) => "#" + passo.id === location.hash);
     }
@@ -46,14 +43,8 @@
         marcarDirecao(passos.findIndex((passo) => "#" + passo.id === link.hash));
     });
 
-    // No teclado, as setas trocam a opção marcada e disparam "change" a cada toque.
-    // Avançar sozinho aí jogaria a pessoa para a próxima pergunta antes de escolher:
-    // no teclado, quem avança é o Enter.
-    let pelaTeclado = false;
-    form.addEventListener("pointerdown", () => { pelaTeclado = false; });
-    form.addEventListener("keydown", () => { pelaTeclado = true; });
-
-    // 1. Marcou a resposta com o mouse/dedo: aguarda o usuário clicar em "Próxima"
+    // 1. Marcou a resposta: some o aviso, e quem avança é o "Próxima" ou o Enter.
+    //    Avançar sozinho atrapalharia o teclado: as setas disparam "change" a cada toque.
     form.addEventListener("change", (evento) => {
         if (evento.target.type !== "radio") return;
         const passo = evento.target.closest("[data-passo]");

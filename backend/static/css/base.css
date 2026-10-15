@@ -249,6 +249,14 @@ textarea {
   margin: 0;
 }
 
+.rodape__acessibilidade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
 /* ---------- Movimento ----------
    Uma animação de entrada por bloco, nunca em loop. Escalonar: style="--i: 2"
    atrasa o bloco em 2 × --escalonar. */

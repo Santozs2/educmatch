@@ -110,7 +110,7 @@ Todos em **IIFE** `(function () { ... })()`, sem poluir o escopo global, e todos
 Padrões para citar: **delegação de eventos** (um listener no form, não um por botão), `closest()`, `dataset`, `hashchange`.
 
 > [!warning] Dois detalhes do `quiz.js` para ter resposta pronta
-> 1. **O avanço automático foi desligado:** marcar uma opção não troca mais de pergunta, e quem avança é o botão "Próxima" ou o Enter. As variáveis `PAUSA_AO_MARCAR` e `pelaTeclado` ficaram sem uso. É limpeza pendente, não bug.
+> 1. **O avanço automático foi desligado:** marcar uma opção não troca mais de pergunta, e quem avança é o botão "Próxima" ou o Enter. Avançar sozinho atrapalharia quem usa o teclado, porque as setas trocam a opção a cada toque.
 > 2. **A tela "Analisando" segura o envio por 1,5 s de propósito** (`setTimeout`). A engine responde em milissegundos; a pausa é uma escolha de experiência, para o aluno perceber que houve análise. Se perguntarem, diga isso. Com a camada de IA, a espera passa a ser real.
 
 ---
@@ -137,11 +137,11 @@ Padrões para citar: **delegação de eventos** (um listener no form, não um po
 - HTML semântico: `fieldset/legend`, `label`, `nav` com `aria-label`, `main`, `header`, `footer`.
 - Teclado do começo ao fim: skip link, Enter no quiz, foco gerenciado a cada pergunta.
 - ARIA só onde falta semântica: `aria-current` no menu e no período, `aria-pressed`, `aria-expanded` na folha "Mais", `role="alert"`, `role="status"`.
-- **Fonte grande e alto contraste** com os botões no painel (menu lateral e folha "Mais"), persistentes no navegador.
+- **Fonte grande e alto contraste** com botões no **rodapé da área do aluno** e no painel (menu lateral e folha "Mais"), persistentes no navegador.
 - Respeito a "reduzir movimento" em CSS **e** em JS. Ícones sempre com `aria-hidden="true"`.
 
-> [!warning] Os botões de acessibilidade estão só no **painel**
-> Na área do aluno (quiz e resultado) o script e os tokens funcionam, mas **não há botão na tela**: quem já ligou no painel vê o tema aplicado, porque o `base.html` lê o `localStorage`. Ou acrescentem os dois botões no topo do `base.html`, ou mostrem o recurso **pelo painel** na demo.
+> [!note] 🎓 Um script, vários lugares
+> Os botões do rodapé do aluno e os do painel têm o mesmo `data-alternar`. O `acessibilidade.js` atualiza o `aria-pressed` de **todos** os botões da mesma classe, e o `<head>` do `base.html` aplica a escolha antes da página pintar. Ligou no quiz, continua ligado no painel.
 
 > [!tip] 20 segundos que marcam pontos
-> Responda duas perguntas **só com o teclado** (Tab, setas, Enter) e depois ligue o **alto contraste** no painel.
+> Responda duas perguntas **só com o teclado** (Tab, setas, Enter) e depois ligue o **alto contraste** pelo rodapé.

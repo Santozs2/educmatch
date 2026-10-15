@@ -67,6 +67,14 @@
 
     {% block rodape %}
     <footer class="rodape">
+        <div class="rodape__acessibilidade" role="group" aria-label="Acessibilidade">
+            <button type="button" class="botao botao--suave" data-alternar="fonte-grande">
+                <i class="fa-solid fa-text-height" aria-hidden="true"></i> Fonte grande
+            </button>
+            <button type="button" class="botao botao--suave" data-alternar="alto-contraste">
+                <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i> Alto contraste
+            </button>
+        </div>
         <p>Recomendações calculadas por similaridade de perfil · SENAI</p>
     </footer>
     {% endblock %}
