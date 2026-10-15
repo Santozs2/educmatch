@@ -8,12 +8,14 @@ from django.core.cache import cache
 from django.db import transaction
 
 from quiz.engine import TOP3, perfil_vetor
-from quiz.llm import LLMError, LLMResponse, get_provider
+from quiz.llm import LLMError, LLMResponse, LLMTimeout, LLMUnavailable, get_provider
 from quiz.models import Recomendacao
 from quiz.prompt import montar_prompt
 from quiz.serializers import Entrega, validate_delivery
 
 logger = logging.getLogger(__name__)
+
+PAUSA = "llm:pausa"  # chave no cache enquanto o provedor está em pausa
 
 
 def build_payload(attempt):
@@ -62,6 +64,24 @@ def chave_do_cache(prompt):
     return "llm:" + hashlib.sha256(bruto.encode("utf-8")).hexdigest()
 
 
+def _chamar_provedor(prompt):
+    """A chamada de rede, com pausa depois de uma falha do provedor.
+
+    Numa turma, se o provedor cai ou estoura a cota, cada aluno esperaria até
+    LLM_TIMEOUT segurando um worker. Com a pausa, só o primeiro espera; os
+    próximos vão direto para a engine até a pausa acabar. Saída inválida não
+    pausa: o provedor está de pé, só errou o formato daquela vez.
+    """
+    if cache.get(PAUSA):
+        raise LLMUnavailable("provedor em pausa depois de uma falha")
+    try:
+        return get_provider().complete(prompt)
+    except (LLMTimeout, LLMUnavailable):
+        if settings.LLM_PAUSA > 0:
+            cache.set(PAUSA, True, timeout=settings.LLM_PAUSA)
+        raise
+
+
 def deliver(attempt) -> Entrega | None:
     """A entrega da LLM, já revisada. Com a IA desligada, não chama nada.
 
@@ -77,7 +97,7 @@ def deliver(attempt) -> Entrega | None:
     chave = chave_do_cache(prompt)
 
     guardada = cache.get(chave)
-    resposta = LLMResponse(**guardada) if guardada else get_provider().complete(prompt)
+    resposta = LLMResponse(**guardada) if guardada else _chamar_provedor(prompt)
     entrega = validate_delivery(resposta.text, payload)
     if not guardada:
         cache.set(chave, asdict(resposta), timeout=None)  # não expira: é a resposta da banca
@@ -112,7 +132,11 @@ def entregar(attempt) -> bool:
             return False  # sem candidatos: não houve chamada
         falhou = False
 
-    _gravar(attempt, entrega, latencia_ms=round((time.monotonic() - inicio) * 1000))
+    try:
+        _gravar(attempt, entrega, latencia_ms=round((time.monotonic() - inicio) * 1000))
+    except Exception:  # banco ocupado na hora de gravar: o aluno fica com a engine
+        logger.exception("Não gravou a entrega da LLM (tentativa %s)", attempt.pk)
+        return False
     return not falhou
 
 
