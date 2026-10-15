@@ -16,7 +16,7 @@ atualizado: 2026-10-08
 > A engine tem nota própria ([[engine|🧮 Engine]]) porque é o coração do trabalho: **gaste mais tempo nela do que aqui**.
 
 > [!success] Conferido no código em 2026-10-08
-> Base: `develop` em `06baffc`. Suíte: **150 testes**. Sem nenhuma rota de API pública.
+> Base: `develop` em `06baffc`. Suíte: **203 testes** (atualizado em 2026-10-15, com a camada de IA). Sem nenhuma rota de API pública.
 
 ---
 
@@ -171,12 +171,12 @@ Técnicas para citar:
 
 ---
 
-## ✅ 7. Qualidade e testes: 150 testes
+## ✅ 7. Qualidade e testes: 203 testes
 
 | App | Testes | O que prova |
 |---|:-:|---|
-| `quiz` | **62** | Cosseno sem banco (`test_engine_puro`), motor gravando, empate e régua (`test_empate`, `test_medir_empate`), `rank_final` (`test_rank_final`), contratos, telas, rotas, início do quiz e controle de acesso ao resultado |
-| `painel` | **55** | Métricas, supressão e taxas escondidas (`test_privacidade`), telas do painel, avaliações |
+| `quiz` | **111** | Cosseno sem banco (`test_engine_puro`), motor gravando, empate e régua (`test_empate`, `test_medir_empate`), `rank_final` (`test_rank_final`), contratos, telas, rotas, início do quiz, controle de acesso ao resultado e **a camada de IA** (49: provedor, prompt, validação, cache, fallback, tela e experimento) |
+| `painel` | **59** | Métricas, supressão e taxas escondidas (`test_privacidade`), telas do painel, avaliações e o bloco "Camada de IA" |
 | `accounts` | **19** | Snapshot do interesse (C4), rotas da conta (C5) e adoção da tentativa (C6) |
 | `avaliacao` | **11** | A resposta **não tem onde** guardar quem respondeu, guarda o dia e não a hora, link fechado dá 404, o mesmo navegador não envia duas vezes |
 | `core` | **3** | Tabelas de fuso do MySQL, cache no banco, variáveis da LLM |

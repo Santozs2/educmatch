@@ -29,13 +29,13 @@ Pontos encontrados ao revisar o código em 2026-10-08 (`develop` em `06baffc`):
 | 5 | `static/js/quiz.js` | A tela "Analisando" segura o envio por **1,5 s** de propósito | Resposta: escolha de experiência; a engine leva milissegundos |
 | 6 | `templates/base.html` | Botões de fonte grande e alto contraste só existem **no painel** | Acrescentar no topo do aluno, ou mostrar pelo painel na demo |
 | 7 | `backend/.env.example` | Os acentos de `ESCOLA_NOME` e `ESCOLA_ENDERECO` estão quebrados (`SÃ£o JosÃ©`) | Corrigir se o arquivo for aparecer no slide de configuração |
-| 8 | Camada de IA | Em construção (Passo 7) | Na banca, mostrar **só o que estiver mesclado** (ver [[ia|🤖 IA]]) |
+| 8 | Camada de IA | Código pronto (Passos 7 a 11); falta a chave e o experimento | Rodar `testar_llm` no dia; na dúvida, `LLM_ENABLED=0` (ver [[ia|🤖 IA]]) |
 
 > [!success] Já resolvidos desde a última versão desta nota
 > `recomedacao` virou **`recomendar`** · a `banda()` foi documentada (fica reservada para o fallback e o tom do prompt da IA; ainda não é chamada) · o **`tie_set` é preenchido** · a régua de empate foi **calibrada** para o quiz de 10 perguntas · os gráficos do painel foram refeitos com `json_script` · os botões de acessibilidade entraram no painel.
 
 > [!warning] Rode a suíte depois de qualquer correção
-> `python manage.py test` → **150 testes**. Faça isso também antes de sair de casa.
+> `python manage.py test` → **203 testes**. Faça isso também antes de sair de casa.
 
 ---
 
@@ -131,7 +131,7 @@ Responda o quiz **várias vezes, com perfis diferentes**, para o painel ter núm
 > **Por desenho.** O model não tem campo para usuário, nome, e-mail ou IP, e guarda só o **dia**, não a hora. Não é uma promessa: não há onde guardar.
 
 > [!question] Qual a cobertura de testes?
-> **150 testes**: engine (inclusive isolada do banco), empate, `rank_final`, rotas, controle de acesso, lista de interesse, adoção de tentativa, métricas, privacidade e avaliação. A CI roda tudo num MySQL a cada PR.
+> **203 testes**: engine (inclusive isolada do banco), empate, `rank_final`, rotas, controle de acesso, lista de interesse, adoção de tentativa, métricas, privacidade e avaliação. A CI roda tudo num MySQL a cada PR.
 
 ### 🎨 Sobre o front
 
@@ -153,7 +153,7 @@ Responda o quiz **várias vezes, com perfis diferentes**, para o painel ter núm
 
 1. **Pesos** definidos pelo grupo, ainda sem validação empírica (a pergunta 6 da avaliação vai medir).
 2. **Cursos generalistas** aparecem mais em 1º (Automação Industrial em 25,7% dos perfis simulados).
-3. **Camada de IA** em construção: arquitetura, campos e travas prontos; experimento comparativo por fazer.
+3. **Camada de IA** com o código pronto e testado; o experimento comparativo com a LLM real e a avaliação humana ainda por fazer.
 4. **k-anonimato** construído e testado, mas desligado no painel por decisão do grupo.
 5. **Código legado** do dashboard antigo a remover.
 6. Integração com o sistema de matrícula (SGSET): fora do escopo atual.
@@ -162,7 +162,7 @@ Responda o quiz **várias vezes, com perfis diferentes**, para o painel ter núm
 
 ## ✅ 5. Checklist da véspera
 
-- [ ] `python manage.py test` → **OK, 150 testes** (print no slide)
+- [ ] `python manage.py test` → **OK, 203 testes** (print no slide)
 - [ ] Tabelas de fuso do MySQL carregadas (`python manage.py test core`)
 - [ ] Banco com os 4 seeds + várias tentativas + 1 superusuário + 1 aluno + 1 link de avaliação respondido
 - [ ] Testado o truque do empate (sempre a 1ª alternativa → aviso de confiança baixa)
