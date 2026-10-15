@@ -6,7 +6,7 @@
 {% block estilos %}<link rel="stylesheet" href="{% static 'css/resultado.css' %}">{% endblock %}
 
 {% block content %}
-<section class="resultado">
+<section class="resultado" data-entrega="{% if destaque.texto %}ia{% else %}engine{% endif %}">
     <h1 class="entrada">
         {% if tentativa.respondido_por %}{{ tentativa.respondido_por }}, esses{% else %}Esses{% endif %}
         são os cursos que mais combinam com você
@@ -48,7 +48,12 @@
 
             <div class="destaque__info">
                 <h2 id="destaque-nome">{{ destaque.curso.nome_curso }}</h2>
+                {% if destaque.texto %}
+                <p class="destaque__texto">{{ destaque.texto }}</p>
+                <p class="selo-ia"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Texto escrito com IA a partir do cálculo do EducMatch</p>
+                {% else %}
                 <p class="subtitulo">{{ destaque.curso.descricao|truncatewords:30 }}</p>
+                {% endif %}
 
                 <ul class="chips">
                     <li class="chip chip--area">{{ destaque.curso.area_principal.nome }}</li>
@@ -86,7 +91,11 @@
                 <a class="outro__link" href="{% url 'curso-detalhe' item.curso.id %}?tentativa={{ tentativa.pk }}">
                     {{ item.curso.nome_curso }}
                 </a>
+                {% if item.texto %}
+                <p class="outro__descricao outro__descricao--ia">{{ item.texto }}</p>
+                {% else %}
                 <p class="outro__descricao">{{ item.curso.descricao }}</p>
+                {% endif %}
             </div>
             <span class="chip chip--area outro__area">{{ item.curso.area_principal.nome }}</span>
             <div class="outro__afinidade">

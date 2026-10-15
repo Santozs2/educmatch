@@ -108,6 +108,24 @@
   margin-bottom: 6px;
 }
 
+/* ---------- Texto da LLM (Passo 10) ---------- */
+
+.destaque__texto {
+  margin-bottom: 8px;
+  color: var(--tinta);
+  line-height: 1.55;
+}
+
+.selo-ia {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 16px;
+  color: var(--texto-3);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 /* ---------- Por que este curso ---------- */
 
 .porque {
@@ -228,6 +246,11 @@
   font-size: var(--pequeno);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* O texto da LLM tem até 220 caracteres: quebra a linha em vez de cortar. */
+.outro__descricao--ia {
+  white-space: normal;
 }
 
 .outro__afinidade {
