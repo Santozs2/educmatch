@@ -175,13 +175,16 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
         "LOCATION": "educmatch_cache",
+        # O padrão do Django é 300 entradas, e depois ele apaga um terço delas.
+        "OPTIONS": {"MAX_ENTRIES": 10000},
     }
 }
 
 # Camada de IA. Desligada por padrão: sem .env, o sistema é o da engine pura.
 # LLM_ENABLED=0 é o botão de pânico da defesa.
 LLM_ENABLED = os.environ.get("LLM_ENABLED", "0") == "1"
-LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "fake")  # gemini | fake
+LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "fake")  # fake | gemini | openai_compat
+LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "")  # vazio + gemini = endereço do Gemini
 LLM_MODEL = os.environ.get("LLM_MODEL", "")
 LLM_API_KEY = os.environ.get("LLM_API_KEY", "")
 LLM_TIMEOUT = float(os.environ.get("LLM_TIMEOUT", "8"))

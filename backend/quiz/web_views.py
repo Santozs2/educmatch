@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 from quiz.models import InicioDeQuiz, Questao, QuestionarioLink, Resposta, Tentativa_de_resposta
 from catalogo.models import Curso
 from accounts.models import Interesse
+from quiz.delivery import entregar
 from quiz.engine import recomendar
 
 def perguntas_ativas():
@@ -117,6 +118,9 @@ def pagina_quiz(request):
             ]
         )
         recomendar(tentativa)
+    # Fora da transação: a chamada de rede (até LLM_TIMEOUT) não segura o banco,
+    # e o resultado da engine já está gravado se a LLM falhar.
+    entregar(tentativa)
     tentativas = request.session.setdefault("minhas_tentativas", [])
     tentativas.append(tentativa.pk)
     request.session.pop("quiz_respostas", None)

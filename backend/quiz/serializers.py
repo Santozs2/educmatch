@@ -43,10 +43,17 @@ class DeliverySerializer(serializers.Serializer):
 
 @dataclass(frozen=True)
 class Entrega:
-    """A saída aprovada: a ordem final (o principal primeiro) e o texto de cada curso."""
+    """A saída aprovada: a ordem final (o principal primeiro) e o texto de cada curso.
+
+    Os campos com padrão são os dados da chamada, preenchidos pelo deliver (Passo 9).
+    """
 
     ordem: list[int]
     textos: dict[int, str]
+    modelo: str = ""
+    tokens_in: int | None = None
+    tokens_out: int | None = None
+    cache_hit: bool = False
 
 
 def ler_json(texto):
