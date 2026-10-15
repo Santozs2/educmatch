@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "specs/spec-ia-passo-07-provedor-fake.md",
+                "file": "specs/spec-ia-passo-08-prompt-e-validacao.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "spec-ia-passo-07-provedor-fake"
+              "title": "spec-ia-passo-08-prompt-e-validacao"
             }
           }
         ]
@@ -99,7 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "specs/spec-ia-passo-07-provedor-fake.md",
+                "file": "specs/spec-ia-passo-08-prompt-e-validacao.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +118,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "specs/spec-ia-passo-07-provedor-fake.md",
+                "file": "specs/spec-ia-passo-08-prompt-e-validacao.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "specs/spec-ia-passo-07-provedor-fake.md",
+                "file": "specs/spec-ia-passo-08-prompt-e-validacao.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -190,11 +190,16 @@
   },
   "active": "3bc33f5adf8e4557",
   "lastOpenFiles": [
+    "specs/spec-ia-passo-07-provedor-fake.md",
+    "specs/spec-ia-passo-08-prompt-e-validacao.md",
+    "specs/spec-ia-passo-11-experimento.md",
+    "specs/spec-ia-passo-10-tela-de-entrega.md",
+    "specs/spec-ia-passo-09-provedor-real.md.tmp.2240.e9a87806d1d7",
+    "specs/spec-ia-passo-09-provedor-real.md",
     "apresentacao/engine.md.tmp.2240.ed758020474f",
     "apresentacao/demo-e-perguntas.md.tmp.2240.d5533dae774d",
     "apresentacao/ia.md",
     "apresentacao/engine.md",
-    "apresentacao/backend.md",
-    "specs/spec-ia-passo-07-provedor-fake.md"
+    "apresentacao/backend.md"
   ]
 }

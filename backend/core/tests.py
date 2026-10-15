@@ -36,6 +36,6 @@ class CacheNoBanco(TestCase):
 class ConfiguracaoDaLLM(TestCase):
     def test_variaveis_existem_com_o_tipo_certo(self):
         self.assertIsInstance(settings.LLM_ENABLED, bool)
-        self.assertIn(settings.LLM_PROVIDER, {"gemini", "fake"})
+        self.assertIn(settings.LLM_PROVIDER, {"fake", "gemini", "openai_compat"})
         self.assertIsInstance(settings.LLM_TIMEOUT, float)
         self.assertTrue(settings.LLM_PROMPT_VERSION)

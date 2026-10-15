@@ -1,15 +1,20 @@
 from django.conf import settings
 
-from quiz.llm.base import LLMError, LLMProvider, LLMResponse, LLMTimeout, LLMUnavailable
+from quiz.llm.base import (
+    LLMError, LLMInvalidOutput, LLMProvider, LLMResponse, LLMTimeout, LLMUnavailable,
+)
 from quiz.llm.fake import FakeProvider
+from quiz.llm.openai_compat import OpenAICompatProvider, gemini
 
 __all__ = [
-    "FakeProvider", "LLMError", "LLMProvider", "LLMResponse", "LLMTimeout",
-    "LLMUnavailable", "get_provider",
+    "FakeProvider", "LLMError", "LLMInvalidOutput", "LLMProvider", "LLMResponse", "LLMTimeout",
+    "LLMUnavailable", "OpenAICompatProvider", "get_provider",
 ]
 
 PROVIDERS = {
     "fake": FakeProvider,
+    "openai_compat": OpenAICompatProvider,
+    "gemini": gemini,
 }
 
 
