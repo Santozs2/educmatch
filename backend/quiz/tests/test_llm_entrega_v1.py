@@ -6,7 +6,7 @@ from django.test import SimpleTestCase, override_settings
 from quiz.delivery import build_payload, deliver
 from quiz.llm import LLMInvalidOutput, LLMResponse, LLMUnavailable
 from quiz.prompt import carregar, montar_prompt
-from quiz.seralizers import LIMITE_ALTERNATIVA, LIMITE_PRINCIPAL, validate_delivery
+from quiz.serializers import LIMITE_ALTERNATIVA, LIMITE_PRINCIPAL, validate_delivery
 from quiz.tests.base import BaseEducMatch
 
 # Um payload pequeno, à mão: os testes de validação não precisam de banco.

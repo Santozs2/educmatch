@@ -5,7 +5,7 @@ from django.conf import settings
 from quiz.engine import TOP3, perfil_vetor
 from quiz.llm import LLMResponse, get_provider
 from quiz.prompt import montar_prompt
-from quiz.seralizers import Entrega, validate_delivery
+from quiz.serializers import Entrega, validate_delivery
 
 
 def build_payload(attempt):
