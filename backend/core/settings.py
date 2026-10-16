@@ -189,3 +189,7 @@ LLM_MODEL = os.environ.get("LLM_MODEL", "")
 LLM_API_KEY = os.environ.get("LLM_API_KEY", "")
 LLM_TIMEOUT = float(os.environ.get("LLM_TIMEOUT", "8"))
 LLM_PROMPT_VERSION = os.environ.get("LLM_PROMPT_VERSION", "v1")
+# Depois de um timeout ou provedor fora (429, 503, sem rede), o quiz para de
+# chamar a LLM por estes segundos: os próximos alunos vão direto para a engine
+# em vez de esperar LLM_TIMEOUT cada um. 0 desliga a pausa.
+LLM_PAUSA = int(os.environ.get("LLM_PAUSA", "30"))
