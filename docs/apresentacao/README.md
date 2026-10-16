@@ -21,6 +21,7 @@ atualizado: 2026-10-08
 | [[backend\|⚙️ Backend]] | Models, views, painel (métricas e privacidade), avaliação, deploy e 209 testes | Quem fez o backend |
 | [[frontend\|🎨 Front]] | Templates, o truque do `:target`, painel, scripts, CSS por tokens e acessibilidade | Quem fez o front |
 | [[ia\|🤖 Camada de IA]] | Como a LLM entra **sem tirar o lugar da engine**, as travas e o status | Quem está fazendo a LLM |
+| [[contratos\|📜 Contratos]] | Os 6 contratos (C1 a C6): o que congelam, onde estão no código e o teste que prova cada um | **Todo o grupo** |
 | [[demo-e-perguntas\|🎬 Demo e banca]] | Roteiro da demo, perguntas prováveis, pendências e checklist da véspera | **Todo o grupo** |
 
 ---

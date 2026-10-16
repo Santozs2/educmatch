@@ -67,6 +67,7 @@ delivery.entregar(tentativa)  ── fora da transação; nunca levanta exceçã
 | **Validação no servidor** | Só aceita os ids que foram enviados, os 5 e sem repetir, com texto até 600/220 caracteres | `quiz/serializers.py` (`DeliverySerializer`) |
 | **Fallback** | Qualquer erro → ordem da engine, **nunca** erro 500 | `delivery.entregar` |
 | **Botão de pânico** | `LLM_ENABLED=0` no `.env` desliga a camada inteira | `settings.py` (já existe) |
+| **Pausa depois de falha** | Timeout ou provedor fora (429, 503) → o quiz para de chamar a LLM por `LLM_PAUSA` segundos (30 por padrão). Numa turma, só quem já estava esperando sofre o timeout; quem chega depois vai direto para a engine | `delivery._chamar_provedor` |
 | **Sem dado pessoal** | O payload não leva `respondido_por`, usuário nem e-mail. Há teste para isso | `build_payload` |
 | **Reprodutível** | `temperature=0` + **cache no banco** (`DatabaseCache`): mesmo perfil, mesma resposta | `delivery.deliver` |
 | **Divergência medida, não declarada** | O servidor compara o 1º entregue com o 1º da engine e grava `diverged`. A LLM não "diz" se reordenou | `delivery._gravar` |
@@ -86,7 +87,7 @@ delivery.entregar(tentativa)  ── fora da transação; nunca levanta exceçã
 | `Tentativa_de_resposta` | `tie_set`, `confidence_band` | Quem pode ir para o 1º e o nível de confiança |
 | `Tentativa_de_resposta` | `llm_model`, `prompt_version`, `latency_ms`, `tokens_in`, `tokens_out`, `used_fallback`, `diverged`, `cache_hit` | **As métricas do experimento** (uma vez por tentativa) |
 | `Interesse` | `rank_snapshot`, `rank_engine_snapshot`, `era_principal` | Se o aluno salvou o curso que **a LLM** pôs em 1º ou o que **a engine** pôs |
-| `settings.py` | `LLM_ENABLED`, `LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`, `LLM_TIMEOUT`, `LLM_PROMPT_VERSION` | Tudo pelo `.env`; desligado por padrão |
+| `settings.py` | `LLM_ENABLED`, `LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`, `LLM_TIMEOUT`, `LLM_PROMPT_VERSION`, `LLM_PAUSA` | Tudo pelo `.env`; desligado por padrão |
 
 ---
 

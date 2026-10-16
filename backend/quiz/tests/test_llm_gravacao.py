@@ -1,10 +1,12 @@
 import json
 from unittest import mock
 
+from django.core.cache import cache
+from django.db import DatabaseError
 from django.test import override_settings
 
-from quiz.delivery import entregar
-from quiz.llm import FakeProvider, LLMResponse, LLMTimeout
+from quiz.delivery import PAUSA, entregar
+from quiz.llm import FakeProvider, LLMResponse, LLMTimeout, LLMUnavailable
 from quiz.models import Tentativa_de_resposta
 from quiz.tests.base import BaseEducMatch
 
@@ -106,6 +108,14 @@ class EntregarTest(BaseEducMatch):
                 self.assertFalse(tentativa.diverged)
                 self.assertOrdemDaEngine(tentativa)
 
+    def test_erro_ao_gravar_nao_vira_erro_500(self):
+        tentativa = self.criar_tentativa()
+        with mock.patch("quiz.delivery._gravar", side_effect=DatabaseError("database is locked")), \
+                self.assertLogs("quiz.delivery", "ERROR"):
+            self.assertFalse(entregar(tentativa))
+
+        self.assertOrdemDaEngine(tentativa)  # o resultado da engine continua lá
+
     def test_mesmo_perfil_sai_do_cache(self):
         provedor = Roteiro()
         with mock.patch(PROVEDOR, return_value=provedor):
@@ -139,6 +149,67 @@ class EntregarTest(BaseEducMatch):
                 entregar(self.criar_tentativa())
 
         self.assertEqual(provedor.chamadas, 2)
+
+
+@override_settings(LLM_ENABLED=True, LLM_PROVIDER="fake", LLM_MODEL="", LLM_PROMPT_VERSION="v1", LLM_PAUSA=30)
+class PausaDoProvedorTest(BaseEducMatch):
+    """EDU-202: depois de uma falha do provedor, os próximos alunos não esperam o timeout."""
+
+    def entregar_com(self, provedor, coluna=0):
+        tentativa = self.criar_tentativa(coluna=coluna)
+        with mock.patch(PROVEDOR, return_value=provedor), self.assertLogs("quiz.delivery", "WARNING"):
+            self.assertFalse(entregar(tentativa))
+        tentativa.refresh_from_db()
+        return tentativa
+
+    def test_timeout_pausa_e_o_proximo_nao_chama_o_provedor(self):
+        for erro in (LLMTimeout("8s"), LLMUnavailable("HTTP 429 do provedor")):
+            with self.subTest(type(erro).__name__):
+                cache.delete(PAUSA)
+                fora = Roteiro(erro=erro)
+                self.entregar_com(fora)
+                proxima = self.entregar_com(fora, coluna=1)
+
+                self.assertEqual(fora.chamadas, 1)
+                self.assertTrue(proxima.used_fallback)
+
+    def test_saida_invalida_nao_pausa(self):
+        lixo = Roteiro(responder=lambda: "não é JSON")
+        self.entregar_com(lixo)
+        self.entregar_com(lixo, coluna=1)
+
+        self.assertEqual(lixo.chamadas, 2)
+
+    def test_quando_a_pausa_acaba_volta_a_chamar(self):
+        self.entregar_com(Roteiro(erro=LLMTimeout("8s")))
+        cache.delete(PAUSA)  # o mesmo que esperar LLM_PAUSA segundos
+
+        provedor = Roteiro()
+        with mock.patch(PROVEDOR, return_value=provedor):
+            self.assertTrue(entregar(self.criar_tentativa(coluna=1)))
+        self.assertEqual(provedor.chamadas, 1)
+
+    def test_cache_continua_servindo_durante_a_pausa(self):
+        with mock.patch(PROVEDOR, return_value=Roteiro()):
+            entregar(self.criar_tentativa())
+        self.entregar_com(Roteiro(erro=LLMTimeout("8s")), coluna=1)
+
+        repetida = self.criar_tentativa()  # mesmo perfil da primeira
+        fora = Roteiro(erro=LLMTimeout("8s"))
+        with mock.patch(PROVEDOR, return_value=fora):
+            self.assertTrue(entregar(repetida))
+        self.assertEqual(fora.chamadas, 0)
+        repetida.refresh_from_db()
+        self.assertTrue(repetida.cache_hit)
+        self.assertFalse(repetida.used_fallback)
+
+    @override_settings(LLM_PAUSA=0)
+    def test_pausa_zero_desliga(self):
+        fora = Roteiro(erro=LLMTimeout("8s"))
+        self.entregar_com(fora)
+        self.entregar_com(fora, coluna=1)
+
+        self.assertEqual(fora.chamadas, 2)
 
 
 @override_settings(LLM_ENABLED=True, LLM_PROVIDER="fake", LLM_PROMPT_VERSION="v1")

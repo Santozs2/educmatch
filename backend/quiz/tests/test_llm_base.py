@@ -44,7 +44,8 @@ class GetProviderTest(SimpleTestCase):
     def test_fake(self):
         self.assertIsInstance(get_provider(), FakeProvider)
 
-    @override_settings(LLM_PROVIDER="gemini")
+    # Um nome que não existe: com "gemini", o teste dependia do LLM_MODEL do .env
+    @override_settings(LLM_PROVIDER="nao-existe")
     def test_provedor_ainda_nao_implementado_e_erro_da_camada(self):
         with self.assertRaises(LLMUnavailable):
             get_provider()
