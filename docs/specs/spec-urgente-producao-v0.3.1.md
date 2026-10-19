@@ -124,6 +124,9 @@ Resultado: a equipe passou a subir **zip pelo CLI**. Isso é manual, depende de 
 
 ### A solução: GitHub Actions com identidade gerenciada (OIDC)
 
+> [!info] Detalhada em [[spec-deploy-github-actions|🚀 Spec do deploy automático]]
+> Aquela spec tem o código validado, a verificação de versão no ar, o backup automático e o rollback. Os trechos abaixo são o resumo original; em caso de diferença, vale a spec do deploy.
+
 ```
 merge na main ──► testes (MySQL) ──✅──► deploy no App Service ──► smoke test (HTTP 200)
                                   └──❌──► não publica nada
