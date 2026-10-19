@@ -114,11 +114,20 @@ DATABASES = {
     }
 }
 
+# Com o gunicorn em threads (startup.sh), várias gravações chegam ao mesmo tempo.
+# IMMEDIATE: a transação já pede a trava de escrita ao começar, e quem chega
+# depois ESPERA a vez (até `timeout` segundos) em vez de falhar com "database is
+# locked". Sem WAL: o /home do App Service é disco de rede.
+# Medido: 0 gravações perdidas com 30 alunos ao mesmo tempo (scripts/carga_turma.py).
+SQLITE_OPTIONS = {"timeout": 20, "transaction_mode": "IMMEDIATE"}
+
 if DB_ENGINE == "sqlite":
     DATABASES["default"] = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.environ.get("DB_NAME", str(BASE_DIR / "db.sqlite3")),
+        "OPTIONS": SQLITE_OPTIONS,
     }
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -143,6 +152,10 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Os testes nunca chamam a LLM de verdade nem saem para a internet, seja qual
+# for o .env de quem roda (core/test_runner.py). Sem isto, uma rodada com
+# LLM_ENABLED=1 no .env fazia 111 chamadas reais e gastava a cota grátis.
+TEST_RUNNER = "core.test_runner.RunnerSemRede"
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
