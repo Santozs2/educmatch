@@ -95,6 +95,31 @@
         modal.close();
     });
 
+    // ---------- Cadastro de curso ----------
+    document.querySelectorAll(".painel-modal--curso").forEach(function (cursoModal) {
+        function abrirModalCurso() {
+            document.body.classList.add("sem-rolagem");
+            cursoModal.showModal();
+        }
+
+        document.querySelectorAll("[data-abrir-curso]").forEach(function (botao) {
+            if (botao.dataset.abrirCurso !== cursoModal.id) return;
+            botao.addEventListener("click", abrirModalCurso);
+        });
+        cursoModal.addEventListener("close", function () {
+            document.body.classList.remove("sem-rolagem");
+        });
+        cursoModal.querySelectorAll("[data-fechar-curso]").forEach(function (botao) {
+            botao.addEventListener("click", function () {
+                cursoModal.close();
+            });
+        });
+        cursoModal.addEventListener("click", function (evento) {
+            if (evento.target === cursoModal) cursoModal.close();
+        });
+        if (cursoModal.dataset.abrir === "true") abrirModalCurso();
+    });
+
     // ---------- QR e copiar ----------
     // O qrcode.min.js só é carregado nas telas de links, antes deste arquivo.
     if (window.QRCode) {

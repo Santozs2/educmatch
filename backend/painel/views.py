@@ -2,6 +2,7 @@ import csv
 from urllib.parse import urlencode
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -9,7 +10,7 @@ from django.views.decorators.http import require_POST
 from avaliacao.models import LinkDeAvaliacao
 from catalogo.models import Curso
 from painel import metricas, metricas_avaliacao, privacidade
-from painel.forms import NovoLinkDeAvaliacao
+from painel.forms import NovoCurso, NovoLinkDeAvaliacao, PesosCursoFormSet
 from quiz.models import QuestionarioLink, Tentativa_de_resposta
 
 
@@ -128,6 +129,72 @@ def quiz_visao_geral(request):
 
 @staff_member_required
 def cursos(request):
+    form = NovoCurso(request.POST or None)
+    pesos_formset = PesosCursoFormSet(request.POST or None)
+    if request.method == "POST":
+        curso_valido = form.is_valid()
+        pesos_validos = pesos_formset.is_valid()
+        if curso_valido and pesos_validos:
+            with transaction.atomic():
+                curso = form.save()
+                pesos_formset.instance = curso
+                pesos_formset.save()
+            messages.success(request, f"Curso {curso.nome_curso} criado com sucesso.")
+            return redirect("painel-cursos")
+        messages.error(request, "Revise os campos destacados antes de salvar o curso.")
+
+    return _render_cursos(request, curso_form=form, pesos_formset=pesos_formset)
+
+
+@require_POST
+@staff_member_required
+def editar_curso(request, pk):
+    curso = get_object_or_404(Curso, pk=pk)
+    prefixo = f"curso_peso-{curso.pk}"
+    form = NovoCurso(request.POST, instance=curso, auto_id=f"curso-{curso.pk}-%s")
+    pesos_formset = PesosCursoFormSet(
+        request.POST,
+        instance=curso,
+        prefix=prefixo,
+        auto_id=f"{prefixo}-%s",
+    )
+    curso_valido = form.is_valid()
+    pesos_validos = pesos_formset.is_valid()
+    if curso_valido and pesos_validos:
+        with transaction.atomic():
+            curso = form.save()
+            pesos_formset.instance = curso
+            pesos_formset.save()
+        messages.success(request, f"Curso {curso.nome_curso} atualizado com sucesso.")
+        return redirect("painel-cursos")
+
+    messages.error(request, "Revise os campos destacados antes de salvar o curso.")
+    return _render_cursos(
+        request,
+        curso_em_edicao=curso,
+        form_edicao=form,
+        pesos_edicao=pesos_formset,
+    )
+
+
+@require_POST
+@staff_member_required
+def remover_curso(request, pk):
+    curso = get_object_or_404(Curso, pk=pk)
+    curso.is_active = False
+    curso.save(update_fields=["is_active"])
+    messages.success(request, f"Curso {curso.nome_curso} removido do catálogo ativo.")
+    return redirect("painel-cursos")
+
+
+def _render_cursos(
+    request,
+    curso_form=None,
+    pesos_formset=None,
+    curso_em_edicao=None,
+    form_edicao=None,
+    pesos_edicao=None,
+):
     inicio, contexto = _contexto_base(request, "cursos")
     linhas = metricas.desempenho_por_curso(inicio)
     if contexto["tem_massa"]:
@@ -136,7 +203,38 @@ def cursos(request):
     else:
         for linha in linhas:
             linha["em_primeiro"] = linha["no_top5"] = None
-    contexto["cursos"] = linhas
+
+    cursos = Curso.objects.filter(pk__in=[linha["id"] for linha in linhas]).prefetch_related("curso_peso")
+    cursos_edicao = []
+    for curso in cursos:
+        pendente = curso_em_edicao is not None and curso.pk == curso_em_edicao.pk
+        prefixo = f"curso_peso-{curso.pk}"
+        cursos_edicao.append({
+            "curso": curso,
+            "modal_id": f"painel-editar-curso-{curso.pk}",
+            "form_action": reverse("painel-editar-curso", args=[curso.pk]),
+            "aberto": pendente,
+            "form": form_edicao if pendente else NovoCurso(
+                instance=curso,
+                auto_id=f"curso-{curso.pk}-%s",
+            ),
+            "pesos_formset": pesos_edicao if pendente else PesosCursoFormSet(
+                instance=curso,
+                prefix=prefixo,
+                auto_id=f"{prefixo}-%s",
+            ),
+        })
+
+    contexto.update({
+        "cursos": linhas,
+        "curso_form": curso_form or NovoCurso(),
+        "pesos_formset": pesos_formset or PesosCursoFormSet(),
+        "curso_form_action": reverse("painel-cursos"),
+        "criar_modal_aberto": bool(
+            curso_form and (curso_form.errors or pesos_formset.errors)
+        ),
+        "cursos_edicao": cursos_edicao,
+    })
     return render(request, "painel/cursos.html", contexto)
 
 

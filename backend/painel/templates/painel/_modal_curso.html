@@ -1,0 +1,56 @@
+<dialog class="painel-modal painel-modal--curso" id="{{ modal_id }}" aria-labelledby="{{ modal_id }}-titulo" data-abrir="{{ modal_aberto|yesno:'true,false' }}">
+    <form method="post" action="{{ form_action }}" class="painel-curso-form">
+        {% csrf_token %}
+        <header class="painel-modal__cabecalho">
+            <div>
+                <h2 id="{{ modal_id }}-titulo">{{ modal_titulo }}</h2>
+                <p>Preencha os dados e configure os pesos por área.</p>
+            </div>
+            <button type="button" class="botao botao--suave botao--icone" data-fechar-curso aria-label="Fechar modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        </header>
+
+        {% if curso_form.non_field_errors %}<div class="painel-form-erros">{{ curso_form.non_field_errors }}</div>{% endif %}
+        <div class="painel-curso-campos">
+            {% for field in curso_form %}
+            <div class="painel-curso-campo{% if field.name == 'descricao' %} painel-curso-campo--largo{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<span class="painel-form-erro">{{ error }}</span>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <section class="painel-pesos" aria-labelledby="{{ modal_id }}-pesos-titulo">
+            <div>
+                <h3 id="{{ modal_id }}-pesos-titulo">Pesos por área</h3>
+                <p>Defina áreas e pesos inteiros de 0 a 5, como no cadastro administrativo.</p>
+            </div>
+            {{ pesos_formset.management_form }}
+            {% if pesos_formset.non_form_errors %}<div class="painel-form-erros">{{ pesos_formset.non_form_errors }}</div>{% endif %}
+            <div class="painel-pesos__lista">
+                {% for peso_form in pesos_formset %}
+                <div class="painel-pesos__linha">
+                    {% for hidden in peso_form.hidden_fields %}{{ hidden }}{% endfor %}
+                    <div class="painel-curso-campo">
+                        <label for="{{ peso_form.area.id_for_label }}">Área</label>
+                        {{ peso_form.area }}
+                        {% for error in peso_form.area.errors %}<span class="painel-form-erro">{{ error }}</span>{% endfor %}
+                    </div>
+                    <div class="painel-curso-campo">
+                        <label for="{{ peso_form.peso.id_for_label }}">Peso</label>
+                        {{ peso_form.peso }}
+                        {% for error in peso_form.peso.errors %}<span class="painel-form-erro">{{ error }}</span>{% endfor %}
+                    </div>
+                    {% if peso_form.DELETE %}<label class="painel-peso-excluir">{{ peso_form.DELETE }} Remover</label>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <footer class="painel-modal__acoes">
+            <button type="button" class="botao botao--secundario" data-fechar-curso>Cancelar</button>
+            <button type="submit" class="botao"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Salvar curso</button>
+        </footer>
+    </form>
+</dialog>

@@ -3,7 +3,7 @@
 {% block titulo_pagina %}Cursos e Áreas{% endblock %}
 {% block subtitulo %}Catálogo ativo e como cada curso aparece no ranking{% endblock %}
 {% block acoes %}
-<a class="botao" href="{% url 'admin:catalogo_curso_add' %}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Novo curso</a>
+<button class="botao" type="button" data-abrir-curso="painel-criar-curso"><i class="fa-solid fa-plus" aria-hidden="true"></i> Novo curso</button>
 {% endblock %}
 
 {% block painel %}
@@ -33,7 +33,15 @@
                         <td data-rotulo="Turma">{% if curso.inicio_dia %}{{ curso.inicio_dia|date:"d/m" }}–{{ curso.fim_dia|date:"d/m"|default:"?" }}{% else %}—{% endif %}</td>
                         <td class="numero" data-rotulo="Em 1º">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.em_primeiro suprimido=curso.em_primeiro_suprimido %}{% else %}—{% endif %}</td>
                         <td class="numero" data-rotulo="No Top 5">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.no_top5 suprimido=curso.no_top5_suprimido %}{% else %}—{% endif %}</td>
-                        <td><a class="botao botao--suave botao--icone" href="{% url 'admin:catalogo_curso_change' curso.id %}" aria-label="Editar {{ curso.nome_curso }}"><i class="fa-solid fa-pen" aria-hidden="true"></i></a></td>
+                        <td>
+                            <div class="painel-acoes-curso">
+                                <button class="botao botao--suave botao--icone" type="button" data-abrir-curso="painel-editar-curso-{{ curso.id }}" aria-label="Editar {{ curso.nome_curso }}"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                                <form method="post" action="{% url 'painel-remover-curso' curso.id %}" data-confirmar="Remover {{ curso.nome_curso }} do catálogo ativo? O histórico será preservado." data-perigo>
+                                    {% csrf_token %}
+                                    <button class="botao botao--perigo botao--icone" type="submit" aria-label="Remover {{ curso.nome_curso }}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                                </form>
+                            </div>
+                        </td>
                     </tr>
                     {% empty %}<tr><td colspan="7">Nenhum curso ativo.</td></tr>{% endfor %}
                 </tbody>
@@ -54,4 +62,9 @@
         {% endif %}
     </article>
 </div>
+
+{% include "painel/_modal_curso.html" with modal_id="painel-criar-curso" modal_titulo="Novo curso" form_action=curso_form_action curso_form=curso_form pesos_formset=pesos_formset modal_aberto=criar_modal_aberto %}
+{% for edicao in cursos_edicao %}
+{% include "painel/_modal_curso.html" with modal_id=edicao.modal_id modal_titulo="Editar curso" form_action=edicao.form_action curso_form=edicao.form pesos_formset=edicao.pesos_formset modal_aberto=edicao.aberto %}
+{% endfor %}
 {% endblock %}
