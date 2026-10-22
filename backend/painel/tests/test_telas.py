@@ -153,6 +153,131 @@ class TelasDeCadastroTest(BasePainel):
         self.assertNotIn("suprimido", linhas[0])
         self.assertEqual(linhas[0]["total"], 2)
 
+    def test_novo_curso_abre_modal_no_painel(self):
+        self.client.force_login(self.staff)
+
+        resposta = self.client.get(reverse("painel-cursos"))
+
+        self.assertContains(resposta, 'data-abrir-curso')
+        self.assertContains(resposta, 'id="painel-criar-curso"')
+        self.assertContains(resposta, 'name="nome_curso"')
+        self.assertContains(resposta, 'name="descricao"')
+        self.assertContains(resposta, 'name="area_principal"')
+        self.assertContains(resposta, 'name="is_active"')
+        self.assertNotContains(resposta, "admin:catalogo_curso_add")
+
+    def test_editar_curso_abre_modal_com_dados_e_salva_alteracoes(self):
+        self.client.force_login(self.staff)
+        curso = self.criar_curso(nome_curso="Curso para editar")
+        peso_existente = curso.peso_curso.create(area=curso.area_principal, peso=1)
+        prefixo = f"curso_peso-{curso.pk}"
+
+        pagina = self.client.get(reverse("painel-cursos"))
+
+        self.assertContains(pagina, f'data-abrir-curso="painel-editar-curso-{curso.pk}"')
+        self.assertContains(pagina, f'id="curso-{curso.pk}-nome_curso"')
+        self.assertNotContains(pagina, "admin:catalogo_curso_change")
+
+        dados = {
+            "nome_curso": "Curso editado pelo painel",
+            "descricao": curso.descricao,
+            "area_principal": curso.area_principal_id,
+            "duracao": 160,
+            "inicio_dia": "",
+            "fim_dia": "",
+            "is_active": "on",
+            f"{prefixo}-TOTAL_FORMS": "8",
+            f"{prefixo}-INITIAL_FORMS": "1",
+            f"{prefixo}-MIN_NUM_FORMS": "0",
+            f"{prefixo}-MAX_NUM_FORMS": "1000",
+            f"{prefixo}-0-id": peso_existente.pk,
+            f"{prefixo}-0-area": curso.area_principal_id,
+            f"{prefixo}-0-peso": "3",
+        }
+        for indice in range(8):
+            dados[f"{prefixo}-{indice}-curso"] = curso.pk
+        for indice in range(1, 8):
+            dados[f"{prefixo}-{indice}-area"] = ""
+            dados[f"{prefixo}-{indice}-peso"] = "0"
+
+        resposta = self.client.post(
+            reverse("painel-editar-curso", args=[curso.pk]),
+            dados,
+        )
+
+        self.assertRedirects(resposta, reverse("painel-cursos"))
+        curso.refresh_from_db()
+        self.assertEqual(curso.nome_curso, "Curso editado pelo painel")
+        self.assertEqual(curso.duracao, 160)
+        peso_existente.refresh_from_db()
+        self.assertEqual(curso.peso_curso.count(), 1)
+        self.assertEqual(peso_existente.peso, 3)
+
+    def test_remover_curso_desativa_sem_apagar_historico(self):
+        self.client.force_login(self.staff)
+        curso = self.criar_curso(nome_curso="Curso para remover")
+        peso = curso.peso_curso.create(area=curso.area_principal, peso=2)
+
+        resposta = self.client.post(reverse("painel-remover-curso", args=[curso.pk]))
+
+        self.assertRedirects(resposta, reverse("painel-cursos"))
+        curso.refresh_from_db()
+        self.assertFalse(curso.is_active)
+        self.assertTrue(curso.peso_curso.filter(pk=peso.pk).exists())
+
+    def test_criar_curso_no_painel_salva_pesos_por_area(self):
+        self.client.force_login(self.staff)
+        area = self.criar_curso().area_principal
+        dados = {
+            "nome_curso": "Novo curso pelo painel",
+            "descricao": "Descrição completa",
+            "area_principal": area.pk,
+            "duracao": 120,
+            "inicio_dia": "",
+            "fim_dia": "",
+            "is_active": "on",
+            "curso_peso-TOTAL_FORMS": "7",
+            "curso_peso-INITIAL_FORMS": "0",
+            "curso_peso-MIN_NUM_FORMS": "0",
+            "curso_peso-MAX_NUM_FORMS": "1000",
+        }
+        for indice in range(7):
+            dados[f"curso_peso-{indice}-area"] = str(area.pk) if indice == 0 else ""
+            dados[f"curso_peso-{indice}-peso"] = "2" if indice == 0 else "0"
+
+        resposta = self.client.post(reverse("painel-cursos"), dados)
+
+        self.assertRedirects(resposta, reverse("painel-cursos"))
+        curso = Curso.objects.get(nome_curso="Novo curso pelo painel")
+        self.assertEqual(curso.peso_curso.get().area, area)
+        self.assertEqual(curso.peso_curso.get().peso, 2)
+
+    def test_peso_decimal_nao_cria_curso(self):
+        self.client.force_login(self.staff)
+        area = self.criar_curso().area_principal
+        dados = {
+            "nome_curso": "Curso com peso decimal",
+            "descricao": "Descrição completa",
+            "area_principal": area.pk,
+            "duracao": 120,
+            "inicio_dia": "",
+            "fim_dia": "",
+            "is_active": "on",
+            "curso_peso-TOTAL_FORMS": "7",
+            "curso_peso-INITIAL_FORMS": "0",
+            "curso_peso-MIN_NUM_FORMS": "0",
+            "curso_peso-MAX_NUM_FORMS": "1000",
+        }
+        for indice in range(7):
+            dados[f"curso_peso-{indice}-area"] = str(area.pk) if indice == 0 else ""
+            dados[f"curso_peso-{indice}-peso"] = "2.5" if indice == 0 else "0"
+
+        resposta = self.client.post(reverse("painel-cursos"), dados)
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertFalse(Curso.objects.filter(nome_curso="Curso com peso decimal").exists())
+        self.assertContains(resposta, 'data-abrir="true"')
+
     def test_fechar_um_link_nao_fecha_os_outros(self):
         self.client.force_login(self.staff)
         primeiro, segundo = (QuestionarioLink.objects.create(criado_por=self.staff) for _ in range(2))
