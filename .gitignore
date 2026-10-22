@@ -23,6 +23,9 @@ local_settings.py
 # Obsidian: configuração pessoal do editor (muda a cada nota aberta)
 docs/.obsidian/
 
+# Commit no ar: o deploy.yml grava este arquivo dentro do pacote
+backend/VERSAO
+
 # Variáveis de ambiente
 .env
 .env.local

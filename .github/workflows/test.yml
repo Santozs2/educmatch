@@ -3,11 +3,18 @@ name: testes
 on:
   pull_request:
   push:
-    branches: [main, develop]
+    branches: [develop]   # na main quem roda os testes é o deploy.yml, antes de publicar
+  workflow_call:
+    inputs:
+      ref:
+        description: "Commit, branch ou tag a testar (vazio = o do evento)"
+        type: string
+        default: ""
 
 jobs:
   django:
     runs-on: ubuntu-latest
+    timeout-minutes: 15   # sem isto, um teste travado prende o runner por até 6 h
 
     services:
       mysql:
@@ -34,6 +41,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-python@v5
         with:
