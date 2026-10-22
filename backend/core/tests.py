@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import connection
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
+from django.urls import reverse
 
 
 class FusoDoMySQL(TestCase):
@@ -52,3 +53,15 @@ class OpcoesDoSQLite(SimpleTestCase):
     def test_transacao_imediata_com_espera(self):
         self.assertEqual(settings.SQLITE_OPTIONS["transaction_mode"], "IMMEDIATE")
         self.assertGreaterEqual(settings.SQLITE_OPTIONS["timeout"], 10)
+
+
+class VersaoNoAr(TestCase):
+    """U2: a página diz qual commit está no ar. O deploy confere isso no fim."""
+
+    @override_settings(VERSAO="abc1234")
+    def test_pagina_inicial_mostra_o_commit(self):
+        resposta = self.client.get(reverse("quiz-inicio"), HTTP_HOST="localhost")
+        self.assertContains(resposta, '<meta name="versao" content="abc1234">', html=False)
+
+    def test_sem_arquivo_de_versao_e_dev(self):
+        self.assertEqual(settings.VERSAO, "dev")
