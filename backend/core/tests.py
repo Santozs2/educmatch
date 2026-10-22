@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import connection
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 
 class FusoDoMySQL(TestCase):
@@ -39,3 +39,16 @@ class ConfiguracaoDaLLM(TestCase):
         self.assertIn(settings.LLM_PROVIDER, {"fake", "gemini", "openai_compat"})
         self.assertIsInstance(settings.LLM_TIMEOUT, float)
         self.assertTrue(settings.LLM_PROMPT_VERSION)
+
+
+class OpcoesDoSQLite(SimpleTestCase):
+    """U1: com threads, o SQLite espera a vez em vez de perder a gravação.
+
+    A CI roda em MySQL, então este teste confere a configuração, e não o
+    comportamento. O comportamento em si é medido pelo teste de carga
+    (scripts/carga_turma.py) com DB_ENGINE=sqlite.
+    """
+
+    def test_transacao_imediata_com_espera(self):
+        self.assertEqual(settings.SQLITE_OPTIONS["transaction_mode"], "IMMEDIATE")
+        self.assertGreaterEqual(settings.SQLITE_OPTIONS["timeout"], 10)
