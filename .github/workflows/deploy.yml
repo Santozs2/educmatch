@@ -1,0 +1,85 @@
+name: deploy
+
+# Publica no Azure App Service a cada merge na main, só se os testes passarem.
+# Rollback: Actions -> deploy -> Run workflow, com uma tag em "versao" (ex.: v0.3.1).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: "Tag ou commit a publicar (vazio = a main de agora)"
+        type: string
+        default: ""
+
+concurrency:
+  group: deploy-producao
+  cancel-in-progress: false   # nunca interromper um deploy no meio
+
+permissions:
+  id-token: write   # login no Azure por OIDC, sem senha guardada
+  contents: read
+
+env:
+  APP: educmatch-7249
+  SITE: https://educmatch-7249.azurewebsites.net
+
+jobs:
+  testes:
+    uses: ./.github/workflows/test.yml
+    with:
+      ref: ${{ inputs.versao }}
+
+  deploy:
+    needs: testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.versao }}
+
+      - name: Pacote com o commit dentro (backend/VERSAO)
+        run: |
+          COMMIT=$(git rev-parse --short HEAD)
+          echo "COMMIT=$COMMIT" >> "$GITHUB_ENV"
+          git archive --format=zip -o pacote.zip \
+            --add-virtual-file=backend/VERSAO:$COMMIT \
+            HEAD -- backend requirements.txt
+          unzip -l pacote.zip | tail -1
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Backup do banco antes de publicar (fica no próprio Azure)
+        run: |
+          token=$(az account get-access-token --query accessToken -o tsv)
+          comando="mkdir -p data/backups \
+            && cp data/educmatch.sqlite3 data/backups/educmatch-$(date -u +%Y%m%d-%H%M)-${COMMIT}.sqlite3 \
+            && ls -1t data/backups/*.sqlite3 | tail -n +6 | xargs -r rm -f \
+            && ls -1t data/backups"
+          resposta=$(curl -sS -f -X POST "https://${APP}.scm.azurewebsites.net/api/command" \
+            -H "Authorization: Bearer ${token}" -H "Content-Type: application/json" \
+            -d "$(jq -n --arg c "$comando" '{command: ("bash -c \"" + $c + "\""), dir: "/home"}')")
+          echo "$resposta" | jq -r '.Output, .Error'
+          [ "$(echo "$resposta" | jq -r '.ExitCode')" = "0" ]
+
+      - uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.APP }}
+          package: pacote.zip   # o Oryx instala o requirements.txt no servidor (SCM_DO_BUILD_DURING_DEPLOYMENT=true)
+
+      - name: Conferir que o commit certo está no ar
+        run: |
+          for tentativa in $(seq 1 10); do
+            versao=$(curl -s -m 120 "${SITE}/" | grep -o 'name="versao" content="[^"]*"' | cut -d'"' -f4)
+            echo "tentativa ${tentativa}: no ar=${versao:-?} esperado=${COMMIT}"
+            [ "$versao" = "$COMMIT" ] && exit 0
+            sleep 30
+          done
+          echo "::error::A produção não está servindo ${COMMIT}"
+          exit 1

@@ -92,6 +92,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.contexto.escola',
+                'core.contexto.versao',
             ],
         },
     },
@@ -202,3 +203,8 @@ LLM_PROMPT_VERSION = os.environ.get("LLM_PROMPT_VERSION", "v1")
 # chamar a LLM por estes segundos: os próximos alunos vão direto para a engine
 # em vez de esperar LLM_TIMEOUT cada um. 0 desliga a pausa.
 LLM_PAUSA = int(os.environ.get("LLM_PAUSA", "30"))
+
+# O commit que está no ar. O deploy (deploy.yml) grava o arquivo VERSAO dentro
+# do pacote; na máquina de quem desenvolve ele não existe e a versão é "dev".
+_ARQUIVO_VERSAO = BASE_DIR / "VERSAO"
+VERSAO = _ARQUIVO_VERSAO.read_text(encoding="utf-8").strip() if _ARQUIVO_VERSAO.exists() else "dev"
