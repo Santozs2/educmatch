@@ -84,6 +84,13 @@ python manage.py test
 
 Os testes cobrem o engine de recomendação (`quiz/tests/`), as rotas web, a lista de interesse (`accounts/tests/`) e as métricas do painel (`painel/tests/`).
 
+Para medir o banco com uma turma inteira enviando o quiz ao mesmo tempo (SQLite + threads, sem gastar cota da LLM):
+
+```bash
+cd backend
+python scripts/carga_turma.py
+```
+
 ## Tecnologias
 
 - Python, Django 5.2 LTS, MySQL (`mysqlclient`)
