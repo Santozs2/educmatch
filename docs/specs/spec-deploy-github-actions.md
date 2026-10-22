@@ -104,11 +104,16 @@ az identity create -n $ID -g $RG
 
 **3. Confiar só na `main` deste repositório:**
 ```bash
-az identity federated-credential create --name github-main --identity-name $ID -g $RG \
+az identity federated-credential create --name github-main-ids --identity-name $ID -g $RG \
   --issuer https://token.actions.githubusercontent.com \
-  --subject repo:Santozs2/educmatch:ref:refs/heads/main \
+  --subject "repo:Santozs2@203097652/educmatch@1380343423:ref:refs/heads/main" \
   --audiences api://AzureADTokenExchange
 ```
+> [!warning] O GitHub mudou o formato do subject
+> Em 22/10/2026, o primeiro deploy falhou com `AADSTS700213`: o GitHub passou a
+> mandar o subject com os IDs numéricos (`Santozs2@203097652/educmatch@1380343423`).
+> O formato antigo (`repo:Santozs2/educmatch:...`) não é mais aceito. Se o login
+> falhar de novo, copie o subject exato da mensagem de erro e crie uma credencial com ele.
 
 **4. Dar permissão de deploy só neste App Service:**
 ```bash
