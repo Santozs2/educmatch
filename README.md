@@ -16,10 +16,12 @@ São duas camadas, e a segunda nunca é obrigatória:
 
 1. **Engine (`quiz/engine.py`)** — determinística. As respostas viram um vetor de
    pesos por área, comparado por **similaridade de cosseno** com o vetor de cada
-   curso. Sai o top 3 (`rank_engine`), a diferença entre 1º e 2º, uma banda de
-   confiança e o `tie_set` (os cursos empatados dentro de `EMPATE = 0.02`).
+   curso. Saem os 5 cursos mais parecidos (`QUIZ_RECOMENDACAO_LIMIT`), cada um com
+   `rank_engine` e as 3 áreas que mais pesaram na escolha, mais a diferença entre
+   1º e 2º, uma banda de confiança e o `tie_set` (os cursos empatados dentro de
+   `EMPATE = 0.02`).
 2. **Entrega (`quiz/delivery.py`)** — opcional. Manda um payload **sem dados
-   pessoais** para uma LLM, que escreve a explicação e pode reordenar o top 3 —
+   pessoais** para uma LLM, que escreve a explicação e pode reordenar a lista —
    mas só promove ao 1º lugar um curso que já esteja no `tie_set`. A resposta passa
    por validação de contrato (`quiz/serializers.py`); se falhar, estourar o timeout
    ou o provedor cair, o resultado da engine é entregue como está
@@ -48,6 +50,7 @@ educmatch/
 │  ├─ scripts/     carga_turma.py (teste de carga)
 │  └─ startup.sh   inicialização no Azure
 └─ docs/
+   ├─ mvt.md         arquitetura MVT: o caminho de uma requisição pelas 3 camadas
    ├─ apresentacao/  material da banca (engine, ia, contratos, backend, frontend)
    ├─ experimento/   CSVs do experimento engine x LLM
    ├─ specs/         plano e passo a passo de cada fase
