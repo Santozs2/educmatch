@@ -4,7 +4,7 @@ aliases: ["IA na apresentação", "LLM na apresentação", "Desenho B modificado
 tags: [tcc, apresentacao, ia, llm, engine]
 status: codigo-pronto
 projeto: TCC
-atualizado: 2026-10-15
+atualizado: 2026-10-27
 ---
 
 > [!info] Apresentação: [[README|🎤 Roteiro]] · [[engine|🧮 Engine]] · [[backend|⚙️ Backend]] · [[frontend|🎨 Front]] · **🤖 Camada de IA** · [[demo-e-perguntas|🎬 Demo e banca]]
@@ -71,6 +71,7 @@ delivery.entregar(tentativa)  ── fora da transação; nunca levanta exceçã
 | **Sem dado pessoal** | O payload não leva `respondido_por`, usuário nem e-mail. Há teste para isso | `build_payload` |
 | **Reprodutível** | `temperature=0` + **cache no banco** (`DatabaseCache`): mesmo perfil, mesma resposta | `delivery.deliver` |
 | **Divergência medida, não declarada** | O servidor compara o 1º entregue com o 1º da engine e grava `diverged`. A LLM não "diz" se reordenou | `delivery._gravar` |
+| **Ordem das alternativas medida** | A validação aceita as 4 alternativas em qualquer ordem; o servidor compara com a ordem da engine para esses mesmos cursos e grava `reordered_alternatives` | `delivery._gravar` |
 | **Transparência** | Texto da LLM sempre com o selo *"Texto escrito com IA"*; nunca renderizado com `\|safe` | `resultado.html` |
 
 > [!example] Um caso real em que a LLM **poderia** trocar o 1º lugar
@@ -85,7 +86,7 @@ delivery.entregar(tentativa)  ── fora da transação; nunca levanta exceçã
 |---|---|---|
 | `Recomendacao` | `rank_engine`, `rank_final`, `llm_text` | A ordem da engine, a ordem entregue e o texto que o aluno leu |
 | `Tentativa_de_resposta` | `tie_set`, `confidence_band` | Quem pode ir para o 1º e o nível de confiança |
-| `Tentativa_de_resposta` | `llm_model`, `prompt_version`, `latency_ms`, `tokens_in`, `tokens_out`, `used_fallback`, `diverged`, `cache_hit` | **As métricas do experimento** (uma vez por tentativa) |
+| `Tentativa_de_resposta` | `llm_model`, `prompt_version`, `latency_ms`, `tokens_in`, `tokens_out`, `used_fallback`, `diverged`, `reordered_alternatives`, `cache_hit` | **As métricas do experimento** (uma vez por tentativa) |
 | `Interesse` | `rank_snapshot`, `rank_engine_snapshot`, `era_principal` | Se o aluno salvou o curso que **a LLM** pôs em 1º ou o que **a engine** pôs |
 | `settings.py` | `LLM_ENABLED`, `LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`, `LLM_TIMEOUT`, `LLM_PROMPT_VERSION`, `LLM_PAUSA` | Tudo pelo `.env`; desligado por padrão |
 
@@ -119,6 +120,7 @@ delivery.entregar(tentativa)  ── fora da transação; nunca levanta exceçã
 | Métrica | Como se calcula | Campo |
 |---|---|---|
 | **Taxa de divergência** | % das tentativas em que `rank_final` ≠ `rank_engine` no 1º lugar | `diverged` |
+| **Alternativas reordenadas** | % das entregas em que as 4 alternativas não seguem a ordem da engine (o principal não conta) | `reordered_alternatives` |
 | **Taxa de fallback** | % das tentativas em que a LLM falhou e valeu a engine | `used_fallback` |
 | **Latência** | Mediana e pior caso do tempo da chamada | `latency_ms` |
 | **Custo** | Tokens de entrada e saída por tentativa | `tokens_in`, `tokens_out` |
@@ -152,6 +154,10 @@ O 33% de empates no experimento geral confere com os **34%** dos 5.000 perfis si
 > Somando os dois experimentos, foram **40 perfis com empate no topo**, e em **nenhum** a LLM trocou o 1º lugar. A causa está no prompt, e não no modelo. A regra 2 diz *"Por padrão, respeite a ordem recebida"*, a regra 11 manda voltar para o `rank_engine` em caso de dúvida, os candidatos chegam rotulados *"em ordem de compatibilidade calculada"*, e nenhuma regra diz quando vale a pena trocar.
 >
 > **Decisão do grupo (opção A):** a v1 fica como está e a monografia descreve a camada de IA como **explicação com garantias** (validação, fallback, cache e selo de IA). O resultado é um dado, e não um defeito: *"com a regra conservadora, a LLM preservou a ordem do motor em 100% dos empates"*. Um prompt com critério de desempate (`entrega_v2.md`, comparado com a v1 na mesma semente) fica como **trabalho futuro**.
+
+> [!example] O prompt `entrega_v2.md` (criado em 2026-10-27, ainda não rodado com a chave)
+> Troca a regra "por padrão, respeite a ordem recebida" por um **critério de desempate** explícito, aplicado só dentro do `tie_set`: (1) maior `percentual` da área mais forte do perfil nas `top_areas` do curso; (2) se a diferença for de até 5 pontos, a 2ª área do perfil; (3) a `descricao` que trata mais diretamente as duas áreas; (4) sem diferença clara, fica o de menor `rank_engine`. Também manda as 4 alternativas na ordem do `rank_engine` e pede atenção à concordância.
+> Para comparar com a v1 na mesma semente: `LLM_PROMPT_VERSION=v2` no `.env` e `python manage.py experimento_ia --so-empates --n 30 --saida experimento_ia_v2_empates.csv`. O CSV agora traz `reordered_alternatives`, `ordem_engine` e `ordem_entregue`.
 
 > [!note] O que a avaliação humana passa a medir
 > Sem troca de 1º lugar, não há divergência para classificar. A coluna `avaliacao_humana` dos CSVs passa a avaliar a **qualidade do texto** (melhorou · indiferente · piorou, em relação a mostrar só a lista da engine). Um exemplo já visto no teste do cache: *"Outra boa opção para você foca no acionamento de motores…"*, com erro de concordância.

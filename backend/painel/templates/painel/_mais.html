@@ -32,10 +32,10 @@
         </a>
     </nav>
 
-    <div class="mais__bloco">
+    {% if not sem_filtro_periodo %}<div class="mais__bloco">
         <h2 class="mais__titulo">Período</h2>
         {% include "painel/_periodo.html" with sufixo="mais" %}
-    </div>
+    </div>{% endif %}
 
     <div class="mais__bloco">
         <h2 class="mais__titulo">Acessibilidade</h2>

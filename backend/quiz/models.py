@@ -76,6 +76,8 @@ class Tentativa_de_resposta(models.Model):
     tokens_out = models.PositiveIntegerField(null=True, blank=True)
     used_fallback = models.BooleanField(default=False)
     diverged = models.BooleanField(default=False)
+    # As 4 alternativas saíram numa ordem diferente da engine (o principal não conta).
+    reordered_alternatives = models.BooleanField(default=False)
     cache_hit = models.BooleanField(default=False)
     
     

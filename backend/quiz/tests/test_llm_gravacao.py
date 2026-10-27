@@ -67,6 +67,7 @@ class EntregarTest(BaseEducMatch):
         self.assertIsNotNone(tentativa.latency_ms)
         self.assertFalse(tentativa.used_fallback)
         self.assertFalse(tentativa.diverged)
+        self.assertFalse(tentativa.reordered_alternatives)
         self.assertFalse(tentativa.cache_hit)
 
     def test_troca_dentro_do_tie_set_e_gravada_como_divergencia(self):
@@ -89,7 +90,26 @@ class EntregarTest(BaseEducMatch):
         self.assertEqual((trocado.rank_final, trocado.rank_engine), (1, 2))
         self.assertTrue(trocado.is_primary)
         self.assertTrue(tentativa.diverged)
+        self.assertFalse(tentativa.reordered_alternatives)  # o 1º da engine desceu, o resto na ordem
         self.assertEqual((tentativa.tokens_in, tentativa.tokens_out), (900, 300))
+
+    def test_alternativas_fora_da_ordem_da_engine_sao_medidas(self):
+        tentativa = self.criar_tentativa()
+        primeiro, *alternativas = self.ordem_engine(tentativa)
+
+        def alternativas_invertidas():
+            return json.dumps({
+                "principal": {"course_id": primeiro, "texto": "Principal."},
+                "alternativas": [{"course_id": i, "texto": "Alternativa."} for i in reversed(alternativas)],
+            })
+
+        with mock.patch(PROVEDOR, return_value=Roteiro(responder=alternativas_invertidas)):
+            self.assertTrue(entregar(tentativa))
+
+        tentativa.refresh_from_db()
+        self.assertFalse(tentativa.diverged)
+        self.assertTrue(tentativa.reordered_alternatives)
+        self.assertEqual(tentativa.recomendacoes.get(curso_id=alternativas[-1]).rank_final, 2)
 
     def test_falhas_caem_na_engine_sem_erro(self):
         casos = {
@@ -106,6 +126,7 @@ class EntregarTest(BaseEducMatch):
                 tentativa.refresh_from_db()
                 self.assertTrue(tentativa.used_fallback)
                 self.assertFalse(tentativa.diverged)
+                self.assertFalse(tentativa.reordered_alternatives)
                 self.assertOrdemDaEngine(tentativa)
 
     def test_erro_ao_gravar_nao_vira_erro_500(self):

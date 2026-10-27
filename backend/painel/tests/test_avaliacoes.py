@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.urls import reverse
+from django.utils import timezone
 
 from avaliacao.models import LinkDeAvaliacao, RespostaDeAvaliacao
 from avaliacao.tests.base import BaseAvaliacao
@@ -69,6 +72,26 @@ class AvaliacoesNoPainelTest(BaseAvaliacao):
         self.assertIn("blocos", contexto)
         linha = next(l for l in contexto["resumo"] if l["curso_id"] == self.curso.id)
         self.assertEqual((linha["total"], linha["nps"]), (2, 100))
+
+    def test_resultados_ignoram_filtro_de_periodo(self):
+        link = self.criar_link(self.curso)
+        self.responder(link, 2, nota=10)
+        RespostaDeAvaliacao.objects.filter(link=link).update(
+            respondido_em=timezone.localdate() - timedelta(days=40)
+        )
+
+        resposta = self.client.get(reverse("painel-avaliacoes-resultados"), {"periodo": "diario"})
+
+        linha = next(linha for linha in resposta.context["resumo"] if linha["curso_id"] == self.curso.id)
+        self.assertEqual(linha["total"], 2)
+        self.assertContains(resposta, "Histórico completo")
+        self.assertNotContains(resposta, "Aplicar")
+
+    def test_lista_de_avaliacoes_nao_exibe_filtro_de_periodo(self):
+        resposta = self.client.get(reverse("painel-avaliacoes"), {"periodo": "anual"})
+
+        self.assertContains(resposta, "Histórico completo")
+        self.assertNotContains(resposta, "Aplicar")
 
     def test_resultados_por_pergunta(self):
         link = self.criar_link(self.curso)

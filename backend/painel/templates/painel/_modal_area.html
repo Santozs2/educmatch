@@ -1,0 +1,29 @@
+<dialog class="painel-modal painel-modal--curso" id="{{ modal_id }}" aria-labelledby="{{ modal_id }}-titulo" data-abrir="{{ modal_aberto|yesno:'true,false' }}">
+    <form method="post" action="{{ form_action }}" class="painel-curso-form">
+        {% csrf_token %}
+        <header class="painel-modal__cabecalho">
+            <div>
+                <h2 id="{{ modal_id }}-titulo">{{ modal_titulo }}</h2>
+                <p>A área entra na lista de pesos dos cursos e no matching do quiz.</p>
+            </div>
+            <button type="button" class="botao botao--suave botao--icone" data-fechar-curso aria-label="Fechar modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        </header>
+
+        {% if area_form.non_field_errors %}<div class="painel-form-erros">{{ area_form.non_field_errors }}</div>{% endif %}
+        <div class="painel-curso-campos">
+            {% for field in area_form %}
+            <div class="painel-curso-campo{% if field.name == 'descricao' %} painel-curso-campo--largo{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<span class="painel-form-erro">{{ error }}</span>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <footer class="painel-modal__acoes">
+            <button type="button" class="botao botao--secundario" data-fechar-curso>Cancelar</button>
+            <button type="submit" class="botao"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Salvar área</button>
+        </footer>
+    </form>
+</dialog>

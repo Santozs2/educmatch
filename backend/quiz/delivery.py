@@ -152,6 +152,9 @@ def _gravar(attempt, entrega, latencia_ms):
             rec.rank_final, rec.llm_text = posicao[rec.curso_id], entrega.textos[rec.curso_id]
     Recomendacao.objects.bulk_update(recomendacoes, ["rank_final", "llm_text"])
 
+    # As alternativas entregues, comparadas com a ordem que a engine dá a esses mesmos cursos.
+    alternativas = entrega.ordem[1:] if entrega else []
+    na_engine = [rec.curso_id for rec in recomendacoes if rec.curso_id in alternativas]
     metadados = {
         "llm_model": (entrega.modelo if entrega else settings.LLM_MODEL or settings.LLM_PROVIDER)[:60],
         "prompt_version": settings.LLM_PROMPT_VERSION[:20],
@@ -161,6 +164,7 @@ def _gravar(attempt, entrega, latencia_ms):
         "used_fallback": entrega is None,
         # Medido pelo servidor, não declarado pela LLM: o 1º entregue é o 1º da engine?
         "diverged": bool(entrega) and entrega.ordem[0] != recomendacoes[0].curso_id,
+        "reordered_alternatives": alternativas != na_engine,
         "cache_hit": bool(entrega) and entrega.cache_hit,
     }
     for campo, valor in metadados.items():

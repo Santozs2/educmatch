@@ -256,6 +256,13 @@
   grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
 }
 
+.painel-coluna {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
 .painel-card {
   min-width: 0;
   padding: 18px;
@@ -506,6 +513,16 @@
   font-variant-numeric: tabular-nums;
 }
 
+.painel-acoes-curso {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.painel-acoes-curso form {
+  margin: 0;
+}
+
 /* Funil da lista de interesse e QR dos links */
 
 .painel-funil {
@@ -619,6 +636,146 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 18px;
+}
+
+.painel-modal--curso {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  margin: 0;
+  width: min(780px, calc(100% - 32px));
+  max-height: min(92dvh, 900px);
+  border-radius: 22px;
+  overflow-y: auto;
+  transform: translate(-50%, -50%);
+}
+
+.painel-curso-form {
+  display: grid;
+  gap: 20px;
+}
+
+.painel-modal__cabecalho,
+.painel-pesos > div:first-child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.painel-modal__cabecalho h2,
+.painel-pesos h3 {
+  margin: 0;
+  color: var(--titulo);
+}
+
+.painel-modal__cabecalho p,
+.painel-pesos p {
+  margin: 4px 0 0;
+  color: var(--texto-2);
+  font-size: 0.9rem;
+}
+
+.painel-curso-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.painel-curso-campo {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.painel-curso-campo label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.painel-curso-campo .painel-campo {
+  width: 100%;
+  height: 42px;
+  min-height: 42px;
+  border: 1px solid var(--linha);
+  font-weight: 400;
+}
+
+.painel-curso-campo textarea.painel-campo {
+  height: auto;
+  min-height: 92px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.painel-curso-campo input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--marca);
+}
+
+.painel-curso-campo--largo {
+  grid-column: 1 / -1;
+}
+
+.painel-pesos {
+  display: grid;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--linha);
+}
+
+.painel-pesos__lista {
+  display: grid;
+  gap: 8px;
+}
+
+.painel-pesos__linha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 150px) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.painel-peso-excluir {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  font-size: 0.8rem;
+}
+
+.painel-form-erro {
+  color: var(--erro);
+  font-size: 0.8rem;
+}
+
+.painel-form-erros ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--erro);
+}
+
+@media (max-width: 600px) {
+  .painel-curso-campos {
+    grid-template-columns: 1fr;
+  }
+
+  .painel-curso-campo--largo {
+    grid-column: auto;
+  }
+
+  .painel-pesos__linha {
+    grid-template-columns: minmax(0, 1fr) minmax(72px, 100px);
+  }
+
+  .painel-peso-excluir {
+    grid-column: 1 / -1;
+    min-height: 30px;
+  }
 }
 
 /* ---------- Alto contraste ---------- */

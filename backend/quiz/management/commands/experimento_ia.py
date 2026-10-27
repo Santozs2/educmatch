@@ -13,7 +13,7 @@ from quiz.models import Questao, Resposta, Tentativa_de_resposta
 
 COLUNAS = [
     "perfil", "areas_do_principal", "confianca", "tamanho_tie_set", "principal_engine", "principal_entregue",
-    "diverged", "used_fallback", "cache_hit", "latency_ms", "tokens_in", "tokens_out",
+    "diverged", "reordered_alternatives", "ordem_engine", "ordem_entregue", "used_fallback", "cache_hit", "latency_ms", "tokens_in", "tokens_out",
     "texto_principal", "avaliacao_humana",
 ]
 
@@ -82,6 +82,9 @@ class Command(BaseCommand):
                 "principal_engine": engine.curso.nome_curso,
                 "principal_entregue": entregue.curso.nome_curso,
                 "diverged": tentativa.diverged,
+                "reordered_alternatives": tentativa.reordered_alternatives,
+                "ordem_engine": " > ".join(r.curso.nome_curso for r in sorted(recs, key=lambda r: r.rank_engine)),
+                "ordem_entregue": " > ".join(r.curso.nome_curso for r in sorted(recs, key=lambda r: r.rank_final)),
                 "used_fallback": tentativa.used_fallback,
                 "cache_hit": tentativa.cache_hit,
                 "latency_ms": tentativa.latency_ms,
@@ -108,6 +111,8 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"\nCSV: {saida} ({total} perfis)"))
         self.stdout.write(f"Com empate no topo: {pct(sum(l['tamanho_tie_set'] > 1 for l in linhas), total)}")
         self.stdout.write(f"Divergência (trocou o 1º): {pct(sum(l['diverged'] for l in entregues), len(entregues))}")
+        self.stdout.write("Mudou a ordem das alternativas: "
+                          f"{pct(sum(l['reordered_alternatives'] for l in entregues), len(entregues))}")
         self.stdout.write(f"Fallback: {pct(total - len(entregues), total)}")
         self.stdout.write(f"Latência mediana: {median(latencias) if latencias else '—'} ms")
         self.stdout.write(f"Tokens de saída (média): {round(sum(tokens) / len(tokens)) if tokens else '—'}")

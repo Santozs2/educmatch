@@ -15,7 +15,7 @@ class CamadaDeIATest(BasePainel):
 
     def cenario(self):
         trocou = self.tentativa(llm_model="m", diverged=True, latency_ms=1000, tokens_in=900, tokens_out=300)
-        self.tentativa(llm_model="m", cache_hit=True, latency_ms=5)
+        self.tentativa(llm_model="m", cache_hit=True, reordered_alternatives=True, latency_ms=5)
         self.tentativa(llm_model="m", used_fallback=True, latency_ms=8000)
         self.tentativa()  # LLM desligada: não conta
         return trocou
@@ -32,6 +32,7 @@ class CamadaDeIATest(BasePainel):
         self.assertEqual(ia["chamadas"], 3)
         self.assertAlmostEqual(ia["fallback"], 100 / 3)
         self.assertEqual(ia["divergencia"], 50)  # 1 das 2 entregas
+        self.assertEqual(ia["alternativas_reordenadas"], 50)
         self.assertEqual(ia["cache"], 50)
         self.assertEqual(ia["latencia_mediana"], 4500)  # 1000 e 8000: o cache fica de fora
         self.assertEqual((ia["tokens_entrada"], ia["tokens_saida"]), (900, 300))

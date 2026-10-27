@@ -108,3 +108,18 @@
   color: var(--texto-2);
   font-size: var(--pequeno);
 }
+
+.secretaria__mapa {
+  overflow: hidden;
+  margin-top: 20px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-botao);
+  aspect-ratio: 16 / 9;
+}
+
+.secretaria__mapa iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}

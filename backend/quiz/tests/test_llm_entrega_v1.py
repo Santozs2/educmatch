@@ -53,6 +53,34 @@ class PromptV1Test(SimpleTestCase):
             carregar("../settings")
 
 
+class PromptV2Test(SimpleTestCase):
+    """A v2 traz o critério de desempate e fixa a ordem das alternativas."""
+
+    def test_arquivo_tem_os_blocos_e_o_criterio(self):
+        texto = carregar("v2")
+        for bloco in ("# PAPEL", "# DADOS", "# CRITÉRIO DE DESEMPATE", "# REGRAS", "# FORMATO DE SAÍDA"):
+            with self.subTest(bloco=bloco):
+                self.assertIn(bloco, texto)
+        self.assertNotIn("respeite a ordem recebida", texto)
+
+    def test_montar_preenche_todos_os_placeholders(self):
+        prompt = montar_prompt(PAYLOAD, "v2")
+
+        self.assertNotIn("{{", prompt)
+        self.assertIn('"course_id": 19', prompt)
+        self.assertIn("[\n  19,\n  16\n]", prompt)
+
+
+@override_settings(LLM_ENABLED=True, LLM_PROVIDER="fake", LLM_PROMPT_VERSION="v2")
+class DeliverComPromptV2Test(BaseEducMatch):
+    def test_fake_atravessa_o_prompt_v2_e_a_validacao(self):
+        tentativa = self.criar_tentativa()
+
+        entrega = deliver(tentativa)
+
+        self.assertEqual(entrega.ordem, [c["course_id"] for c in build_payload(tentativa)["candidatos"]])
+
+
 class ValidacaoDaSaidaTest(SimpleTestCase):
     """Passo 8: as regras do contrato de saída, uma por teste."""
 

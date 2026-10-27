@@ -1,18 +1,16 @@
-0{% extends "painel/base_painel.html" %}
+{% extends "painel/base_painel.html" %}
 {% block titulo_painel %}Resultados das avaliações{% endblock %}
 {% block titulo_pagina %}Resultados das avaliações{% endblock %}
 {% block subtitulo %}{% if curso %}{{ curso.nome_curso }}{% else %}Todos os cursos{% endif %}{% endblock %}
 {% block acoes %}
-<a class="botao botao--secundario" href="{% url 'painel-avaliacoes' %}?{{ periodo_qs }}"><i class="fa-solid fa-link" aria-hidden="true"></i> Links das turmas</a>
+<a class="botao botao--secundario" href="{% url 'painel-avaliacoes' %}"><i class="fa-solid fa-link" aria-hidden="true"></i> Links das turmas</a>
 {% if avaliacoes_com_massa %}
-<a class="botao" href="{% url 'painel-avaliacoes-csv' %}?{{ periodo_qs }}{% if curso %}&amp;curso={{ curso.id }}{% endif %}"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV</a>
+<a class="botao" href="{% url 'painel-avaliacoes-csv' %}{% if curso %}?curso={{ curso.id }}{% endif %}"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV</a>
 {% endif %}
 {% endblock %}
 
 {% block painel %}
 <form class="painel-form-linha painel-grade" method="get">
-    <input type="hidden" name="periodo" value="{{ periodo }}">
-    {% if mes %}<input type="hidden" name="mes" value="{{ mes }}">{% endif %}
     <label class="visualmente-oculto" for="curso">Curso</label>
     <select id="curso" name="curso" class="painel-campo">
         <option value="">Todos os cursos</option>
@@ -36,7 +34,7 @@
                     <td class="numero" data-rotulo="NPS">{% if linha.nps is None %}—{% else %}{{ linha.nps }}{% endif %}</td>
                     <td class="numero" data-rotulo="Média (1 a 5)">{% if linha.media is None %}—{% else %}{{ linha.media|floatformat:1 }}{% endif %}</td>
                 </tr>
-                {% empty %}<tr><td colspan="4">Nenhuma avaliação no período.</td></tr>{% endfor %}
+                {% empty %}<tr><td colspan="4">Nenhuma avaliação no histórico.</td></tr>{% endfor %}
             </tbody>
         </table>
     </div>
@@ -46,14 +44,14 @@
 <div class="painel-aviso" role="status">
     <i class="fa-solid fa-lock" aria-hidden="true"></i>
     {% if k_minimo %}
-    <p><strong>Privacidade:</strong> as respostas por pergunta só aparecem para cursos com {{ k_minimo }} avaliações ou mais no período.</p>
+    <p><strong>Privacidade:</strong> as respostas por pergunta só aparecem para cursos com {{ k_minimo }} avaliações ou mais no histórico.</p>
     {% else %}
-    <p>Nenhuma avaliação respondida neste filtro.</p>
+    <p>Nenhuma avaliação respondida no histórico para este curso.</p>
     {% endif %}
 </div>
 {% else %}
 {% if fora_do_todos %}
-<p class="painel-vazio"><i class="fa-solid fa-lock" aria-hidden="true"></i> {{ fora_do_todos }} curso(s) com menos de {{ k_minimo }} avaliações ficaram fora dos gráficos abaixo.</p>
+<p class="painel-vazio"><i class="fa-solid fa-lock" aria-hidden="true"></i> {{ fora_do_todos }} curso(s) com menos de {{ k_minimo }} avaliações no histórico ficaram fora dos gráficos abaixo.</p>
 {% endif %}
 <div class="painel-grade painel-grade--2">
     {% for bloco in blocos %}

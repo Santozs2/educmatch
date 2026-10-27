@@ -2,14 +2,15 @@ import csv
 from urllib.parse import urlencode
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from avaliacao.models import LinkDeAvaliacao
-from catalogo.models import Curso
+from catalogo.models import Area, Curso
 from painel import metricas, metricas_avaliacao, privacidade
-from painel.forms import NovoLinkDeAvaliacao
+from painel.forms import NovoCurso, NovoLinkDeAvaliacao, PesosCursoFormSet, NovaArea
 from quiz.models import QuestionarioLink, Tentativa_de_resposta
 
 
@@ -125,10 +126,94 @@ def quiz_visao_geral(request):
     })
     return render(request, "painel/quiz.html", contexto)
 
-
 @staff_member_required
 def cursos(request):
+    form = NovoCurso(request.POST or None)
+    pesos_formset = PesosCursoFormSet(request.POST or None)
+    if request.method == "POST":
+        curso_valido = form.is_valid()
+        pesos_validos = pesos_formset.is_valid()
+        if curso_valido and pesos_validos:
+            with transaction.atomic():
+                curso = form.save()
+                pesos_formset.instance = curso
+                pesos_formset.save()
+            messages.success(request, f"Curso {curso.nome_curso} criado com sucesso.")
+            return redirect("painel-cursos")
+        messages.error(request, "Revise os campos destacados antes de salvar o curso.")
+
+    return _render_cursos(request, curso_form=form, pesos_formset=pesos_formset)
+
+
+@require_POST
+@staff_member_required
+def editar_curso(request, pk):
+    curso = get_object_or_404(Curso, pk=pk)
+    prefixo = f"curso_peso-{curso.pk}"
+    form = NovoCurso(request.POST, instance=curso, auto_id=f"curso-{curso.pk}-%s")
+    pesos_formset = PesosCursoFormSet(
+        request.POST,
+        instance=curso,
+        prefix=prefixo,
+        auto_id=f"{prefixo}-%s",
+    )
+    curso_valido = form.is_valid()
+    pesos_validos = pesos_formset.is_valid()
+    if curso_valido and pesos_validos:
+        with transaction.atomic():
+            curso = form.save()
+            pesos_formset.instance = curso
+            pesos_formset.save()
+        messages.success(request, f"Curso {curso.nome_curso} atualizado com sucesso.")
+        return redirect("painel-cursos")
+
+    messages.error(request, "Revise os campos destacados antes de salvar o curso.")
+    return _render_cursos(
+        request,
+        curso_em_edicao=curso,
+        form_edicao=form,
+        pesos_edicao=pesos_formset,
+    )
+
+
+@require_POST
+@staff_member_required
+def criar_area(request):
+    form = NovaArea(request.POST)
+    if form.is_valid():
+        area = form.save()
+        messages.success(request, f"Área {area.nome} criada com sucesso.")
+        return redirect("painel-cursos")
+
+    messages.error(request, "Revise os campos destacados antes de salvar a área.")
+    return _render_cursos(request, area_form=form)
+
+
+@require_POST
+@staff_member_required
+def remover_curso(request, pk):
+    curso = get_object_or_404(Curso, pk=pk)
+    curso.is_active = False
+    curso.save(update_fields=["is_active"])
+    messages.success(request, f"Curso {curso.nome_curso} removido do catálogo ativo.")
+    return redirect("painel-cursos")
+
+
+def _render_cursos(
+    request,
+    curso_form=None,
+    pesos_formset=None,
+    curso_em_edicao=None,
+    form_edicao=None,
+    pesos_edicao=None,
+    area_form=None,
+):
     inicio, contexto = _contexto_base(request, "cursos")
+    inicio = None
+    contexto["sem_filtro_periodo"] = True
+    total_historico = metricas.total_de_tentativas(inicio)
+    contexto["total_de_tentativas"] = total_historico
+    contexto["tem_massa"] = privacidade.periodo_tem_massa_suficiente(total_historico)
     linhas = metricas.desempenho_por_curso(inicio)
     if contexto["tem_massa"]:
         linhas = privacidade.suprimir_campos(linhas, ("em_primeiro", "no_top5"))
@@ -136,13 +221,49 @@ def cursos(request):
     else:
         for linha in linhas:
             linha["em_primeiro"] = linha["no_top5"] = None
-    contexto["cursos"] = linhas
+
+    cursos = Curso.objects.filter(pk__in=[linha["id"] for linha in linhas]).prefetch_related("curso_peso")
+    cursos_edicao = []
+    for curso in cursos:
+        pendente = curso_em_edicao is not None and curso.pk == curso_em_edicao.pk
+        prefixo = f"curso_peso-{curso.pk}"
+        cursos_edicao.append({
+            "curso": curso,
+            "modal_id": f"painel-editar-curso-{curso.pk}",
+            "form_action": reverse("painel-editar-curso", args=[curso.pk]),
+            "aberto": pendente,
+            "form": form_edicao if pendente else NovoCurso(
+                instance=curso,
+                auto_id=f"curso-{curso.pk}-%s",
+            ),
+            "pesos_formset": pesos_edicao if pendente else PesosCursoFormSet(
+                instance=curso,
+                prefix=prefixo,
+                auto_id=f"{prefixo}-%s",
+            ),
+        })
+
+    contexto.update({
+        "cursos": linhas,
+        "curso_form": curso_form or NovoCurso(),
+        "pesos_formset": pesos_formset or PesosCursoFormSet(),
+        "curso_form_action": reverse("painel-cursos"),
+        "criar_modal_aberto": bool(
+            curso_form and (curso_form.errors or pesos_formset.errors)
+        ),
+        "cursos_edicao": cursos_edicao,
+        "areas": Area.objects.all(),
+        "area_form": area_form or NovaArea(),
+        "area_form_action": reverse("painel-criar-area"),
+        "area_modal_aberto": bool(area_form and area_form.errors),
+    })
     return render(request, "painel/cursos.html", contexto)
 
 
 @staff_member_required
 def links(request):
     _, contexto = _contexto_base(request, "links")
+    contexto["sem_filtro_periodo"] = True
     linhas = privacidade.suprimir_pequenos(metricas.testes_por_link())
     for linha in linhas:
         linha["url"] = request.build_absolute_uri(
@@ -216,6 +337,7 @@ def gerar_link(request):
 @staff_member_required
 def avaliacoes(request):
     _, contexto = _contexto_base(request, "avaliacoes")
+    contexto["sem_filtro_periodo"] = True
     linhas = privacidade.suprimir_pequenos(metricas_avaliacao.links())
     for linha in linhas:
         linha["url"] = request.build_absolute_uri(
@@ -261,6 +383,8 @@ def _cursos_do_filtro(request, inicio):
 @staff_member_required
 def avaliacoes_resultados(request):
     inicio, contexto = _contexto_base(request, "avaliacoes")
+    inicio = None
+    contexto["sem_filtro_periodo"] = True
     curso, cursos = _cursos_do_filtro(request, inicio)
 
     resumo = metricas_avaliacao.resumo_por_curso(inicio)
@@ -289,13 +413,14 @@ def avaliacoes_resultados(request):
 
 @staff_member_required
 def avaliacoes_csv(request):
-    inicio, _ = _contexto_base(request, "avaliacoes")
+    _contexto_base(request, "avaliacoes")
+    inicio = None
     _, cursos = _cursos_do_filtro(request, inicio)
     if not cursos:
         if privacidade.K_MINIMO:
             messages.error(request, f"O CSV só sai para cursos com {privacidade.K_MINIMO} avaliações ou mais.")
         else:
-            messages.error(request, "Nenhuma avaliação neste filtro para exportar.")
+            messages.error(request, "Nenhuma avaliação no histórico para exportar.")
         return redirect("painel-avaliacoes-resultados")
 
     resposta = HttpResponse(content_type="text/csv; charset=utf-8")
