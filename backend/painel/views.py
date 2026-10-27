@@ -358,7 +358,7 @@ def gerar_link_avaliacao(request):
         messages.success(request, f"Link criado para {link.curso.nome_curso} · {link.turma}.")
     else:
         messages.error(request, "Escolha um curso ativo e dê um nome à turma.")
-    return redirect("painel-avaliacoes-resultados")
+    return redirect("painel-avaliacoes")
 
 
 @require_POST
@@ -367,7 +367,7 @@ def fechar_link_avaliacao(request, pk):
     link = get_object_or_404(LinkDeAvaliacao, pk=pk)
     link.ativo = False
     link.save(update_fields=["ativo"])
-    return redirect("painel-avaliacoes-resultados")
+    return redirect("painel-avaliacoes")
 
 
 def _cursos_do_filtro(request, inicio):

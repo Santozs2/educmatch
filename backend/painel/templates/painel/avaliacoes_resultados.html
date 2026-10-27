@@ -1,9 +1,9 @@
-0{% extends "painel/base_painel.html" %}
+{% extends "painel/base_painel.html" %}
 {% block titulo_painel %}Resultados das avaliações{% endblock %}
 {% block titulo_pagina %}Resultados das avaliações{% endblock %}
 {% block subtitulo %}{% if curso %}{{ curso.nome_curso }}{% else %}Todos os cursos{% endif %}{% endblock %}
 {% block acoes %}
-<a class="botao botao--secundario" href="{% url 'painel-avaliacoes-resultados' %}"><i class="fa-solid fa-link" aria-hidden="true"></i> Links das turmas</a>
+<a class="botao botao--secundario" href="{% url 'painel-avaliacoes' %}"><i class="fa-solid fa-link" aria-hidden="true"></i> Links das turmas</a>
 {% if avaliacoes_com_massa %}
 <a class="botao" href="{% url 'painel-avaliacoes-csv' %}{% if curso %}?curso={{ curso.id }}{% endif %}"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV</a>
 {% endif %}
