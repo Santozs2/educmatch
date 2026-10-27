@@ -7,15 +7,15 @@ projeto: TCC
 atualizado: 2026-10-27
 ---
 
-> [!info] Relacionado: [[apresentacao/README|🎤 Roteiro]] · [[apresentacao/backend|⚙️ Backend]] · [[apresentacao/frontend|🎨 Front]] · [[apresentacao/engine|🧮 Engine]]
+> [!info] Relacionado: [[README|🎤 Roteiro]] · [[backend|⚙️ Backend]] · [[frontend|🎨 Front]] · [[engine|🧮 Engine]]
 
 # 🏛️ O MVT do EducMatch
 
 > [!abstract] O que esta nota é
 > Como o **Model–View–Template** do Django está aplicado neste projeto: o que cada
 > camada faz, **onde cada arquivo mora** e como uma requisição atravessa as três.
-> A [[apresentacao/backend|nota de backend]] descreve as decisões de modelagem e a
-> [[apresentacao/frontend|do front]] descreve CSS e JavaScript. Esta aqui é a **cola
+> A [[backend|nota de backend]] descreve as decisões de modelagem e a
+> [[frontend|do front]] descreve CSS e JavaScript. Esta aqui é a **cola
 > entre elas**: o caminho que o dado faz.
 
 ---
@@ -75,7 +75,7 @@ Cada app tem o seu `models.py`. Nenhuma view escreve SQL: tudo passa pelo ORM.
 ### Três coisas que este projeto põe no Model, e não na View
 
 **1. A ordem de exibição.** `Recomendacao.Meta.ordering = ["rank_final"]`
-([`quiz/models.py`](../backend/quiz/models.py)). A view não ordena nada: ela confia
+([`quiz/models.py`](../../backend/quiz/models.py)). A view não ordena nada: ela confia
 no model. Por isso `resultado_pagina` pode fazer `itens[0]` e saber que é o 1º lugar.
 
 ```python
@@ -104,9 +104,9 @@ tenham mudado desde então.
 
 > [!warning] O que NÃO está no Model
 > A **similaridade de cosseno** não é um método de model. Está em
-> [`quiz/engine.py`](../backend/quiz/engine.py) como **funções puras** que recebem
+> [`quiz/engine.py`](../../backend/quiz/engine.py) como **funções puras** que recebem
 > dicionários e devolvem números, sem tocar no banco. É o que permite simular milhares
-> de perfis sem gravar nada. Ver [[apresentacao/engine|🧮 Engine]].
+> de perfis sem gravar nada. Ver [[engine|🧮 Engine]].
 
 ---
 
@@ -118,7 +118,7 @@ As views são **funções**. A única baseada em classe é `EntrarView`, que apr
 ### Os quatro padrões de view do projeto
 
 **① View de leitura** — consulta, monta contexto, renderiza.
-Exemplo: `resultado_pagina` em [`quiz/web_views.py`](../backend/quiz/web_views.py).
+Exemplo: `resultado_pagina` em [`quiz/web_views.py`](../../backend/quiz/web_views.py).
 
 ```python
 recomendacoes = tentativa.recomendacoes.select_related("curso__area_principal")
@@ -139,7 +139,7 @@ Duas coisas para notar: o `select_related` evita o N+1 (uma consulta, não uma p
 curso), e a view **já converte** `score` em percentual. O template não calcula.
 
 **② View de formulário** — o mesmo endereço atende `GET` e `POST`.
-Exemplo: `responder` em [`avaliacao/views.py`](../backend/avaliacao/views.py).
+Exemplo: `responder` em [`avaliacao/views.py`](../../backend/avaliacao/views.py).
 
 ```python
 form = FormularioDeAvaliacao(perguntas, request.POST or None)
@@ -171,7 +171,7 @@ entregar(tentativa)
 > sem desfazer nada e sem manter uma transação aberta esperando a rede.
 
 **④ View de ação** — não renderiza nada, só executa e redireciona.
-Exemplo: `gerar_link` em [`painel/views.py`](../backend/painel/views.py), com
+Exemplo: `gerar_link` em [`painel/views.py`](../../backend/painel/views.py), com
 `@require_POST` e `messages.success()`. O padrão é **POST → redirect**, para que
 recarregar a página não repita a ação.
 
@@ -186,7 +186,7 @@ não reenviar um quiz.
 | Camada | Como | Onde |
 |---|---|---|
 | Painel inteiro | `@staff_member_required` | `painel/views.py`, em toda view |
-| Resultado e tentativas | Regra própria (contrato C6) | [`quiz/permissoes.py`](../backend/quiz/permissoes.py) |
+| Resultado e tentativas | Regra própria (contrato C6) | [`quiz/permissoes.py`](../../backend/quiz/permissoes.py) |
 | Links de quiz/avaliação | Token UUID + `ativo=True` | `acessar_questionario`, `_link_ativo` |
 
 A regra do C6 é a que tem jeito próprio: tentativa **com dono** só o dono vê;
@@ -270,7 +270,7 @@ Ele lê `campo.errors`, `campo.help_text` e `campo.field.required` — tudo que 
 
 ### Context processors: o contexto que toda tela recebe
 
-[`core/contexto.py`](../backend/core/contexto.py) injeta duas coisas em **todos** os
+[`core/contexto.py`](../../backend/core/contexto.py) injeta duas coisas em **todos** os
 templates, sem nenhuma view passar:
 
 ```python
@@ -295,7 +295,7 @@ coisa de apresentação: `{% widthratio %}` para a largura da barra de progresso
 `|default:''`, `{% url %}` para nunca escrever um endereço na mão.
 
 Quando a formatação é específica demais para um filtro embutido, vira **template tag**
-própria — hoje há uma só, em [`painel/templatetags/painel_extras.py`](../backend/painel/templatetags/painel_extras.py):
+própria — hoje há uma só, em [`painel/templatetags/painel_extras.py`](../../backend/painel/templatetags/painel_extras.py):
 
 ```python
 @register.filter

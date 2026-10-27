@@ -50,8 +50,8 @@ educmatch/
 │  ├─ scripts/     carga_turma.py (teste de carga)
 │  └─ startup.sh   inicialização no Azure
 └─ docs/
-   ├─ mvt.md         arquitetura MVT: o caminho de uma requisição pelas 3 camadas
    ├─ apresentacao/  material da banca (engine, ia, contratos, backend, frontend)
+   │  └─ mvt.md      arquitetura MVT: o caminho de uma requisição pelas 3 camadas
    ├─ experimento/   CSVs do experimento engine x LLM
    ├─ specs/         plano e passo a passo de cada fase
    └─ DER.png        modelo de dados
