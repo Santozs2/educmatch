@@ -68,10 +68,7 @@ class PromptV2Test(SimpleTestCase):
 
         self.assertNotIn("{{", prompt)
         self.assertIn('"course_id": 19', prompt)
-        self.assertIn("[
-  19,
-  16
-]", prompt)
+        self.assertIn("[\n  19,\n  16\n]", prompt)
 
 
 @override_settings(LLM_ENABLED=True, LLM_PROVIDER="fake", LLM_PROMPT_VERSION="v2")
