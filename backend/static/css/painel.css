@@ -256,6 +256,13 @@
   grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
 }
 
+.painel-coluna {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
 .painel-card {
   min-width: 0;
   padding: 18px;

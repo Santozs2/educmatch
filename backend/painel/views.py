@@ -8,9 +8,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from avaliacao.models import LinkDeAvaliacao
-from catalogo.models import Curso
+from catalogo.models import Area, Curso
 from painel import metricas, metricas_avaliacao, privacidade
-from painel.forms import NovoCurso, NovoLinkDeAvaliacao, PesosCursoFormSet
+from painel.forms import NovoCurso, NovoLinkDeAvaliacao, PesosCursoFormSet, NovaArea
 from quiz.models import QuestionarioLink, Tentativa_de_resposta
 
 
@@ -126,7 +126,6 @@ def quiz_visao_geral(request):
     })
     return render(request, "painel/quiz.html", contexto)
 
-
 @staff_member_required
 def cursos(request):
     form = NovoCurso(request.POST or None)
@@ -179,6 +178,19 @@ def editar_curso(request, pk):
 
 @require_POST
 @staff_member_required
+def criar_area(request):
+    form = NovaArea(request.POST)
+    if form.is_valid():
+        area = form.save()
+        messages.success(request, f"Área {area.nome} criada com sucesso.")
+        return redirect("painel-cursos")
+
+    messages.error(request, "Revise os campos destacados antes de salvar a área.")
+    return _render_cursos(request, area_form=form)
+
+
+@require_POST
+@staff_member_required
 def remover_curso(request, pk):
     curso = get_object_or_404(Curso, pk=pk)
     curso.is_active = False
@@ -194,6 +206,7 @@ def _render_cursos(
     curso_em_edicao=None,
     form_edicao=None,
     pesos_edicao=None,
+    area_form=None,
 ):
     inicio, contexto = _contexto_base(request, "cursos")
     linhas = metricas.desempenho_por_curso(inicio)
@@ -234,6 +247,10 @@ def _render_cursos(
             curso_form and (curso_form.errors or pesos_formset.errors)
         ),
         "cursos_edicao": cursos_edicao,
+        "areas": Area.objects.all(),
+        "area_form": area_form or NovaArea(),
+        "area_form_action": reverse("painel-criar-area"),
+        "area_modal_aberto": bool(area_form and area_form.errors),
     })
     return render(request, "painel/cursos.html", contexto)
 

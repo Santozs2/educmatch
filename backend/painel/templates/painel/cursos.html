@@ -3,6 +3,7 @@
 {% block titulo_pagina %}Cursos e Áreas{% endblock %}
 {% block subtitulo %}Catálogo ativo e como cada curso aparece no ranking{% endblock %}
 {% block acoes %}
+<button class="botao botao--secundario" type="button" data-abrir-curso="painel-criar-area"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nova área</button>
 <button class="botao" type="button" data-abrir-curso="painel-criar-curso"><i class="fa-solid fa-plus" aria-hidden="true"></i> Novo curso</button>
 {% endblock %}
 
@@ -49,6 +50,17 @@
         </div>
     </article>
 
+    {# Os dois cards de area dividem a coluna estreita do grid 2fr/1fr. #}
+    <div class="painel-coluna">
+    <article class="painel-card">
+        <h2 class="painel-card__titulo">Áreas cadastradas ({{ areas|length }})</h2>
+        <ul class="painel-lista">
+            {% for area in areas %}
+            <li><span>{{ area.nome }}</span><b>{{ area.slug }}</b></li>
+            {% empty %}<li>Nenhuma área cadastrada.</li>{% endfor %}
+        </ul>
+    </article>
+
     <article class="painel-card">
         <h2 class="painel-card__titulo">Áreas mais fortes no 1º lugar</h2>
         {% if tem_massa %}
@@ -61,8 +73,10 @@
         <p class="painel-vazio">Aparece quando o período tiver {{ k_minimo }} testes ou mais.</p>
         {% endif %}
     </article>
+    </div>
 </div>
 
+{% include "painel/_modal_area.html" with modal_id="painel-criar-area" modal_titulo="Nova área" form_action=area_form_action area_form=area_form modal_aberto=area_modal_aberto %}
 {% include "painel/_modal_curso.html" with modal_id="painel-criar-curso" modal_titulo="Novo curso" form_action=curso_form_action curso_form=curso_form pesos_formset=pesos_formset modal_aberto=criar_modal_aberto %}
 {% for edicao in cursos_edicao %}
 {% include "painel/_modal_curso.html" with modal_id=edicao.modal_id modal_titulo="Editar curso" form_action=edicao.form_action curso_form=edicao.form pesos_formset=edicao.pesos_formset modal_aberto=edicao.aberto %}

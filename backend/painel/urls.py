@@ -7,6 +7,7 @@ urlpatterns = [
     path("cursos/", views.cursos, name="painel-cursos"),
     path("cursos/<int:pk>/editar/", views.editar_curso, name="painel-editar-curso"),
     path("cursos/<int:pk>/remover/", views.remover_curso, name="painel-remover-curso"),
+    path("areas/criar/", views.criar_area, name="painel-criar-area"),
     path("links/", views.links, name="painel-links"),
     path("interesse/", views.interesse, name="painel-interesse"),
     path("gerar-link/", views.gerar_link, name="painel-gerar-link"),

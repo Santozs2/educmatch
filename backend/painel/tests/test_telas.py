@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Interesse
+from catalogo.models import Area, Curso
 from painel import metricas
 from painel.tests.base import BasePainel
 from quiz.models import QuestionarioLink, Tentativa_de_resposta
@@ -169,7 +170,7 @@ class TelasDeCadastroTest(BasePainel):
     def test_editar_curso_abre_modal_com_dados_e_salva_alteracoes(self):
         self.client.force_login(self.staff)
         curso = self.criar_curso(nome_curso="Curso para editar")
-        peso_existente = curso.peso_curso.create(area=curso.area_principal, peso=1)
+        peso_existente = curso.curso_peso.create(area=curso.area_principal, peso=1)
         prefixo = f"curso_peso-{curso.pk}"
 
         pagina = self.client.get(reverse("painel-cursos"))
@@ -210,20 +211,20 @@ class TelasDeCadastroTest(BasePainel):
         self.assertEqual(curso.nome_curso, "Curso editado pelo painel")
         self.assertEqual(curso.duracao, 160)
         peso_existente.refresh_from_db()
-        self.assertEqual(curso.peso_curso.count(), 1)
+        self.assertEqual(curso.curso_peso.count(), 1)
         self.assertEqual(peso_existente.peso, 3)
 
     def test_remover_curso_desativa_sem_apagar_historico(self):
         self.client.force_login(self.staff)
         curso = self.criar_curso(nome_curso="Curso para remover")
-        peso = curso.peso_curso.create(area=curso.area_principal, peso=2)
+        peso = curso.curso_peso.create(area=curso.area_principal, peso=2)
 
         resposta = self.client.post(reverse("painel-remover-curso", args=[curso.pk]))
 
         self.assertRedirects(resposta, reverse("painel-cursos"))
         curso.refresh_from_db()
         self.assertFalse(curso.is_active)
-        self.assertTrue(curso.peso_curso.filter(pk=peso.pk).exists())
+        self.assertTrue(curso.curso_peso.filter(pk=peso.pk).exists())
 
     def test_criar_curso_no_painel_salva_pesos_por_area(self):
         self.client.force_login(self.staff)
@@ -249,8 +250,8 @@ class TelasDeCadastroTest(BasePainel):
 
         self.assertRedirects(resposta, reverse("painel-cursos"))
         curso = Curso.objects.get(nome_curso="Novo curso pelo painel")
-        self.assertEqual(curso.peso_curso.get().area, area)
-        self.assertEqual(curso.peso_curso.get().peso, 2)
+        self.assertEqual(curso.curso_peso.get().area, area)
+        self.assertEqual(curso.curso_peso.get().peso, 2)
 
     def test_peso_decimal_nao_cria_curso(self):
         self.client.force_login(self.staff)
@@ -277,6 +278,61 @@ class TelasDeCadastroTest(BasePainel):
         self.assertEqual(resposta.status_code, 200)
         self.assertFalse(Curso.objects.filter(nome_curso="Curso com peso decimal").exists())
         self.assertContains(resposta, 'data-abrir="true"')
+
+    def test_criar_area_no_painel_gera_slug_a_partir_do_nome(self):
+        self.client.force_login(self.staff)
+
+        resposta = self.client.post(
+            reverse("painel-criar-area"),
+            {"nome": "Elétrica Industrial", "descricao": "Área criada pelo painel"},
+        )
+
+        self.assertRedirects(resposta, reverse("painel-cursos"))
+        area = Area.objects.get(nome="Elétrica Industrial")
+        self.assertEqual(area.slug, "eletrica-industrial")
+
+    def test_criar_area_com_nome_repetido_nao_duplica(self):
+        self.client.force_login(self.staff)
+        existente = Area.objects.first()
+
+        resposta = self.client.post(
+            reverse("painel-criar-area"),
+            {"nome": existente.nome.lower(), "descricao": "Tentativa de duplicar"},
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(Area.objects.filter(nome__iexact=existente.nome).count(), 1)
+        self.assertContains(resposta, 'data-abrir="true"')
+
+    def test_nomes_diferentes_com_mesmo_slug_nao_colidem(self):
+        """Dois nomes distintos podem reduzir ao mesmo slug; a chave do matching é única."""
+        self.client.force_login(self.staff)
+
+        self.client.post(reverse("painel-criar-area"), {"nome": "Saúde & Bem-estar", "descricao": "Primeira"})
+        resposta = self.client.post(
+            reverse("painel-criar-area"), {"nome": "Saúde / Bem estar", "descricao": "Segunda"}
+        )
+
+        self.assertRedirects(resposta, reverse("painel-cursos"))
+        slugs = sorted(Area.objects.filter(nome__startswith="Saúde").values_list("slug", flat=True))
+        self.assertEqual(slugs, ["saude-bem-estar", "saude-bem-estar-2"])
+
+    def test_area_criada_aparece_na_tela_de_cursos(self):
+        self.client.force_login(self.staff)
+        self.client.post(reverse("painel-criar-area"), {"nome": "Logística", "descricao": "Nova"})
+
+        resposta = self.client.get(reverse("painel-cursos"))
+
+        self.assertContains(resposta, "Logística")
+        self.assertContains(resposta, "logistica")
+
+    def test_criar_area_exige_staff(self):
+        resposta = self.client.post(
+            reverse("painel-criar-area"), {"nome": "Sem permissão", "descricao": "x"}
+        )
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertFalse(Area.objects.filter(nome="Sem permissão").exists())
 
     def test_fechar_um_link_nao_fecha_os_outros(self):
         self.client.force_login(self.staff)
