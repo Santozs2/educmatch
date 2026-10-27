@@ -147,12 +147,18 @@ class TelasDeCadastroTest(BasePainel):
         self.client.force_login(self.staff)
         link = QuestionarioLink.objects.create(criado_por=self.staff)
         tentativas = self.criar_tentativas(quantidade=2)
-        Tentativa_de_resposta.objects.filter(pk__in=[t.pk for t in tentativas]).update(questionario_link=link)
+        Tentativa_de_resposta.objects.filter(pk__in=[t.pk for t in tentativas]).update(
+            questionario_link=link,
+            criado_em=timezone.now() - timedelta(days=40),
+        )
 
-        linhas = self.client.get(reverse("painel-links")).context["links"]
+        resposta = self.client.get(reverse("painel-links"), {"periodo": "diario"})
+        linhas = resposta.context["links"]
 
         self.assertNotIn("suprimido", linhas[0])
         self.assertEqual(linhas[0]["total"], 2)
+        self.assertContains(resposta, "Histórico completo")
+        self.assertNotContains(resposta, "Aplicar")
 
     def test_novo_curso_abre_modal_no_painel(self):
         self.client.force_login(self.staff)
@@ -166,6 +172,26 @@ class TelasDeCadastroTest(BasePainel):
         self.assertContains(resposta, 'name="area_principal"')
         self.assertContains(resposta, 'name="is_active"')
         self.assertNotContains(resposta, "admin:catalogo_curso_add")
+
+    def test_cursos_e_areas_ignora_filtro_de_periodo(self):
+        self.client.force_login(self.staff)
+        curso = Curso.objects.first()
+        area = curso.area_principal
+        tentativa_antiga = self.criar_tentativa_com_explicacao({"top_areas": [{"area": area.slug}]})
+        Tentativa_de_resposta.objects.filter(pk=tentativa_antiga.pk).update(
+            criado_em=timezone.now() - timedelta(days=40)
+        )
+        self.criar_tentativa_com_explicacao({"top_areas": [{"area": area.slug}]})
+
+        resposta = self.client.get(reverse("painel-cursos"), {"periodo": "diario"})
+
+        linha = next(linha for linha in resposta.context["cursos"] if linha["id"] == curso.pk)
+        demanda = next(linha for linha in resposta.context["demanda_por_area"] if linha["area"] == area.slug)
+        self.assertEqual(linha["em_primeiro"], 2)
+        self.assertEqual(linha["no_top5"], 2)
+        self.assertEqual(demanda["total"], 2)
+        self.assertContains(resposta, "Histórico completo")
+        self.assertNotContains(resposta, "Aplicar")
 
     def test_editar_curso_abre_modal_com_dados_e_salva_alteracoes(self):
         self.client.force_login(self.staff)

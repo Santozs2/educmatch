@@ -59,10 +59,11 @@
 
 {% if camada_de_ia %}
 <article class="painel-card painel-grade" id="camada-de-ia">
-    <h2 class="painel-card__titulo">Camada de IA <span class="painel-ajuda" tabindex="0" data-dica="Só as tentativas em que a LLM foi chamada. Divergência: a LLM trocou o 1º lugar da engine, o que ela só pode fazer dentro de um empate.">?</span></h2>
+    <h2 class="painel-card__titulo">Camada de IA <span class="painel-ajuda" tabindex="0" data-dica="Só as tentativas em que a LLM foi chamada. Divergência: a LLM trocou o 1º lugar da engine, o que ela só pode fazer dentro de um empate. Alternativas: a LLM entregou as outras 4 numa ordem diferente da engine.">?</span></h2>
     <ul class="painel-lista">
         <li><span>Chamadas à LLM</span><b>{{ camada_de_ia.chamadas }}</b></li>
         <li><span>Trocou o 1º lugar (divergência)</span><b>{% if camada_de_ia.divergencia is None %}—{% else %}{{ camada_de_ia.divergencia|floatformat:0 }}%{% endif %}</b></li>
+        <li><span>Mudou a ordem das alternativas</span><b>{% if camada_de_ia.alternativas_reordenadas is None %}—{% else %}{{ camada_de_ia.alternativas_reordenadas|floatformat:0 }}%{% endif %}</b></li>
         <li><span>Caiu na engine (fallback)</span><b {% if camada_de_ia.fallback > 20 %}class="painel-alerta"{% endif %}>{{ camada_de_ia.fallback|floatformat:0 }}%</b></li>
         <li><span>Servido do cache</span><b>{% if camada_de_ia.cache is None %}—{% else %}{{ camada_de_ia.cache|floatformat:0 }}%{% endif %}</b></li>
         <li><span>Tempo de resposta (mediana)</span><b>{% if camada_de_ia.latencia_mediana is None %}—{% else %}{{ camada_de_ia.latencia_mediana|floatformat:0 }} ms{% endif %}</b></li>

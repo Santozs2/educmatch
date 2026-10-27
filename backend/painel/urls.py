@@ -13,9 +13,9 @@ urlpatterns = [
     path("gerar-link/", views.gerar_link, name="painel-gerar-link"),
     path("fechar-link/", views.fechar_link, name="painel-fechar-link"),
     path("links/<int:pk>/fechar/", views.fechar_um_link, name="painel-fechar-um-link"),
-    path("avaliacoes/", views.avaliacoes, name="painel-avaliacoes"),
+    path("avaliacoes/", views.avaliacoes_resultados, name="painel-avaliacoes"),
     path("avaliacoes/gerar/", views.gerar_link_avaliacao, name="painel-avaliacoes-gerar"),
     path("avaliacoes/<int:pk>/fechar/", views.fechar_link_avaliacao, name="painel-avaliacoes-fechar"),
-    path("avaliacoes/resultados/", views.avaliacoes_resultados, name="painel-avaliacoes-resultados"),
+    path("avaliacoes/resultados/", views.avaliacoes, name="painel-avaliacoes-resultados"),
     path("avaliacoes/resultados.csv", views.avaliacoes_csv, name="painel-avaliacoes-csv"),
 ]

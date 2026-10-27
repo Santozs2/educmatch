@@ -67,7 +67,7 @@
         <ul class="painel-lista">
             {% for linha in demanda_por_area %}
             <li><span>{{ linha.nome }}</span><b>{% include "painel/_celula.html" with valor=linha.total suprimido=linha.suprimido %}</b></li>
-            {% empty %}<li>Nenhum dado no período.</li>{% endfor %}
+            {% empty %}<li>Nenhum dado no histórico.</li>{% endfor %}
         </ul>
         {% else %}
         <p class="painel-vazio">Aparece quando o período tiver {{ k_minimo }} testes ou mais.</p>

@@ -379,6 +379,9 @@ def camada_de_ia(inicio):
         "chamadas": total,
         "fallback": (total - n_entregues) / total * 100,
         "divergencia": entregues.filter(diverged=True).count() / n_entregues * 100 if n_entregues else None,
+        "alternativas_reordenadas": (
+            entregues.filter(reordered_alternatives=True).count() / n_entregues * 100 if n_entregues else None
+        ),
         "cache": entregues.filter(cache_hit=True).count() / n_entregues * 100 if n_entregues else None,
         "latencia_mediana": median(latencias) if latencias else None,
         "tokens_entrada": tokens["entrada"],

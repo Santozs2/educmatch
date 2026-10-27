@@ -58,7 +58,7 @@
                 <b>EducMatch</b>
             </a>
 
-            {% include "painel/_periodo.html" with sufixo="barra" %}
+            {% if not sem_filtro_periodo %}{% include "painel/_periodo.html" with sufixo="barra" %}{% endif %}
 
             <a href="{{ url_do_quiz }}" class="botao botao--secundario painel-barra__teste" aria-label="Voltar ao teste">Voltar ao teste</a>
 
@@ -82,7 +82,7 @@
             <header class="painel-cabecalho">
                 <div>
                     <h1>{% block titulo_pagina %}Painel{% endblock %}</h1>
-                    <p>{% block subtitulo %}{% endblock %} · Período: {{ periodo_label }}{% if periodo == "mes" and mes %} ({{ mes }}){% endif %}</p>
+                    <p>{% block subtitulo %}{% endblock %} · {% if sem_filtro_periodo %}Histórico completo{% else %}Período: {{ periodo_label }}{% if periodo == "mes" and mes %} ({{ mes }}){% endif %}{% endif %}</p>
                 </div>
                 <div class="painel-cabecalho__acoes">{% block acoes %}{% endblock %}</div>
             </header>

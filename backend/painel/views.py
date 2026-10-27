@@ -209,6 +209,11 @@ def _render_cursos(
     area_form=None,
 ):
     inicio, contexto = _contexto_base(request, "cursos")
+    inicio = None
+    contexto["sem_filtro_periodo"] = True
+    total_historico = metricas.total_de_tentativas(inicio)
+    contexto["total_de_tentativas"] = total_historico
+    contexto["tem_massa"] = privacidade.periodo_tem_massa_suficiente(total_historico)
     linhas = metricas.desempenho_por_curso(inicio)
     if contexto["tem_massa"]:
         linhas = privacidade.suprimir_campos(linhas, ("em_primeiro", "no_top5"))
@@ -258,6 +263,7 @@ def _render_cursos(
 @staff_member_required
 def links(request):
     _, contexto = _contexto_base(request, "links")
+    contexto["sem_filtro_periodo"] = True
     linhas = privacidade.suprimir_pequenos(metricas.testes_por_link())
     for linha in linhas:
         linha["url"] = request.build_absolute_uri(
@@ -331,6 +337,7 @@ def gerar_link(request):
 @staff_member_required
 def avaliacoes(request):
     _, contexto = _contexto_base(request, "avaliacoes")
+    contexto["sem_filtro_periodo"] = True
     linhas = privacidade.suprimir_pequenos(metricas_avaliacao.links())
     for linha in linhas:
         linha["url"] = request.build_absolute_uri(
@@ -351,7 +358,7 @@ def gerar_link_avaliacao(request):
         messages.success(request, f"Link criado para {link.curso.nome_curso} · {link.turma}.")
     else:
         messages.error(request, "Escolha um curso ativo e dê um nome à turma.")
-    return redirect("painel-avaliacoes")
+    return redirect("painel-avaliacoes-resultados")
 
 
 @require_POST
@@ -360,7 +367,7 @@ def fechar_link_avaliacao(request, pk):
     link = get_object_or_404(LinkDeAvaliacao, pk=pk)
     link.ativo = False
     link.save(update_fields=["ativo"])
-    return redirect("painel-avaliacoes")
+    return redirect("painel-avaliacoes-resultados")
 
 
 def _cursos_do_filtro(request, inicio):
@@ -376,6 +383,8 @@ def _cursos_do_filtro(request, inicio):
 @staff_member_required
 def avaliacoes_resultados(request):
     inicio, contexto = _contexto_base(request, "avaliacoes")
+    inicio = None
+    contexto["sem_filtro_periodo"] = True
     curso, cursos = _cursos_do_filtro(request, inicio)
 
     resumo = metricas_avaliacao.resumo_por_curso(inicio)
@@ -404,13 +413,14 @@ def avaliacoes_resultados(request):
 
 @staff_member_required
 def avaliacoes_csv(request):
-    inicio, _ = _contexto_base(request, "avaliacoes")
+    _contexto_base(request, "avaliacoes")
+    inicio = None
     _, cursos = _cursos_do_filtro(request, inicio)
     if not cursos:
         if privacidade.K_MINIMO:
             messages.error(request, f"O CSV só sai para cursos com {privacidade.K_MINIMO} avaliações ou mais.")
         else:
-            messages.error(request, "Nenhuma avaliação neste filtro para exportar.")
+            messages.error(request, "Nenhuma avaliação no histórico para exportar.")
         return redirect("painel-avaliacoes-resultados")
 
     resposta = HttpResponse(content_type="text/csv; charset=utf-8")
