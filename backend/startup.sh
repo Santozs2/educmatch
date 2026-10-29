@@ -6,6 +6,15 @@ cd "$(dirname "$0")"
 
 mkdir -p /home/data
 
+# Migrate, cache e seeds num processo só, e só quando a versão no ar mudou.
+# O marcador fica em /home/data, que sobrevive aos reinícios.
+export MARCADOR_PREPARO=/home/data/.versao-preparada
+python manage.py preparar_producao
+
+# O collectstatic roda no build (deploy.yml). Aqui só se o pacote veio sem ele,
+# como num deploy manual por zip.
+[ -f staticfiles/staticfiles.json ] || python manage.py collectstatic --noinput
+
 python manage.py migrate --noinput
 python manage.py createcachetable
 python manage.py seed_areas

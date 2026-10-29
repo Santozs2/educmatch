@@ -84,6 +84,9 @@ Tudo que muda de uma máquina para outra vem de variável de ambiente. O
 `core/settings.py` lê o `backend/.env` sozinho; os nomes estão em
 `backend/.env.example`. O `.env` **nunca** vai para o Git.
 
+Valores booleanos aceitos em `.env` são `1/0` e `true/false` (por exemplo,
+`DJANGO_DEBUG=true` e `LLM_ENABLED=0`).
+
 | Grupo | Variáveis |
 | --- | --- |
 | Django | `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS` |
