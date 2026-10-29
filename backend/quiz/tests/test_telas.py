@@ -82,3 +82,21 @@ class TelasDoAlunoTest(BaseEducMatch):
         resposta = self.client.get(reverse("quiz-inicio"))
 
         self.assertContains(resposta, "link da escola")
+
+    def test_quem_responde_direto_nao_ve_o_aviso_do_link(self):
+        tentativa = self.responder()
+
+        self.assertIsNone(tentativa.questionario_link)
+        self.assertNotContains(self.client.get(reverse("quiz-resultado", args=[tentativa.pk])), "link da escola")
+
+    def test_o_link_da_escola_vale_para_uma_tentativa_so(self):
+        link = QuestionarioLink.objects.create()
+        self.client.get(reverse("questionario-link", args=[link.token]))
+
+        pelo_link = self.responder()
+        depois = self.responder()  # o mesmo navegador, entrando direto pelo site
+
+        self.assertEqual(pelo_link.questionario_link, link)
+        self.assertContains(self.client.get(reverse("quiz-resultado", args=[pelo_link.pk])), "link da escola")
+        self.assertIsNone(depois.questionario_link)
+        self.assertNotContains(self.client.get(reverse("quiz-resultado", args=[depois.pk])), "link da escola")
