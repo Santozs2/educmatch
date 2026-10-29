@@ -53,3 +53,4 @@ Thumbs.db
 
 # Configuração local do Claude Code (contém token): nunca versionar
 .claude/settings.local.json
+claude/

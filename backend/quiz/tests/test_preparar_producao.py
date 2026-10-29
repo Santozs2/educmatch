@@ -52,3 +52,18 @@ class PrepararProducaoTest(SimpleTestCase):
             with self.assertRaises(RuntimeError):
                 call_command("preparar_producao", stdout=StringIO())
         self.assertFalse(self.marcador.exists())
+
+
+class MarcadorConfiguradoTest(SimpleTestCase):
+    """O setting existe com o nome que o comando lê. Os outros testes passam o
+    valor por override_settings e, por isso, não pegaram o "MARACADOR" que
+    derrubou o boot em produção (29/10/2026)."""
+
+    def test_settings_tem_o_marcador_com_o_nome_que_o_comando_le(self):
+        from django.conf import settings
+
+        self.assertTrue(settings.MARCADOR_PREPARO.endswith(".versao-preparada"))
+
+    def test_comando_roda_sem_override_do_marcador(self):
+        with override_settings(VERSAO="dev"), mock.patch(CHAMAR):
+            call_command("preparar_producao", stdout=StringIO())

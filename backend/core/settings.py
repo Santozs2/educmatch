@@ -221,4 +221,4 @@ LLM_PAUSA = int(os.environ.get("LLM_PAUSA", "30"))
 # do pacote; na máquina de quem desenvolve ele não existe e a versão é "dev".
 _ARQUIVO_VERSAO = BASE_DIR / "VERSAO"
 VERSAO = _ARQUIVO_VERSAO.read_text(encoding="utf-8").strip() if _ARQUIVO_VERSAO.exists() else "dev"
-MARACADOR_PREPARO = os.environ.get("MARCADOR_PREPARO", str(BASE_DIR / ".versao-preparada"))
+MARCADOR_PREPARO = os.environ.get("MARCADOR_PREPARO", str(BASE_DIR / ".versao-preparada"))

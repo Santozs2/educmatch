@@ -15,14 +15,6 @@ python manage.py preparar_producao
 # como num deploy manual por zip.
 [ -f staticfiles/staticfiles.json ] || python manage.py collectstatic --noinput
 
-python manage.py migrate --noinput
-python manage.py createcachetable
-python manage.py seed_areas
-python manage.py seed_cursos
-python manage.py seed_questoes
-python manage.py seed_avaliacao
-python manage.py collectstatic --noinput
-
 # gthread: a chamada à LLM é espera de rede, e com threads um worker atende
 # outros alunos enquanto espera. 2 workers x 8 threads = 16 quizzes ao mesmo
 # tempo (com o worker síncrono eram 2).
