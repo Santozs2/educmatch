@@ -23,6 +23,7 @@ class C6ClaimTest(BaseEducMatch):
         """A consequencia verificavel que hoje devolve vazio."""
         self.responder_tudo()
         self.client.post(reverse("cadastro_usuario"), self.dados_de_cadastro())
+        tentativa = Tentativa_de_resposta.objects.latest("id")
 
         resposta = self.client.get(reverse("minhas-tentativas"))
 
