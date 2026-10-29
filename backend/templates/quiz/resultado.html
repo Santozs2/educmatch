@@ -73,9 +73,27 @@
                 </div>
                 {% endif %}
 
-                <a class="botao botao--bloco" href="{% url 'curso-detalhe' destaque.curso.id %}?tentativa={{ tentativa.pk }}">
-                    Ver detalhes do curso
-                </a>
+                <div class="destaque__acoes">
+                    {% if destaque.curso.id in interesses_salvos %}
+                    <form method="post" action="{% url 'interesse-remover' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="curso_id" value="{{ destaque.curso.id }}">
+                        <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
+                        <button class="botao botao--contorno botao--bloco" type="submit">Remover da minha lista</button>
+                    </form>
+                    {% else %}
+                    <form method="post" action="{% url 'interesse-salvar' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="curso_id" value="{{ destaque.curso.id }}">
+                        <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
+                        <button class="botao botao--bloco" type="submit">Manifestar interesse</button>
+                    </form>
+                    {% endif %}
+                    <a class="botao botao--contorno botao--bloco" href="{% url 'curso-detalhe' destaque.curso.id %}?tentativa={{ tentativa.pk }}">
+                        <span class="destaque__detalhes-completo">Ver detalhes do curso</span> <!-- Esse texto aparece em telas grandes(PC)-->
+                        <span class="destaque__detalhes-curto">Ver detalhes</span>  <!--O texto curto aparece em telas pequenas(Mobile), para não quebrar a linha do botão -->
+                    </a>
+                </div> 
             </div>
         </div>
     </article>
