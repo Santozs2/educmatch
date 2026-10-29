@@ -1,0 +1,7 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "ANTHROPIC_AUTH_KEY": "sk-8ba4c65db0a4ccfd-1d3c59-6a57d3fe",
+    "ANTHROPIC_MODEL": "combo/agentes"
+  }
+}
