@@ -41,12 +41,13 @@ class CascaDoPainelTest(BasePainel):
 
         self.assertContains(resposta, 'href="/painel/quiz/?periodo=mensal" aria-current="page"')
 
-    def test_painel_tem_link_para_voltar_ao_teste(self):
+    def test_voltar_ao_teste_abre_o_quiz_direto_e_nao_pelo_link(self):
         link = QuestionarioLink.objects.create()
         resposta = self.client.get(reverse("painel-dashboard"))
 
         self.assertContains(resposta, 'Voltar ao teste')
-        self.assertContains(resposta, reverse("questionario-link", args=[link.token]))
+        self.assertContains(resposta, 'href="http://localhost/"')
+        self.assertNotContains(resposta, f'href="http://localhost{reverse("questionario-link", args=[link.token])}"')
 
     def test_nenhum_template_do_painel_usa_botao_fantasma(self):
         for arquivo in PASTA_DE_TEMPLATES.glob("*.html"):

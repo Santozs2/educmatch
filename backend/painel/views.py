@@ -39,12 +39,9 @@ def _contexto_base(request, secao):
     if escolhido == "mes" and mes:
         filtro["mes"] = mes
 
-    link_ativo = QuestionarioLink.objects.filter(ativo=True).order_by("-criado_em").first()
-    url_do_quiz = (
-        request.build_absolute_uri(reverse("questionario-link", kwargs={"token": link_ativo.token}))
-        if link_ativo is not None
-        else request.build_absolute_uri(reverse("quiz-inicio"))
-    )
+    # O quiz direto, e não pelo link da escola: o teste da coordenação não pode
+    # sair marcado como resposta de aluno pelo link nem contar nas métricas dele.
+    url_do_quiz = request.build_absolute_uri(reverse("quiz-inicio"))
 
     return inicio, {
         "secao": secao,

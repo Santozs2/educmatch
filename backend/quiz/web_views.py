@@ -126,6 +126,9 @@ def pagina_quiz(request):
     request.session.pop("quiz_respostas", None)
     request.session.pop("quiz_respondido_por", None)
     request.session.pop("quiz_iniciado_em", None)
+    # O link da escola vale para uma tentativa. Sem isto, o token ficava na sessão
+    # e todo quiz seguinte deste navegador saía marcado como "pelo link da escola".
+    request.session.pop("questionario_link_token", None)
     request.session.modified = True
     
     return redirect("quiz-resultado", pk=tentativa.pk)
