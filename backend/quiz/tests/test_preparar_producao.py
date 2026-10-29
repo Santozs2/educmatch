@@ -3,6 +3,7 @@ from io import StringIO
 from pathlib import Path
 from unittest import mock
 
+from django.conf import settings
 from django.core.management import call_command
 from django.test import SimpleTestCase, override_settings
 
@@ -60,10 +61,10 @@ class MarcadorConfiguradoTest(SimpleTestCase):
     derrubou o boot em produção (29/10/2026)."""
 
     def test_settings_tem_o_marcador_com_o_nome_que_o_comando_le(self):
-        from django.conf import settings
-
         self.assertTrue(settings.MARCADOR_PREPARO.endswith(".versao-preparada"))
 
     def test_comando_roda_sem_override_do_marcador(self):
-        with override_settings(VERSAO="dev"), mock.patch(CHAMAR):
+        # Lê o settings.MARCADOR_PREPARO de verdade; o Path vira dublê só para não gravar no repositório.
+        with override_settings(VERSAO="dev"), mock.patch(CHAMAR),                 mock.patch("quiz.management.commands.preparar_producao.Path") as caminho:
             call_command("preparar_producao", stdout=StringIO())
+        caminho.assert_called_once_with(settings.MARCADOR_PREPARO)
