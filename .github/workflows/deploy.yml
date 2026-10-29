@@ -74,6 +74,19 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Backup do banco antes de publicar (fica no próprio Azure)
+        run: |
+          token=$(az account get-access-token --query accessToken -o tsv)
+          comando="mkdir -p data/backups \
+            && cp data/educmatch.sqlite3 data/backups/educmatch-$(date -u +%Y%m%d-%H%M)-${COMMIT}.sqlite3 \
+            && ls -1t data/backups/*.sqlite3 | tail -n +6 | xargs -r rm -f \
+            && ls -1t data/backups"
+          resposta=$(curl -sS -f -X POST "https://${APP}.scm.azurewebsites.net/api/command" \
+            -H "Authorization: Bearer ${token}" -H "Content-Type: application/json" \
+            -d "$(jq -n --arg c "$comando" '{command: ("bash -c \"" + $c + "\""), dir: "/home"}')")
+          echo "$resposta" | jq -r '.Output, .Error'
+          [ "$(echo "$resposta" | jq -r '.ExitCode')" = "0" ]
+
       - uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.APP }}

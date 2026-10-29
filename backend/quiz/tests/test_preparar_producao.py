@@ -3,6 +3,7 @@ from io import StringIO
 from pathlib import Path
 from unittest import mock
 
+from django.conf import settings
 from django.core.management import call_command
 from django.test import SimpleTestCase, override_settings
 
@@ -52,3 +53,18 @@ class PrepararProducaoTest(SimpleTestCase):
             with self.assertRaises(RuntimeError):
                 call_command("preparar_producao", stdout=StringIO())
         self.assertFalse(self.marcador.exists())
+
+
+class MarcadorConfiguradoTest(SimpleTestCase):
+    """O setting existe com o nome que o comando lê. Os outros testes passam o
+    valor por override_settings e, por isso, não pegaram o "MARACADOR" que
+    derrubou o boot em produção (29/10/2026)."""
+
+    def test_settings_tem_o_marcador_com_o_nome_que_o_comando_le(self):
+        self.assertTrue(settings.MARCADOR_PREPARO.endswith(".versao-preparada"))
+
+    def test_comando_roda_sem_override_do_marcador(self):
+        # Lê o settings.MARCADOR_PREPARO de verdade; o Path vira dublê só para não gravar no repositório.
+        with override_settings(VERSAO="dev"), mock.patch(CHAMAR),                 mock.patch("quiz.management.commands.preparar_producao.Path") as caminho:
+            call_command("preparar_producao", stdout=StringIO())
+        caminho.assert_called_once_with(settings.MARCADOR_PREPARO)
