@@ -25,6 +25,7 @@ docs/.obsidian/
 
 # Commit no ar: o deploy.yml grava este arquivo dentro do pacote
 backend/VERSAO
+backend/versao-preparada
 
 # Variáveis de ambiente
 .env

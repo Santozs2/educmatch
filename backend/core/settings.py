@@ -5,6 +5,19 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off", ""}:
+        return False
+    return default
+
+
 def _load_env_file():
     env_file = BASE_DIR / ".env"
     if not env_file.exists():
@@ -25,7 +38,7 @@ def _load_env_file():
 _load_env_file()
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-inseguro-troque-em-producao")
-DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
+DEBUG = _env_bool("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = [
     h.strip()
     for h in os.environ.get(
@@ -192,7 +205,7 @@ CACHES = {
 
 # Camada de IA. Desligada por padrão: sem .env, o sistema é o da engine pura.
 # LLM_ENABLED=0 é o botão de pânico da defesa.
-LLM_ENABLED = os.environ.get("LLM_ENABLED", "0") == "1"
+LLM_ENABLED = _env_bool("LLM_ENABLED", False)
 LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "fake")  # fake | gemini | openai_compat
 LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "")  # vazio + gemini = endereço do Gemini
 LLM_MODEL = os.environ.get("LLM_MODEL", "")
@@ -208,3 +221,4 @@ LLM_PAUSA = int(os.environ.get("LLM_PAUSA", "30"))
 # do pacote; na máquina de quem desenvolve ele não existe e a versão é "dev".
 _ARQUIVO_VERSAO = BASE_DIR / "VERSAO"
 VERSAO = _ARQUIVO_VERSAO.read_text(encoding="utf-8").strip() if _ARQUIVO_VERSAO.exists() else "dev"
+MARACADOR_PREPARO = os.environ.get("MARCADOR_PREPARO", str(BASE_DIR / ".versao-preparada"))

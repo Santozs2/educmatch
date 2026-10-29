@@ -37,8 +37,25 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v7
         with:
-          ref: ${{ inputs.versao }}
+          python-version: "3.12"
+
+      # Sai do boot (startup.sh): comprimir os estáticos levava ~11 s a cada vez que o site acordava.
+      # Sem o mysqlclient: o collectstatic não abre o banco, e assim o build não precisa do apt-get.
+      - name: collectstatic no build
+        working-directory: backend
+        env:
+          DJANGO_SECRET_KEY: so-para-o-build
+          DJANGO_DEBUG: "0"
+          DB_ENGINE: sqlite
+          DB_NAME: /tmp/build.sqlite3
+        run: |
+          grep -v '^mysqlclient' requirements.txt > /tmp/requisitos-build.txt
+          pip install -q -r /tmp/requisitos-build.txt
+          python manage.py collectstatic --noinput
+          test -f staticfiles/staticfiles.json
 
       - name: Pacote com o commit dentro (backend/VERSAO)
         run: |
@@ -47,26 +64,15 @@ jobs:
           git archive --format=zip -o pacote.zip \
             --add-virtual-file=backend/VERSAO:$COMMIT \
             HEAD -- backend requirements.txt
+          zip -qr pacote.zip backend/staticfiles
           unzip -l pacote.zip | tail -1
 
-      - uses: azure/login@v2
+      - name: Login no Azure por OIDC
+        uses: azure/login@v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Backup do banco antes de publicar (fica no próprio Azure)
-        run: |
-          token=$(az account get-access-token --query accessToken -o tsv)
-          comando="mkdir -p data/backups \
-            && cp data/educmatch.sqlite3 data/backups/educmatch-$(date -u +%Y%m%d-%H%M)-${COMMIT}.sqlite3 \
-            && ls -1t data/backups/*.sqlite3 | tail -n +6 | xargs -r rm -f \
-            && ls -1t data/backups"
-          resposta=$(curl -sS -f -X POST "https://${APP}.scm.azurewebsites.net/api/command" \
-            -H "Authorization: Bearer ${token}" -H "Content-Type: application/json" \
-            -d "$(jq -n --arg c "$comando" '{command: ("bash -c \"" + $c + "\""), dir: "/home"}')")
-          echo "$resposta" | jq -r '.Output, .Error'
-          [ "$(echo "$resposta" | jq -r '.ExitCode')" = "0" ]
 
       - uses: azure/webapps-deploy@v3
         with:
