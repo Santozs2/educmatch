@@ -23,10 +23,15 @@ class C6ClaimTest(BaseEducMatch):
         """A consequencia verificavel que hoje devolve vazio."""
         self.responder_tudo()
         self.client.post(reverse("cadastro_usuario"), self.dados_de_cadastro())
+        tentativa = Tentativa_de_resposta.objects.latest("id")
 
         resposta = self.client.get(reverse("minhas-tentativas"))
 
         self.assertEqual(len(resposta.context["tentativas"]), 1)
+        self.assertContains(
+            resposta,
+            f'<a class="linha__link" href="{reverse("quiz-resultado", args=[tentativa.pk])}">',
+        )
 
     def test_nao_adota_tentativa_que_nao_esta_na_minha_sessao(self):
         """Condicao 1: sem ela, ids na mao adotariam tentativa alheia."""

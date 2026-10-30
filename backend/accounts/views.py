@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.utils.text import slugify
 from urllib.parse import urlencode
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -11,6 +13,21 @@ from catalogo.models import Curso
 from quiz.models import Tentativa_de_resposta
 from accounts.servicos import registrar_interesse, remover_da_lista
 from quiz.permissoes import tentativa_visivel
+
+
+def _url_curso_senai(curso):
+    endereco = settings.ESCOLA.get("endereco", "")
+    partes_endereco = [parte.strip() for parte in endereco.split(",") if parte.strip()]
+    cidade = partes_endereco[-2] if len(partes_endereco) >= 2 else ""
+    if cidade:
+        cidade = cidade.rsplit(" - ", 1)[0].strip()
+
+    parametros = []
+    if cidade:
+        parametros.append(("cidadeint", slugify(cidade)))
+    parametros.extend((("pesquisa", curso.nome_curso), ("pag", 1)))
+    return f"https://www.sp.senai.br/cursos/0/0?{urlencode(parametros)}"
+
 
 def _salvar_interesse_pendente(request):
     pendente = request.session.get("interesse_pendente")
@@ -28,7 +45,7 @@ def _salvar_interesse_pendente(request):
 
     registrar_interesse(request.user, curso, tentativa)
     request.session.pop("interesse_pendente", None)
-    return tentativa_id
+    return _url_curso_senai(curso)
 
 
 class EntrarView(LoginView):
@@ -38,8 +55,7 @@ class EntrarView(LoginView):
 
     def get_success_url(self):
         sucesso_url = super().get_success_url()
-        _salvar_interesse_pendente(self.request)
-        return sucesso_url
+        return _salvar_interesse_pendente(self.request) or sucesso_url
     
 
 
@@ -52,8 +68,8 @@ def cadastrar_conta(request):
         if form.is_valid():
             user = form.save()
             auth_login(request, user)
-            _salvar_interesse_pendente(request)
-            return redirect(request.POST.get("lista_interesse") or "quiz-inicio")
+            destino_interesse = _salvar_interesse_pendente(request)
+            return redirect(destino_interesse or request.POST.get("lista_interesse") or "quiz-inicio")
     else:
         form = CadastroForm()
 
@@ -98,9 +114,7 @@ def salvar_interesse(request):
     registrar_interesse(request.user, curso, tentativa)
 
     request.session.pop("interesse_pendente", None)
-    if tentativa_id:
-        return redirect("quiz-resultado", pk=tentativa_id)
-    return redirect("lista_interesse")
+    return redirect(_url_curso_senai(curso))
 
 @require_POST
 @login_required

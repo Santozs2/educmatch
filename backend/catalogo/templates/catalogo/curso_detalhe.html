@@ -57,6 +57,11 @@
         </div>
     </article>
 
-    <div class="entrada" style="--i: 2">{% include "componentes/_secretaria.html" %}</div>
+    <section class="curso__avaliacoes entrada" style="--i: 2" aria-label="Nota média das avaliações">
+        <span>Média das avaliações</span>
+        <strong>{% if media_avaliacoes %}{{ media_avaliacoes|floatformat:1 }}{% else %}0{% endif %} <small>/ 5</small></strong>
+    </section>
+
+    <div class="entrada" style="--i: 3">{% include "componentes/_secretaria.html" %}</div>
 </div>
 {% endblock %}

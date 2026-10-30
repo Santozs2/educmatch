@@ -28,7 +28,7 @@
             <a class="painel-menu__item" href="{% url 'painel-quiz' %}?{{ periodo_qs }}" data-dica="Quiz" {% if secao == "quiz" %}aria-current="page"{% endif %}>
                 <i class="fa-solid fa-circle-question" aria-hidden="true"></i> <span class="painel-menu__rotulo">Quiz</span>
             </a>
-            <a class="painel-menu__item" href="{% url 'painel-avaliacoes' %}?{{ periodo_qs }}" data-dica="Avaliações" {% if secao == "avaliacoes" %}aria-current="page"{% endif %}>
+            <a class="painel-menu__item" href="{% url 'painel-avaliacoes-resultados' %}?{{ periodo_qs }}" data-dica="Avaliações" {% if secao == "avaliacoes" %}aria-current="page"{% endif %}>
                 <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> <span class="painel-menu__rotulo">Avaliações</span>
             </a>
             <a class="painel-menu__item" href="{% url 'painel-cursos' %}?{{ periodo_qs }}" data-dica="Cursos e Áreas" {% if secao == "cursos" %}aria-current="page"{% endif %}>

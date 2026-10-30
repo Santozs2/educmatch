@@ -1,6 +1,8 @@
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import Interesse
+from avaliacao.models import ItemDeResposta, RespostaDeAvaliacao
 from catalogo.models import Curso
 from quiz.permissoes import tentativa_visivel
 
@@ -27,9 +29,17 @@ def curso_detalhe(request, pk):
         and Interesse.objects.filter(usuario=request.user, curso=curso)
         .exclude(status="removido").exists()
     )
+
+    media_avaliacoes = ItemDeResposta.objects.filter(
+        resposta__link__curso=curso,
+        pergunta__ativa=True,
+        pergunta__tipo="escala",
+    ).aggregate(media=Avg("numero"))["media"] or 0
+
     return render(request, "catalogo/curso_detalhe.html", {
         "curso": curso,
         "tentativa_id": tentativa.pk,
         "afinidade": round(rec.score * 100),
         "salvo": salvo,
+        "media_avaliacoes": media_avaliacoes,
     })

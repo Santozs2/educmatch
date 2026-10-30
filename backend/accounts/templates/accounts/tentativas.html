@@ -17,17 +17,19 @@
         {% for tentativa in tentativas %}
         {% with principal=tentativa.recomendacoes.all.0 %}
         <li class="linha entrada" style="--i: {{ forloop.counter }}">
-            <div class="linha__info">
-                <a class="linha__titulo" href="{% url 'quiz-resultado' tentativa.pk %}">
+            <a class="linha__link" href="{% url 'quiz-resultado' tentativa.pk %}">
+                <div class="linha__info">
+                    <span class="linha__titulo">
                     Teste de {{ tentativa.criado_em|date:"d/m/Y" }} às {{ tentativa.criado_em|date:"H:i" }}
-                </a>
+                    </span>
+                    {% if principal %}
+                    <p class="linha__descricao">1º lugar: <strong>{{ principal.curso.nome_curso }}</strong></p>
+                    {% endif %}
+                </div>
                 {% if principal %}
-                <p class="linha__descricao">1º lugar: <strong>{{ principal.curso.nome_curso }}</strong></p>
+                <span class="chip chip--area">{% widthratio principal.score 1 100 %}% de afinidade</span>
                 {% endif %}
-            </div>
-            {% if principal %}
-            <span class="chip chip--area">{% widthratio principal.score 1 100 %}% de afinidade</span>
-            {% endif %}
+            </a>
         </li>
         {% endwith %}
         {% endfor %}
