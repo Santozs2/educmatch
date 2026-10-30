@@ -93,6 +93,13 @@ class AvaliacoesNoPainelTest(BaseAvaliacao):
         self.assertContains(resposta, "Histórico completo")
         self.assertNotContains(resposta, "Aplicar")
 
+    def test_resultados_e_links_das_turmas_tem_navegacao_de_ida_e_volta(self):
+        links = self.client.get(reverse("painel-avaliacoes"))
+        resultados = self.client.get(reverse("painel-avaliacoes-resultados"))
+
+        self.assertContains(links, f'href="{reverse("painel-avaliacoes-resultados")}?')
+        self.assertContains(resultados, f'href="{reverse("painel-avaliacoes")}"')
+
     def test_resultados_por_pergunta(self):
         link = self.criar_link(self.curso)
         self.responder(link, ALGUNS, nota=10, escala=4, texto="Mais prática")

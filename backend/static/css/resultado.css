@@ -108,6 +108,25 @@
   margin-bottom: 6px;
 }
 
+.destaque__acoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.destaque__acoes form {
+  min-width: 0;
+}
+
+.destaque__acoes .botao {
+  min-width: 0;
+  text-align: center;
+}
+
+.destaque__detalhes-curto {
+  display: none;
+}
+
 /* ---------- Texto da LLM (Passo 10) ---------- */
 
 .destaque__texto {
@@ -288,6 +307,20 @@
 
   .destaque__info {
     width: 100%;
+  }
+
+  .destaque__acoes .botao {
+    padding-inline: 8px;
+    font-size: 0.875rem;
+  }
+
+  .destaque__detalhes-completo {
+    display: none;
+  }
+
+  .destaque__detalhes-curto {
+    display: inline;
+    white-space: nowrap;
   }
 
   .outro {

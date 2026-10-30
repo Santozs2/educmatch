@@ -18,7 +18,7 @@
         <a class="mais__item" href="{% url 'painel-quiz' %}?{{ periodo_qs }}" {% if secao == "quiz" %}aria-current="page"{% endif %}>
             <i class="fa-solid fa-circle-question" aria-hidden="true"></i> Quiz
         </a>
-        <a class="mais__item" href="{% url 'painel-avaliacoes' %}?{{ periodo_qs }}" {% if secao == "avaliacoes" %}aria-current="page"{% endif %}>
+        <a class="mais__item" href="{% url 'painel-avaliacoes-resultados' %}?{{ periodo_qs }}" {% if secao == "avaliacoes" %}aria-current="page"{% endif %}>
             <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Avaliações
         </a>
         <a class="mais__item" href="{% url 'painel-cursos' %}?{{ periodo_qs }}" {% if secao == "cursos" %}aria-current="page"{% endif %}>

@@ -1,3 +1,6 @@
+from urllib.parse import parse_qs, urlsplit
+
+from django.test import override_settings
 from django.urls import reverse
 
 from accounts.models import Interesse
@@ -32,6 +35,25 @@ class C4SnapshotTest(BaseEducMatch):
         self.assertEqual(item.rank_snapshot, 1)
         self.assertAlmostEqual(item.afinidade_snapshot, primeiro.score)
         self.assertTrue(item.era_principal)
+
+    @override_settings(ESCOLA={
+        "nome": "SENAI",
+        "endereco": "R. Antônio de Godoy, 5405 - Vila São José, São José do Rio Preto - SP, 15090-250",
+        "telefone": "",
+    })
+    def test_salvar_direciona_para_busca_senai_com_curso_e_cidade(self):
+        primeiro = self.tentativa.recomendacoes.get(rank_final=1)
+
+        resposta = self.salvar(primeiro)
+
+        destino = urlsplit(resposta["Location"])
+        self.assertEqual(destino.netloc, "www.sp.senai.br")
+        self.assertEqual(destino.path, "/cursos/0/0")
+        self.assertEqual(parse_qs(destino.query), {
+            "cidadeint": ["sao-jose-do-rio-preto"],
+            "pesquisa": [primeiro.curso.nome_curso],
+            "pag": ["1"],
+        })
 
     def test_salvar_o_terceiro_lugar_nao_e_principal(self):
         terceiro = self.tentativa.recomendacoes.get(rank_final=3)
