@@ -7,6 +7,8 @@ class Area(models.Model):
     nome = models.CharField(max_length=100)
     descricao = models.TextField()
     slug = models.SlugField(unique=True)   # chave estavel para a engine de matching
+    # Área inativa some das listas, mas continua no banco: o histórico cita ela.
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["nome"]
@@ -16,10 +18,27 @@ class Area(models.Model):
     
 
 class Curso(models.Model):
-    nome_curso = models.CharField(max_length=100)
+    NIVEIS = [
+        ("livre", "Cursos Livres"),
+        ("aprendiz", "Aprendiz SENAI"),
+        ("graduacao", "Graduação"),
+    ]
+    UNIDADES_DE_CARGA = [
+        ("horas", "horas"),
+        ("horas_aula", "horas/aula"),
+    ]
+
+    nome_curso = models.CharField(max_length=150)
+    # Número final do link do SENAI. O nome não serve de chave: há cursos com o mesmo nome.
+    codigo_senai = models.CharField(max_length=20, unique=True, null=True, blank=True)
     descricao = models.TextField()
     area_principal = models.ForeignKey(Area, on_delete=models.CASCADE, related_name='cursos')
-    duracao = models.PositiveIntegerField(help_text="Duração do curso em horas")
+    nivel = models.CharField(max_length=20, choices=NIVEIS, default="livre")
+    modalidade = models.CharField(max_length=30, default="Presencial")
+    duracao = models.PositiveIntegerField(help_text="Carga horária do curso, na unidade escolhida")
+    unidade_carga = models.CharField(max_length=20, choices=UNIDADES_DE_CARGA, default="horas")
+    url_senai = models.URLField(max_length=300, blank=True)
+    consultado_em = models.DateField(null=True, blank=True)
     inicio_dia = models.DateField(null=True, blank=True)
     fim_dia = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -29,6 +48,15 @@ class Curso(models.Model):
         
     def __str__(self):
         return self.nome_curso
+
+    @property
+    def carga_horaria(self):
+        return f"{self.duracao} {self.get_unidade_carga_display()}"
+
+    @property
+    def aceita_inscricao_direta(self):
+        """Aprendiz e graduação têm processo próprio: o botão não promete inscrição."""
+        return self.nivel == "livre"
 
     
 class Peso_curso(models.Model):
