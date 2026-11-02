@@ -252,7 +252,7 @@ def _render_cursos(
             curso_form and (curso_form.errors or pesos_formset.errors)
         ),
         "cursos_edicao": cursos_edicao,
-        "areas": Area.objects.all(),
+        "areas": Area.objects.filter(is_active=True),
         "area_form": area_form or NovaArea(),
         "area_form_action": reverse("painel-criar-area"),
         "area_modal_aberto": bool(area_form and area_form.errors),
