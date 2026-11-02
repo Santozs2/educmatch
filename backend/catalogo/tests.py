@@ -1,8 +1,12 @@
 from django.urls import reverse
+from django.utils.html import escape
 
+from accounts.servicos import registrar_interesse
 from avaliacao.models import ItemDeResposta, LinkDeAvaliacao, Pergunta, RespostaDeAvaliacao
 from avaliacao.tests.base import BaseAvaliacao
+from catalogo.servicos import url_curso_senai
 from quiz.models import Tentativa_de_resposta
+from quiz.tests.base import BaseEducMatch
 
 
 class AvaliacoesNoDetalheDoCursoTest(BaseAvaliacao):
@@ -49,3 +53,31 @@ class AvaliacoesNoDetalheDoCursoTest(BaseAvaliacao):
 		self.assertNotContains(resposta, "Mais aulas práticas")
 		self.assertNotContains(resposta, "Mais equipamentos")
 		self.assertNotContains(resposta, "Turma não exibida")
+
+
+class BotaoDeInscricaoTest(BaseEducMatch):
+	def abrir_detalhe(self, salvo):
+		usuario = self.criar_usuario()
+		self.client.force_login(usuario)
+		tentativa = self.criar_tentativa(dono=usuario)
+		curso = tentativa.recomendacoes.get(rank_final=1).curso
+		if salvo:
+			registrar_interesse(usuario, curso, tentativa)
+		resposta = self.client.get(
+			reverse("curso-detalhe", args=[curso.pk]), {"tentativa": tentativa.pk}
+		)
+		return curso, resposta
+
+	def test_curso_na_lista_tem_inscrever_se_junto_com_remover(self):
+		curso, resposta = self.abrir_detalhe(salvo=True)
+
+		self.assertContains(resposta, "Inscrever-se")
+		self.assertContains(resposta, "Remover da minha lista")
+		self.assertContains(resposta, f'href="{escape(url_curso_senai(curso))}"')
+		self.assertContains(resposta, 'target="_blank" rel="noopener noreferrer"')
+
+	def test_curso_fora_da_lista_nao_tem_inscrever_se(self):
+		_, resposta = self.abrir_detalhe(salvo=False)
+
+		self.assertNotContains(resposta, "Inscrever-se")
+		self.assertContains(resposta, "Manifestar interesse neste curso")

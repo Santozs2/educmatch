@@ -1,7 +1,5 @@
-from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.utils.text import slugify
 from urllib.parse import urlencode
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -10,23 +8,10 @@ from django.contrib.auth import login as auth_login
 from accounts.forms import LoginForm, CadastroForm
 from accounts.models import Interesse
 from catalogo.models import Curso
+from catalogo.servicos import url_curso_senai
 from quiz.models import Tentativa_de_resposta
 from accounts.servicos import registrar_interesse, remover_da_lista
 from quiz.permissoes import tentativa_visivel
-
-
-def _url_curso_senai(curso):
-    endereco = settings.ESCOLA.get("endereco", "")
-    partes_endereco = [parte.strip() for parte in endereco.split(",") if parte.strip()]
-    cidade = partes_endereco[-2] if len(partes_endereco) >= 2 else ""
-    if cidade:
-        cidade = cidade.rsplit(" - ", 1)[0].strip()
-
-    parametros = []
-    if cidade:
-        parametros.append(("cidadeint", slugify(cidade)))
-    parametros.extend((("pesquisa", curso.nome_curso), ("pag", 1)))
-    return f"https://www.sp.senai.br/cursos/0/0?{urlencode(parametros)}"
 
 
 def _salvar_interesse_pendente(request):
@@ -45,7 +30,7 @@ def _salvar_interesse_pendente(request):
 
     registrar_interesse(request.user, curso, tentativa)
     request.session.pop("interesse_pendente", None)
-    return _url_curso_senai(curso)
+    return url_curso_senai(curso)
 
 
 class EntrarView(LoginView):
@@ -114,7 +99,7 @@ def salvar_interesse(request):
     registrar_interesse(request.user, curso, tentativa)
 
     request.session.pop("interesse_pendente", None)
-    return redirect(_url_curso_senai(curso))
+    return redirect(url_curso_senai(curso))
 
 @require_POST
 @login_required

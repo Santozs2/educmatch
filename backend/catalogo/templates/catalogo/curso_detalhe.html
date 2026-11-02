@@ -40,6 +40,10 @@
             {% endif %}
 
             {% if salvo %}
+            <a class="botao botao--bloco" href="{{ url_inscricao }}" target="_blank" rel="noopener noreferrer">
+                Inscrever-se
+                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
             <form method="post" action="{% url 'interesse-remover' %}">
                 {% csrf_token %}
                 <input type="hidden" name="curso_id" value="{{ curso.id }}">
