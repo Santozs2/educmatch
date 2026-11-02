@@ -236,6 +236,12 @@
   min-width: 0;
 }
 
+/* Os nomes das áreas do SENAI são longos: quebram linha em vez de espremer o nome do curso. */
+.outro__area {
+  max-width: 180px;
+  border-radius: var(--raio-botao);
+}
+
 .outro__link {
   font-weight: 700;
   text-decoration: none;

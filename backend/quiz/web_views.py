@@ -6,6 +6,7 @@ from django.utils.dateparse import parse_datetime
 from urllib.parse import urlencode
 from quiz.models import InicioDeQuiz, Questao, QuestionarioLink, Resposta, Tentativa_de_resposta
 from catalogo.models import Curso
+from catalogo.servicos import url_curso_senai
 from accounts.models import Interesse
 from quiz.delivery import entregar
 from quiz.engine import recomendar
@@ -162,13 +163,14 @@ def resultado_pagina(request,pk):
             "curso": rec.curso,
             "areas": areas_da_recomendacao(rec),
             "texto": rec.llm_text,  # vazio sem LLM ou no fallback: a tela mostra a descrição
+            "url_inscricao": url_curso_senai(rec.curso),
         }
         for rec in recomendacoes
     ]
     pendente = request.session.get("interesse_pendente")
     curso_pendente = None
     if pendente and str(pendente.get("tentativa_id")) == str(pk):
-        curso_pendente = Curso.objects.filter(pk=pendente.get("curso_id")).first()
+        curso_pendente = Curso.objects.filter(pk=pendente.get("curso_id"), is_active=True).first()
     interesses_salvos = set()
     if request.user.is_authenticated:
         interesses_salvos = set(Interesse.objects.filter(usuario=request.user).exclude(status="removido").values_list("curso_id", flat=True))

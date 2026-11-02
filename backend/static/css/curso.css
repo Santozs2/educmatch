@@ -320,3 +320,8 @@
     padding: 20px;
   }
 }
+.curso__procedencia {
+  margin: 0;
+  color: var(--cinza);
+  font-size: 0.875rem;
+}

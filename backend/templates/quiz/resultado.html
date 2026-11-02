@@ -57,7 +57,7 @@
 
                 <ul class="chips">
                     <li class="chip chip--area">{{ destaque.curso.area_principal.nome }}</li>
-                    <li class="chip"><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ destaque.curso.duracao }} horas</li>
+                    <li class="chip"><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ destaque.curso.carga_horaria }}</li>
                 </ul>
 
                 {% if destaque.areas %}
@@ -73,14 +73,15 @@
                 </div>
                 {% endif %}
 
+                {% if not destaque.curso.is_active %}
+                <p>Curso não oferecido atualmente.</p>
+                {% else %}
                 <div class="destaque__acoes">
                     {% if destaque.curso.id in interesses_salvos %}
-                    <form method="post" action="{% url 'interesse-remover' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="curso_id" value="{{ destaque.curso.id }}">
-                        <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
-                        <button class="botao botao--contorno botao--bloco" type="submit">Remover da minha lista</button>
-                    </form>
+                    <a class="botao botao--bloco" href="{{ destaque.url_inscricao }}" target="_blank" rel="noopener noreferrer">
+                        {% if destaque.curso.aceita_inscricao_direta %}Inscrever-se{% else %}Ver no site do SENAI{% endif %}
+                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                    </a>
                     {% else %}
                     <form method="post" action="{% url 'interesse-salvar' %}">
                         {% csrf_token %}
@@ -94,6 +95,7 @@
                         <span class="destaque__detalhes-curto">Ver detalhes</span>  <!--O texto curto aparece em telas pequenas(Mobile), para não quebrar a linha do botão -->
                     </a>
                 </div> 
+                {% endif %}
             </div>
         </div>
     </article>
@@ -106,13 +108,18 @@
             <span class="outro__rank" aria-hidden="true">{{ item.rank }}</span>
             <div class="outro__info">
                 {# O link cobre a linha inteira (ver .outro__link::after no CSS) #}
+                {% if item.curso.is_active %}
                 <a class="outro__link" href="{% url 'curso-detalhe' item.curso.id %}?tentativa={{ tentativa.pk }}">
                     {{ item.curso.nome_curso }}
                 </a>
+                {% else %}
+                <strong>{{ item.curso.nome_curso }}</strong>
+                <p class="outro__descricao">Curso não oferecido atualmente.</p>
+                {% endif %}
                 {% if item.texto %}
                 <p class="outro__descricao outro__descricao--ia">{{ item.texto }}</p>
                 {% else %}
-                <p class="outro__descricao">{{ item.curso.descricao }}</p>
+                <p class="outro__descricao">{{ item.curso.descricao|truncatewords:30 }}</p>
                 {% endif %}
             </div>
             <span class="chip chip--area outro__area">{{ item.curso.area_principal.nome }}</span>
@@ -120,7 +127,7 @@
                 <strong data-contar>{{ item.match }}%</strong>
                 {% include "componentes/_barra.html" with valor=item.match escura=True %}
             </div>
-            <i class="fa-solid fa-arrow-right outro__seta" aria-hidden="true"></i>
+            {% if item.curso.is_active %}<i class="fa-solid fa-arrow-right outro__seta" aria-hidden="true"></i>{% endif %}
         </li>
         {% endfor %}
     </ol>

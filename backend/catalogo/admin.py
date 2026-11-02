@@ -7,14 +7,14 @@ class Peso_curso(admin.TabularInline):
     
 @admin.register(Area)
 class AreaAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'slug']
+    list_display = ['nome', 'slug', 'is_active']
     search_fields = ['nome']
     prepopulated_fields = {'slug': ('nome',)}
     
 @admin.register(Curso)
 class CursoAdmin(admin.ModelAdmin):
-    list_display = ['nome_curso', 'area_principal', 'duracao', 'is_active']
-    list_filter = ['area_principal', 'is_active']
+    list_display = ['nome_curso', 'codigo_senai', 'area_principal', 'nivel', 'duracao', 'is_active']
+    list_filter = ['area_principal', 'nivel', 'is_active']
     search_fields = ['nome_curso', 'descricao']
     inlines = [Peso_curso]
     

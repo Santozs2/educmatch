@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from accounts.models import Interesse
 from avaliacao.models import ItemDeResposta, RespostaDeAvaliacao
 from catalogo.models import Curso
+from catalogo.servicos import url_curso_senai
 from quiz.permissoes import tentativa_visivel
 
 
@@ -41,5 +42,6 @@ def curso_detalhe(request, pk):
         "tentativa_id": tentativa.pk,
         "afinidade": round(rec.score * 100),
         "salvo": salvo,
+        "url_inscricao": url_curso_senai(curso),
         "media_avaliacoes": media_avaliacoes,
     })

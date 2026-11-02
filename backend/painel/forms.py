@@ -1,9 +1,15 @@
 from django import forms
+from django.db.models import Q
 from django.forms import inlineformset_factory
 from django.utils.text import slugify
 
 from avaliacao.models import LinkDeAvaliacao
 from catalogo.models import Area, Curso, Peso_curso
+
+
+def areas_escolhiveis(area_atual_id=None):
+    """Só áreas ativas. A que o registro já usa fica, para editar não trocar a área dele."""
+    return Area.objects.filter(Q(is_active=True) | Q(pk=area_atual_id))
 
 
 class NovoCurso(forms.ModelForm):
@@ -13,11 +19,20 @@ class NovoCurso(forms.ModelForm):
             "nome_curso",
             "descricao",
             "area_principal",
+            "nivel",
+            "modalidade",
             "duracao",
+            "unidade_carga",
+            "url_senai",
             "inicio_dia",
             "fim_dia",
             "is_active",
         ]
+        labels = {
+            "nivel": "Nível",
+            "unidade_carga": "Unidade da carga",
+            "url_senai": "Link no site do SENAI",
+        }
         widgets = {
             "descricao": forms.Textarea(attrs={"rows": 3}),
             "inicio_dia": forms.DateInput(attrs={"type": "date"}),
@@ -26,6 +41,7 @@ class NovoCurso(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["area_principal"].queryset = areas_escolhiveis(self.instance.area_principal_id)
         for campo in self.fields.values():
             campo.widget.attrs["class"] = "painel-campo"
 
@@ -85,6 +101,10 @@ class PesoCursoForm(forms.ModelForm):
         model = Peso_curso
         fields = ("area", "peso")
         widgets = {"area": forms.Select(attrs={"class": "painel-campo"})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["area"].queryset = areas_escolhiveis(self.instance.area_id)
 
     def has_changed(self):
         """Linha sem área é linha em branco.

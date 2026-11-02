@@ -196,7 +196,8 @@ def cobertura_de_areas():
     """Quantas alternativas do quiz pesam em cada área. Zero = área que o quiz não mede."""
     return list(
         Area.objects
-        .annotate(alternativas=Count("pesos__alternativa", distinct=True))
+        .filter(is_active=True)
+        .annotate(alternativas=Count("pesos__alternativa", filter=Q(pesos__alternativa__questao__is_active=True), distinct=True))
         .values("slug", "nome", "alternativas")
         .order_by("alternativas", "nome")
     )
@@ -213,7 +214,7 @@ def desempenho_por_curso(inicio):
             no_top5=Count("recomendacoes", filter=periodo, distinct=True),
         )
         .values(
-            "id", "nome_curso", "duracao", "inicio_dia", "fim_dia",
+            "id", "nome_curso", "duracao", "unidade_carga", "inicio_dia", "fim_dia",
             "em_primeiro", "no_top5", area=F("area_principal__nome"),
         )
         .order_by("area", "nome_curso")

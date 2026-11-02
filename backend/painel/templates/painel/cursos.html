@@ -30,7 +30,7 @@
                     <tr>
                         <td data-rotulo="Curso">{{ curso.nome_curso }}</td>
                         <td data-rotulo="Área">{{ curso.area }}</td>
-                        <td class="numero" data-rotulo="Duração">{{ curso.duracao }}h</td>
+                        <td class="numero" data-rotulo="Duração">{{ curso.duracao }}{% if curso.unidade_carga == "horas_aula" %}h/aula{% else %}h{% endif %}</td>
                         <td data-rotulo="Turma">{% if curso.inicio_dia %}{{ curso.inicio_dia|date:"d/m" }}–{{ curso.fim_dia|date:"d/m"|default:"?" }}{% else %}—{% endif %}</td>
                         <td class="numero" data-rotulo="Em 1º">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.em_primeiro suprimido=curso.em_primeiro_suprimido %}{% else %}—{% endif %}</td>
                         <td class="numero" data-rotulo="No Top 5">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.no_top5 suprimido=curso.no_top5_suprimido %}{% else %}—{% endif %}</td>

@@ -7,6 +7,7 @@ from django.utils import timezone
 from accounts.models import Interesse
 from catalogo.models import Area, Curso
 from painel import metricas
+from painel.forms import NovoCurso, PesoCursoForm
 from painel.tests.base import BasePainel
 from quiz.models import QuestionarioLink, Tentativa_de_resposta
 
@@ -210,7 +211,11 @@ class TelasDeCadastroTest(BasePainel):
             "nome_curso": "Curso editado pelo painel",
             "descricao": curso.descricao,
             "area_principal": curso.area_principal_id,
+            "nivel": "livre",
+            "modalidade": "Presencial",
             "duracao": 160,
+            "unidade_carga": "horas",
+            "url_senai": "",
             "inicio_dia": "",
             "fim_dia": "",
             "is_active": "on",
@@ -260,7 +265,11 @@ class TelasDeCadastroTest(BasePainel):
             "nome_curso": "Novo curso pelo painel",
             "descricao": "Descrição completa",
             "area_principal": area.pk,
+            "nivel": "livre",
+            "modalidade": "Presencial",
             "duracao": 120,
+            "unidade_carga": "horas",
+            "url_senai": "",
             "inicio_dia": "",
             "fim_dia": "",
             "is_active": "on",
@@ -287,7 +296,11 @@ class TelasDeCadastroTest(BasePainel):
             "nome_curso": "Curso com peso decimal",
             "descricao": "Descrição completa",
             "area_principal": area.pk,
+            "nivel": "livre",
+            "modalidade": "Presencial",
             "duracao": 120,
+            "unidade_carga": "horas",
+            "url_senai": "",
             "inicio_dia": "",
             "fim_dia": "",
             "is_active": "on",
@@ -420,3 +433,21 @@ class TelasDeCadastroTest(BasePainel):
         funil = self.client.get(reverse("painel-interesse")).context["funil"]
 
         self.assertEqual([etapa["status"] for etapa in funil], [chave for chave, _ in Interesse.STATUS])
+
+
+class AreaInativaNoPainelTest(BasePainel):
+    def setUp(self):
+        super().setUp()
+        self.antiga = Area.objects.create(nome="Costura", slug="costura", descricao="Antiga", is_active=False)
+
+    def test_area_inativa_nao_aparece_para_novo_curso(self):
+        self.assertNotIn(self.antiga, NovoCurso().fields["area_principal"].queryset)
+        self.assertNotIn(self.antiga, PesoCursoForm().fields["area"].queryset)
+
+    def test_curso_que_usa_a_area_inativa_continua_com_ela_na_edicao(self):
+        curso = self.criar_curso(area_principal=self.antiga)
+
+        self.assertIn(self.antiga, NovoCurso(instance=curso).fields["area_principal"].queryset)
+
+    def test_cobertura_ignora_area_inativa(self):
+        self.assertNotIn("costura", [linha["slug"] for linha in metricas.cobertura_de_areas()])

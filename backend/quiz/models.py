@@ -8,6 +8,7 @@ class Questao(models.Model):
     texto = models.TextField()
     order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    versao = models.PositiveSmallIntegerField(default=1)
     
     class Meta:
         ordering = ["order"]
