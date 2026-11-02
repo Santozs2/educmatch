@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from accounts.models import Interesse
 from accounts.servicos import registrar_interesse
+from catalogo.models import Curso
 from quiz.models import Tentativa_de_resposta
 from quiz.tests.base import BaseEducMatch
 
@@ -41,8 +42,16 @@ class C4SnapshotTest(BaseEducMatch):
         "endereco": "R. Antônio de Godoy, 5405 - Vila São José, São José do Rio Preto - SP, 15090-250",
         "telefone": "",
     })
-    def test_salvar_direciona_para_busca_senai_com_curso_e_cidade(self):
+    def test_salvar_direciona_para_a_pagina_do_curso_no_senai(self):
         primeiro = self.tentativa.recomendacoes.get(rank_final=1)
+
+        resposta = self.salvar(primeiro)
+
+        self.assertEqual(resposta["Location"], primeiro.curso.url_senai)
+
+    def test_salvar_curso_sem_link_direciona_para_busca_com_curso_e_cidade(self):
+        primeiro = self.tentativa.recomendacoes.get(rank_final=1)
+        Curso.objects.filter(pk=primeiro.curso_id).update(url_senai="")
 
         resposta = self.salvar(primeiro)
 
