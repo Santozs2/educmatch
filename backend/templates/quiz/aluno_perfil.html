@@ -31,16 +31,16 @@
         {% for item in interesses %}
         <li class="linha entrada" style="--i: {{ forloop.counter }}">
             <div class="linha__info">
-                {% if item.tentativa_origem_id %}
+                {% if item.tentativa_origem_id and item.curso.is_active %}
                 <a class="linha__titulo" href="{% url 'curso-detalhe' item.curso.id %}?tentativa={{ item.tentativa_origem_id }}">{{ item.curso.nome_curso }}</a>
                 {% else %}
                 <span class="linha__titulo">{{ item.curso.nome_curso }}</span>
                 {% endif %}
-                <p class="linha__descricao">{{ item.curso.descricao }}</p>
+                <p class="linha__descricao">{% if item.curso.is_active %}{{ item.curso.descricao|truncatewords:30 }}{% else %}Curso não oferecido atualmente.{% endif %}</p>
             </div>
             <ul class="chips linha__chips">
                 <li class="chip chip--area">{{ item.curso.area_principal.nome }}</li>
-                <li class="chip">{{ item.curso.duracao }} horas</li>
+                <li class="chip">{{ item.curso.carga_horaria }}</li>
             </ul>
         </li>
         {% endfor %}

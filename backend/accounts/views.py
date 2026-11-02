@@ -21,7 +21,7 @@ def _salvar_interesse_pendente(request):
 
     curso_id = pendente.get("curso_id")
     tentativa_id = pendente.get("tentativa_id")
-    curso = Curso.objects.filter(pk=curso_id).first()
+    curso = Curso.objects.filter(pk=curso_id, is_active=True).first()
     if curso is None:
         request.session.pop("interesse_pendente", None)
         return None
@@ -84,7 +84,7 @@ def remover_interesse(request, pk):
 def salvar_interesse(request):
     curso_id = request.POST.get('curso_id')
     tentativa_id = request.POST.get('tentativa_id', '')
-    curso = get_object_or_404(Curso, id=curso_id)
+    curso = get_object_or_404(Curso, id=curso_id, is_active=True)
 
     if not request.user.is_authenticated:
         request.session['interesse_pendente'] = {

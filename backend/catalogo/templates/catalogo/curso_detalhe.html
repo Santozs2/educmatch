@@ -20,7 +20,9 @@
         <header class="curso__cabeca">
             <ul class="chips">
                 <li class="chip chip--marca">{{ curso.area_principal.nome }}</li>
-                <li class="chip chip--escuro">{{ curso.duracao }} horas</li>
+                <li class="chip chip--escuro">{{ curso.get_nivel_display }}</li>
+                <li class="chip chip--escuro">{{ curso.modalidade }}</li>
+                <li class="chip chip--escuro">{{ curso.carga_horaria }}</li>
                 {% if curso.inicio_dia %}<li class="chip chip--escuro">Início em {{ curso.inicio_dia|date:"d/m/Y" }}</li>{% endif %}
             </ul>
             <h1 id="curso-nome">{{ curso.nome_curso }}</h1>
@@ -41,7 +43,7 @@
 
             {% if salvo %}
             <a class="botao botao--bloco" href="{{ url_inscricao }}" target="_blank" rel="noopener noreferrer">
-                Inscrever-se
+                {% if curso.aceita_inscricao_direta %}Inscrever-se{% else %}Ver no site do SENAI{% endif %}
                 <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
             </a>
             <form method="post" action="{% url 'interesse-remover' %}">
@@ -57,6 +59,10 @@
                 {% if tentativa_id %}<input type="hidden" name="tentativa_id" value="{{ tentativa_id }}">{% endif %}
                 <button class="botao botao--bloco" type="submit">Manifestar interesse neste curso</button>
             </form>
+            {% endif %}
+
+            {% if curso.consultado_em %}
+            <p class="curso__procedencia">Informações do site do SENAI, consultadas em {{ curso.consultado_em|date:"d/m/Y" }}. Confirme as turmas na inscrição.</p>
             {% endif %}
         </div>
     </article>
