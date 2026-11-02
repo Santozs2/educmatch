@@ -1,10 +1,15 @@
+from io import StringIO
+
+from django.core.management import call_command
 from django.urls import reverse
 from django.utils.html import escape
 
 from accounts.servicos import registrar_interesse
 from avaliacao.models import ItemDeResposta, LinkDeAvaliacao, Pergunta, RespostaDeAvaliacao
 from avaliacao.tests.base import BaseAvaliacao
+from catalogo.models import Area, Curso
 from catalogo.servicos import url_curso_senai
+from quiz.engine import perfil_vetor
 from quiz.models import Tentativa_de_resposta
 from quiz.tests.base import BaseEducMatch
 
@@ -106,3 +111,72 @@ class BotaoDeInscricaoNoResultadoTest(BaseEducMatch):
 
 		self.assertContains(resposta, "Manifestar interesse")
 		self.assertNotContains(resposta, "Inscrever-se")
+
+
+class PesoDaAreaNoCursoTest(BaseEducMatch):
+	"""O peso de cada área em um curso é da coordenação: vale no ranking e sobrevive ao deploy."""
+
+	def rodar_seed(self, **opcoes):
+		call_command("seed_cursos", stdout=StringIO(), **opcoes)
+
+	def setUp(self):
+		super().setUp()
+		self.curso = Curso.objects.get(nome_curso="Eletricista Instalador")
+		self.area = Area.objects.get(slug="metalurgia")
+		self.pesos_do_seed = dict(self.curso.curso_peso.values_list("area__slug", "peso"))
+
+	def test_peso_editado_muda_o_ranking(self):
+		tentativa = self.criar_tentativa()
+		fora_do_top = Curso.objects.filter(is_active=True).exclude(
+			pk__in=tentativa.recomendacoes.values("curso")
+		).first()
+		self.assertIsNotNone(fora_do_top)
+		perfil = perfil_vetor(
+			[r.alternativa for r in tentativa.respostas.select_related("alternativa").prefetch_related("alternativa__pesos__area")]
+		)
+		fora_do_top.curso_peso.all().delete()
+		for slug, valor in perfil.items():
+			fora_do_top.curso_peso.create(area=Area.objects.get(slug=slug), peso=valor)
+
+		primeiro = self.criar_tentativa().recomendacoes.get(rank_final=1)
+
+		self.assertEqual(primeiro.curso, fora_do_top)
+
+	def test_deploy_nao_desfaz_o_peso_editado(self):
+		self.curso.curso_peso.all().delete()
+		self.curso.curso_peso.create(area=self.area, peso=4)
+
+		self.rodar_seed()
+
+		self.assertEqual(
+			dict(self.curso.curso_peso.values_list("area__slug", "peso")), {"metalurgia": 4}
+		)
+
+	def test_deploy_nao_reativa_curso_desativado(self):
+		Curso.objects.filter(pk=self.curso.pk).update(is_active=False, descricao="Editada")
+
+		self.rodar_seed()
+
+		self.curso.refresh_from_db()
+		self.assertFalse(self.curso.is_active)
+		self.assertEqual(self.curso.descricao, "Editada")
+
+	def test_seed_cria_curso_que_falta_com_os_pesos(self):
+		self.curso.delete()
+
+		self.rodar_seed()
+
+		recriado = Curso.objects.get(nome_curso="Eletricista Instalador")
+		self.assertEqual(
+			dict(recriado.curso_peso.values_list("area__slug", "peso")), self.pesos_do_seed
+		)
+
+	def test_sobrescrever_volta_aos_valores_do_seed(self):
+		self.curso.curso_peso.all().delete()
+		self.curso.curso_peso.create(area=self.area, peso=4)
+
+		self.rodar_seed(sobrescrever=True)
+
+		self.assertEqual(
+			dict(self.curso.curso_peso.values_list("area__slug", "peso")), self.pesos_do_seed
+		)

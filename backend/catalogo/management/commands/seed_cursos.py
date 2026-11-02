@@ -148,10 +148,20 @@ CURSOS = [
 
 
 class Command(BaseCommand):
-    help = "Cria ou atualiza os cursos do catálogo com seus pesos por área."
+    help = (
+        "Cria os cursos do catálogo que ainda não existem, com seus pesos por área. "
+        "Curso que já existe fica como está: o peso é da coordenação, que edita no painel."
+    )
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--sobrescrever",
+            action="store_true",
+            help="Volta os cursos existentes aos valores deste arquivo, apagando o que foi editado no painel.",
+        )
 
     @transaction.atomic
-    def handle(self, *args, **options):
+    def handle(self, *args, sobrescrever=False, **options):
         areas = {area.slug: area for area in Area.objects.all()}
         if not areas:
             raise CommandError(
@@ -166,15 +176,21 @@ class Command(BaseCommand):
                     f"Curso '{data['nome']}' usa áreas inexistentes: {sorted(desconhecidas)}"
                 )
 
-            curso, created = Curso.objects.update_or_create(
-                nome_curso=data["nome"],
-                defaults={
-                    "descricao": data["descricao"],
-                    "duracao": data["duracao"],
-                    "area_principal": areas[data["area_principal"]],
-                    "is_active": True,
-                },
-            )
+            valores = {
+                "descricao": data["descricao"],
+                "duracao": data["duracao"],
+                "area_principal": areas[data["area_principal"]],
+                "is_active": True,
+            }
+            # Este comando roda a cada deploy (preparar_producao): sem esta trava,
+            # todo merge na main desfazia os pesos ajustados no painel.
+            if sobrescrever:
+                curso, created = Curso.objects.update_or_create(nome_curso=data["nome"], defaults=valores)
+            else:
+                curso, created = Curso.objects.get_or_create(nome_curso=data["nome"], defaults=valores)
+                if not created:
+                    self.stdout.write(f"Curso mantido: {curso.nome_curso}")
+                    continue
 
             for slug, peso in data["peso"].items():
                 Peso_curso.objects.update_or_create(
