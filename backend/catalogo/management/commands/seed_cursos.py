@@ -1,155 +1,32 @@
+import csv
+from pathlib import Path
+
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from catalogo.models import Area, Curso, Peso_curso
 
-# Pesos de 0 a 5. Área ausente = peso 0 (não precisa listar).
-CURSOS = [
-    {
-        "nome": "Eletricista Instalador",
-        "descricao": "Instalações elétricas prediais, leitura de projetos e NR-10.",
-        "duracao": 160,
-        "area_principal": "eletrica",
-        "peso": {"eletrica": 5, "eletromecanica": 3, "mecanica": 1},
-    },
-    {
-        "nome": "Comandos Elétricos e CLP",
-        "descricao": "Acionamento de motores, painéis de comando e lógica ladder.",
-        "duracao": 120,
-        "area_principal": "eletrica",
-        "peso": {"eletrica": 5, "eletromecanica": 4, "ti": 1, "mecanica": 1},
-    },
-    {
-        "nome": "Costura Industrial",
-        "descricao": "Operação de máquinas industriais e produção em série de vestuário.",
-        "duracao": 200,
-        "area_principal": "costura",
-        "peso": {"costura": 5, "mecanica": 1},
-    },
-    {
-        "nome": "Modelagem e Corte de Vestuário",
-        "descricao": "Interpretação de moldes, escalonamento e encaixe de tecido.",
-        "duracao": 160,
-        "area_principal": "costura",
-        "peso": {"costura": 5, "ti": 1},
-    },
-    {
-        "nome": "Python para Análise de Dados",
-        "descricao": "Tratamento de dados, visualização e automação de relatórios.",
-        "duracao": 80,
-        "area_principal": "ti",
-        "peso": {"ti": 5, "ia": 4},
-    },
-    {
-        "nome": "Fundamentos de Inteligência Artificial",
-        "descricao": "Aprendizado de máquina, modelos preditivos e ética em IA.",
-        "duracao": 100,
-        "area_principal": "ia",
-        "peso": {"ia": 5, "ti": 4},
-    },
-    {
-        "nome": "Redes e Infraestrutura de TI",
-        "descricao": "Cabeamento estruturado, switches, roteadores e suporte técnico.",
-        "duracao": 160,
-        "area_principal": "ti",
-        "peso": {"ti": 5, "eletrica": 2, "eletromecanica": 1},
-    },
-    {
-        "nome": "Mecânica de Motores a Combustão",
-        "descricao": "Desmontagem, diagnóstico e retífica de motores ciclo Otto e Diesel.",
-        "duracao": 200,
-        "area_principal": "mecanica-automotiva",
-        "peso": {"mecanica-automotiva": 5, "mecanica": 3, "eletromecanica": 1},
-    },
-    {
-        "nome": "Injeção Eletrônica Automotiva",
-        "descricao": "Sensores, atuadores e diagnóstico com scanner automotivo.",
-        "duracao": 120,
-        "area_principal": "mecanica-automotiva",
-        "peso": {"mecanica-automotiva": 5,"eletrica": 3,"mecanica": 2,"eletromecanica": 2,"ti": 1,},
-    },
-    {
-        "nome": "Usinagem CNC",
-        "descricao": "Programação de tornos e centros de usinagem, metrologia dimensional.",
-        "duracao": 220,
-        "area_principal": "mecanica",
-        "peso": {"mecanica": 5,"ti": 2,"eletromecanica": 2,"eletrica": 1,"mecanica-automotiva": 1,},
-    },
-    {
-        "nome": "Manutenção Eletromecânica Industrial",
-        "descricao": "Manutenção preventiva e corretiva de máquinas e sistemas industriais.",
-        "duracao": 240,
-        "area_principal": "eletromecanica",
-        "peso": {"eletromecanica": 5,"eletrica": 4,"mecanica": 4,"ti": 1,"mecanica-automotiva": 1,},
-    },
-    {
-        "nome": "Automação Industrial",
-        "descricao": "Integração de CLP, IHM, sensores e redes industriais.",
-        "duracao": 180,
-        "area_principal": "eletromecanica",
-        "peso": {"eletromecanica": 5,"eletrica": 4,"ti": 3,"ia": 2,"mecanica": 2,"mecanica-automotiva": 1,},
-    },#kauã começou aq
-    {
-        "nome": "Analista de Recursos Humanos",
-        "descricao": "Gestão de pessoas, recrutamento, seleção e desenvolvimento organizacional.",
-        "duracao": 120,
-        "area_principal": "rh",
-        "peso": {"rh": 5,"marketing": 2,"ti": 1}
-    },
-    {
-        "nome": "Assistente Financeiro",
-        "descricao": "Controle de contas a pagar e receber, fluxo de caixa e conciliação bancária.",
-        "duracao": 160,
-        "area_principal": "financas",
-        "peso": {"financas": 5,"rh": 2,"marketing": 1}
-    },
-    {
-        "nome": "Auxiliar de Operação de Processos Metalúrgicos",
-        "descricao": "Apoio na operação de fornos, laminação e tratamento térmico de metais.",
-        "duracao": 160,
-        "area_principal": "metalurgia",
-        "peso": {"metalurgia": 5,"mecanica": 3,"eletromecanica": 2,"eletrica": 1}
-    },
-    {
-        "nome": "Caldeireiro Montador",
-        "descricao": "Montagem e manutenção de caldeiras, vasos de pressão e tubulações industriais.",
-        "duracao": 160,
-        "area_principal": "metalurgia",
-        "peso": {"metalurgia": 5,"mecanica": 4,"eletromecanica": 3,"eletrica": 2}
-    },
-    {
-        "nome": "Fundição Artística por Cera Perdida",
-        "descricao": "Técnicas de fundição artística utilizando o processo de cera perdida.",
-        "duracao": 32,
-        "area_principal": "metalurgia",
-        "peso": {"metalurgia": 5,"design": 4,"mecanica": 2,"eletromecanica": 1}
-    },
-    {
-        "nome":"Inspeção de Qualidade em Soldagem",
-        "descricao":"Técnicas de inspeção visual, ensaios não destrutivos e normas de soldagem.",
-        "duracao": 48,
-        "area_principal": "metalurgia",
-        "peso": {"metalurgia": 5,"mecanica": 3,"eletromecanica": 2,"eletrica": 1}
-    },
-    {
-        "nome":"Operação e Programação de Robô de Soldagem MAG",
-        "descricao":"Programação e operação de robôs de soldagem MAG, incluindo segurança e manutenção.",
-        "duracao": 72,
-        "area_principal": "metalurgia",
-        "peso": {"metalurgia": 5,"mecanica": 4,"eletromecanica": 3,"eletrica": 2,"ti": 1}
-    },
-    {
-        "nome":"Especialização Profissional de Inspetor de Líquido Penetrante N1/N2",
-        "descricao":"Formação avançada para inspetores de líquidos penetrantes, incluindo normas e técnicas de ensaio.",
-        "duracao": 60,
-        "area_principal": "metalurgia",
-        "peso": {"metalurgia": 5,"mecanica": 3,"eletromecanica": 2,"eletrica": 1}
-    }
-]
+ARQUIVO = Path(settings.BASE_DIR) / "catalogo" / "dados" / "cursos_senai_801.csv"
+PESO_MAXIMO = 5
+
+
+def ler_pesos(texto):
+    """'ti=5|automotiva=2' vira {'ti': 5.0, 'automotiva': 2.0}. Área ausente = peso 0."""
+    pesos = {}
+    for parte in texto.split("|"):
+        slug, _, valor = parte.partition("=")
+        pesos[slug] = float(valor)
+    return pesos
+
+
+def ler_cursos(arquivo=None):
+    with open(arquivo or ARQUIVO, newline="", encoding="utf-8") as origem:
+        return list(csv.DictReader(origem, delimiter=";"))
 
 
 class Command(BaseCommand):
     help = (
-        "Cria os cursos do catálogo que ainda não existem, com seus pesos por área. "
+        "Cria os cursos do catálogo que ainda não existem, com seus pesos por área, a partir do CSV. "
         "Curso que já existe fica como está: o peso é da coordenação, que edita no painel."
     )
 
@@ -157,7 +34,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--sobrescrever",
             action="store_true",
-            help="Volta os cursos existentes aos valores deste arquivo, apagando o que foi editado no painel.",
+            help="Volta os cursos existentes aos valores do CSV, apagando o que foi editado no painel.",
         )
 
     @transaction.atomic
@@ -168,31 +45,35 @@ class Command(BaseCommand):
                 "Nenhuma área cadastrada. Rode antes: manage.py seed_areas"
             )
 
-        for data in CURSOS:
-            usadas = set(data["peso"]) | {data["area_principal"]}
-            desconhecidas = usadas - set(areas)
-            if desconhecidas:
-                raise CommandError(
-                    f"Curso '{data['nome']}' usa áreas inexistentes: {sorted(desconhecidas)}"
-                )
-
+        linhas = ler_cursos()
+        for data in linhas:
+            pesos = self._pesos_validados(data, areas)
+            codigo = data["codigo_senai"] or None
+            # Sem código (curso sem link no SENAI), o nome é o que resta para achar o curso.
+            chave = {"codigo_senai": codigo} if codigo else {"codigo_senai": None, "nome_curso": data["nome"]}
             valores = {
+                "nome_curso": data["nome"],
                 "descricao": data["descricao"],
-                "duracao": data["duracao"],
-                "area_principal": areas[data["area_principal"]],
-                "is_active": True,
+                "area_principal": areas[data["area"]],
+                "nivel": data["nivel"],
+                "modalidade": data["modalidade"],
+                "duracao": int(data["duracao"]),
+                "unidade_carga": data["unidade_carga"],
+                "url_senai": data["url"],
+                "consultado_em": data["consultado_em"] or None,
+                "is_active": data["ativo"] == "1",
             }
             # Este comando roda a cada deploy (preparar_producao): sem esta trava,
             # todo merge na main desfazia os pesos ajustados no painel.
             if sobrescrever:
-                curso, created = Curso.objects.update_or_create(nome_curso=data["nome"], defaults=valores)
+                curso, created = Curso.objects.update_or_create(**chave, defaults=valores)
             else:
-                curso, created = Curso.objects.get_or_create(nome_curso=data["nome"], defaults=valores)
+                curso, created = Curso.objects.get_or_create(**chave, defaults=valores)
                 if not created:
                     self.stdout.write(f"Curso mantido: {curso.nome_curso}")
                     continue
 
-            for slug, peso in data["peso"].items():
+            for slug, peso in pesos.items():
                 Peso_curso.objects.update_or_create(
                     curso=curso,
                     area=areas[slug],
@@ -200,18 +81,37 @@ class Command(BaseCommand):
                 )
 
             # tira pesos que sobraram de cadastros anteriores
-            removidos, _ = curso.curso_peso.exclude(
-                area__slug__in=data["peso"]
-            ).delete()
+            removidos, _ = curso.curso_peso.exclude(area__slug__in=pesos).delete()
 
             acao = "criado" if created else "atualizado"
             extra = f" (-{removidos} peso obsoleto)" if removidos else ""
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Curso {acao}: {curso.nome_curso} [{len(data['peso'])} pesos]{extra}"
+                    f"Curso {acao}: {curso.nome_curso} [{len(pesos)} pesos]{extra}"
                 )
             )
 
         self.stdout.write(
-            self.style.SUCCESS(f"\nTotal: {len(CURSOS)} cursos no catálogo.")
+            self.style.SUCCESS(f"\nTotal: {len(linhas)} cursos no catálogo.")
         )
+
+    @staticmethod
+    def _pesos_validados(data, areas):
+        """Erro no CSV para o comando: melhor um deploy parado do que recomendação errada."""
+        nome = data["nome"]
+        try:
+            pesos = ler_pesos(data["pesos"])
+        except ValueError as erro:
+            raise CommandError(f"Curso '{nome}' tem peso inválido: {data['pesos']}") from erro
+
+        desconhecidas = (set(pesos) | {data["area"]}) - set(areas)
+        if desconhecidas:
+            raise CommandError(f"Curso '{nome}' usa áreas inexistentes: {sorted(desconhecidas)}")
+        if not all(0 <= peso <= PESO_MAXIMO for peso in pesos.values()):
+            raise CommandError(f"Curso '{nome}' tem peso fora de 0 a {PESO_MAXIMO}: {pesos}")
+
+        principal = pesos.get(data["area"], 0)
+        outros = [peso for slug, peso in pesos.items() if slug != data["area"]]
+        if not principal or any(peso >= principal for peso in outros):
+            raise CommandError(f"Curso '{nome}': a área principal precisa ter o maior peso: {pesos}")
+        return pesos

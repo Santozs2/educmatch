@@ -3,178 +3,110 @@ from django.db import transaction
 from catalogo.models import Area
 from quiz.models import Alternativa, Peso_alternativa, Questao
 
+# Mudar o texto de uma alternativa apaga as respostas dela (CASCADE). Depois que
+# houver respostas, troca de alternativa pede uma nova versão, nunca edição.
+VERSAO_QUIZ = 2
+
 # pesos de 0 a 5. Área ausente = peso 0.
 QUESTOES = [
     {
         "texto": "Qual tipo de tarefa te dá mais satisfação?",
         "order": 1,
         "alternativa": [
-            {
-                "texto": "Montar e ligar coisas que funcionam na hora",
-                "peso": {"eletrica": 4, "eletromecanica": 3},
-            },
-            {
-                "texto": "Criar produtos com as próprias mãos",
-                "peso": {"costura": 4, "mecanica": 3},
-            },
-            {
-                "texto": "Resolver problemas no computador",
-                "peso": {"ti": 4, "ia": 3},
-            },
-            {
-                "texto": "Desmontar máquinas para entender como funcionam",
-                "peso": {"mecanica": 4, "mecanica-automotiva": 4},
-            },
+            {"texto": "Ligar e programar sistemas elétricos e automáticos", "peso": {"automacao-energia": 5, "ti": 1}},
+            {"texto": "Escrever programas e analisar dados no computador", "peso": {"ti": 5}},
+            {"texto": "Consertar carros e motores", "peso": {"automotiva": 5, "fabricacao-mecanica": 1}},
+            {"texto": "Organizar documentos e rotinas para o escritório funcionar", "peso": {"administracao-gestao": 5, "logistica-transporte": 1}},
         ],
     },
     {
         "texto": "Em qual ambiente você se imagina trabalhando?",
         "order": 2,
         "alternativa": [
-            {
-                "texto": "Oficina com bancada e ferramentas",
-                "peso": {"mecanica": 3, "mecanica-automotiva": 3, "eletromecanica": 2},
-            },
-            {
-                "texto": "Escritório ou home office, com computador",
-                "peso": {"ti": 4, "ia": 4},
-            },
-            {
-                "texto": "Chão de fábrica, indo até as máquinas",
-                "peso": {"eletromecanica": 4, "eletrica": 3, "mecanica": 2},
-            },
-            {
-                "texto": "Ateliê ou setor de produção de vestuário",
-                "peso": {"costura": 5},
-            },
+            {"texto": "Oficina de veículos", "peso": {"automotiva": 4, "fabricacao-mecanica": 1}},
+            {"texto": "Escritório, com computador", "peso": {"administracao-gestao": 3, "ti": 3}},
+            {"texto": "Chão de fábrica, entre máquinas", "peso": {"fabricacao-mecanica": 4, "automacao-energia": 2, "metalurgia-soldagem": 1}},
+            {"texto": "Casas, prédios e obras", "peso": {"construcao-mobiliario": 4, "refrigeracao-climatizacao": 2, "automacao-energia": 1}},
         ],
     },
     {
         "texto": "Você prefere trabalhar mais com o quê?",
         "order": 3,
         "alternativa": [
-            {
-                "texto": "Eletricidade, circuitos e comandos",
-                "peso": {"eletrica": 5, "eletromecanica": 3},
-            },
-            {
-                "texto": "Tecidos, moldes e acabamento",
-                "peso": {"costura": 5},
-            },
-            {
-                "texto": "Dados, lógica e algoritmos",
-                "peso": {"ia": 4, "ti": 4},
-            },
-            {
-                "texto": "Motores, engrenagens e ferramentas",
-                "peso": {"mecanica": 4, "mecanica-automotiva": 4},
-            },
+            {"texto": "Fios, painéis e sensores", "peso": {"automacao-energia": 5}},
+            {"texto": "Chapas de aço e solda", "peso": {"metalurgia-soldagem": 5, "fabricacao-mecanica": 1}},
+            {"texto": "Peças, tornos e medidas de precisão", "peso": {"fabricacao-mecanica": 5}},
+            {"texto": "Dados, lógica e algoritmos", "peso": {"ti": 5}},
         ],
     },
     {
         "texto": "Diante de um equipamento quebrado, o que você faz primeiro?",
         "order": 4,
         "alternativa": [
-            {
-                "texto": "Testo a parte elétrica com um multímetro",
-                "peso": {"eletrica": 4, "eletromecanica": 3},
-            },
-            {
-                "texto": "Abro e inspeciono as peças mecânicas",
-                "peso": {"mecanica": 4, "mecanica-automotiva": 3},
-            },
-            {
-                "texto": "Procuro o manual ou o código de erro na internet",
-                "peso": {"ti": 3, "ia": 2},
-            },
-            {
-                "texto": "Conecto um aparelho de diagnóstico",
-                "peso": {"mecanica-automotiva": 4, "eletromecanica": 2, "ti": 2},
-            },
+            {"texto": "Testo a parte elétrica com um multímetro", "peso": {"automacao-energia": 4, "automotiva": 1}},
+            {"texto": "Abro e inspeciono as peças mecânicas", "peso": {"fabricacao-mecanica": 4, "automotiva": 2}},
+            {"texto": "Conecto um aparelho de diagnóstico", "peso": {"automotiva": 4, "automacao-energia": 1, "ti": 1}},
+            {"texto": "Limpo, confiro filtros e meço a pressão", "peso": {"refrigeracao-climatizacao": 5}},
         ],
     },
     {
         "texto": "O que mais te atrai em uma profissão?",
         "order": 5,
         "alternativa": [
-            {
-                "texto": "Estar sempre aprendendo tecnologia nova",
-                "peso": {"ia": 4, "ti": 4},
-            },
-            {
-                "texto": "Ver pronto o produto que eu fiz",
-                "peso": {"costura": 4, "mecanica": 3},
-            },
-            {
-                "texto": "Manter a indústria funcionando sem parar",
-                "peso": {"eletromecanica": 5, "eletrica": 3, "mecanica": 2},
-            },
-            {
-                "texto": "Trabalhar com carros e veículos",
-                "peso": {"mecanica-automotiva": 5},
-            },
+            {"texto": "Estar sempre aprendendo tecnologia nova", "peso": {"ti": 4, "automacao-energia": 2}},
+            {"texto": "Ver pronto o produto que eu fiz", "peso": {"fabricacao-mecanica": 3, "metalurgia-soldagem": 3, "moda-joalheria": 2}},
+            {"texto": "Deixar os ambientes mais confortáveis para as pessoas", "peso": {"refrigeracao-climatizacao": 4, "construcao-mobiliario": 2}},
+            {"texto": "Fazer o material certo chegar na hora certa", "peso": {"logistica-transporte": 5, "administracao-gestao": 2}},
         ],
     },
     {
         "texto": "Com qual dessas ferramentas você se imagina trabalhando?",
         "order": 6,
         "alternativa": [
-            {
-                "texto": "Multímetro e alicate",
-                "peso": {"eletrica": 5, "eletromecanica": 2},
-            },
-            {
-                "texto": "Máquina de costura industrial",
-                "peso": {"costura": 5},
-            },
-            {
-                "texto": "Notebook e terminal de comando",
-                "peso": {"ti": 5, "ia": 3},
-            },
-            {
-                "texto": "Torno, fresa e paquímetro",
-                "peso": {"mecanica": 5, "eletromecanica": 1},
-            },
+            {"texto": "Multímetro e alicate", "peso": {"automacao-energia": 5}},
+            {"texto": "Máquina de solda", "peso": {"metalurgia-soldagem": 5}},
+            {"texto": "Notebook e terminal de comando", "peso": {"ti": 5}},
+            {"texto": "Rolo, pincel e espátula", "peso": {"construcao-mobiliario": 5}},
         ],
     },
     {
         "texto": "Num projeto em equipe, qual parte você pegaria?",
         "order": 7,
         "alternativa": [
-            {"texto": "Organizar a equipe e resolver os conflitos", "peso": {"rh": 5, "marketing": 1}},
-            {"texto": "Controlar o orçamento e a planilha de custos", "peso": {"financas": 5, "ti": 1}},
-            {"texto": "Criar a identidade visual e a apresentação", "peso": {"design": 5, "marketing": 2}},
-            {"texto": "Construir a peça ou o protótipo na oficina", "peso": {"metalurgia": 3, "mecanica": 3}},
+            {"texto": "Organizar a equipe e os prazos", "peso": {"administracao-gestao": 5}},
+            {"texto": "Controlar o estoque e os materiais", "peso": {"logistica-transporte": 5, "administracao-gestao": 1}},
+            {"texto": "Desenhar a peça no computador", "peso": {"fabricacao-mecanica": 4, "ti": 2}},
+            {"texto": "Construir o protótipo na oficina", "peso": {"fabricacao-mecanica": 3, "metalurgia-soldagem": 2, "automacao-energia": 1}},
         ],
     },
     {
         "texto": "Qual destes lugares você gostaria de conhecer por dentro?",
         "order": 8,
         "alternativa": [
-            {"texto": "Uma fundição, com metal derretido e moldes", "peso": {"metalurgia": 5, "mecanica": 1}},
-            {"texto": "O departamento pessoal de uma grande empresa", "peso": {"rh": 5, "financas": 2}},
-            {"texto": "Uma agência de publicidade", "peso": {"marketing": 5, "design": 3}},
-            {"texto": "Uma sala de servidores e dados", "peso": {"ti": 4, "ia": 3}},
+            {"texto": "Um centro de distribuição de mercadorias", "peso": {"logistica-transporte": 5}},
+            {"texto": "Um ateliê de joias", "peso": {"moda-joalheria": 5}},
+            {"texto": "Uma sala de servidores e dados", "peso": {"ti": 4, "automacao-energia": 1}},
+            {"texto": "Uma oficina de máquinas agrícolas e caminhões", "peso": {"automotiva": 5, "fabricacao-mecanica": 1}},
         ],
     },
     {
         "texto": "Qual resultado te deixaria mais orgulhoso(a)?",
         "order": 9,
         "alternativa": [
-            {"texto": "Uma solda perfeita, aprovada na inspeção", "peso": {"metalurgia": 5, "mecanica": 2}},
-            {"texto": "As contas da empresa fechando no azul no fim do mês", "peso": {"financas": 5, "rh": 1}},
-            {"texto": "Uma campanha que fez muita gente conhecer um produto", "peso": {"marketing": 5, "design": 2}},
-            {"texto": "Contratar a pessoa certa para uma vaga difícil", "peso": {"rh": 5, "marketing": 1}},
+            {"texto": "Uma solda perfeita, aprovada na inspeção", "peso": {"metalurgia-soldagem": 5, "fabricacao-mecanica": 1}},
+            {"texto": "Uma joia delicada feita por mim", "peso": {"moda-joalheria": 5}},
+            {"texto": "Um prédio com pintura e acabamento impecáveis", "peso": {"construcao-mobiliario": 5}},
+            {"texto": "Um ar-condicionado voltando a gelar", "peso": {"refrigeracao-climatizacao": 5}},
         ],
     },
     {
         "texto": "Com qual destes materiais você prefere lidar no dia a dia?",
         "order": 10,
         "alternativa": [
-            {"texto": "Chapas, tubos e perfis de aço", "peso": {"metalurgia": 4, "mecanica": 3}},
-            {"texto": "Relatórios, notas fiscais e planilhas", "peso": {"financas": 4, "rh": 2}},
-            {"texto": "Cores, fontes e imagens", "peso": {"design": 5, "marketing": 2}},
-            {"texto": "Fios, disjuntores e painéis elétricos", "peso": {"eletrica": 4, "eletromecanica": 2}},
+            {"texto": "Metais preciosos e peças pequenas", "peso": {"moda-joalheria": 5, "metalurgia-soldagem": 1}},
+            {"texto": "Relatórios e planilhas", "peso": {"administracao-gestao": 4, "ti": 1}},
+            {"texto": "Tintas, massas e texturas", "peso": {"construcao-mobiliario": 5}},
+            {"texto": "Compressores, gás refrigerante e dutos", "peso": {"refrigeracao-climatizacao": 5}},
         ],
     },
 ]
@@ -192,6 +124,7 @@ class Command(BaseCommand):
         for q_data in QUESTOES:
             questao, created = Questao.objects.update_or_create(
                 texto=q_data["texto"],
+                versao=VERSAO_QUIZ,
                 defaults={"order": q_data["order"], "is_active": True},
             )
 
@@ -228,5 +161,8 @@ class Command(BaseCommand):
                     f"[{len(q_data['alternativa'])} alternativas]"
                 )
             )
+
+        # Versões antigas saem do quiz, mas ficam no banco: são as respostas do histórico.
+        Questao.objects.exclude(versao=VERSAO_QUIZ).update(is_active=False)
 
         self.stdout.write(self.style.SUCCESS(f"\nTotal: {len(QUESTOES)} perguntas no quiz."))
