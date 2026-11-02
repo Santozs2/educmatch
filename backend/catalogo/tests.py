@@ -81,3 +81,28 @@ class BotaoDeInscricaoTest(BaseEducMatch):
 
 		self.assertNotContains(resposta, "Inscrever-se")
 		self.assertContains(resposta, "Manifestar interesse neste curso")
+
+
+class BotaoDeInscricaoNoResultadoTest(BaseEducMatch):
+	def abrir_resultado(self, salvo):
+		usuario = self.criar_usuario()
+		self.client.force_login(usuario)
+		tentativa = self.criar_tentativa(dono=usuario)
+		curso = tentativa.recomendacoes.get(rank_final=1).curso
+		if salvo:
+			registrar_interesse(usuario, curso, tentativa)
+		return curso, self.client.get(reverse("quiz-resultado", args=[tentativa.pk]))
+
+	def test_curso_na_lista_troca_remover_por_inscrever_se(self):
+		curso, resposta = self.abrir_resultado(salvo=True)
+
+		self.assertContains(resposta, "Inscrever-se")
+		self.assertContains(resposta, f'href="{escape(url_curso_senai(curso))}"')
+		self.assertNotContains(resposta, "Remover da minha lista")
+		self.assertNotContains(resposta, "Manifestar interesse")
+
+	def test_curso_fora_da_lista_continua_com_manifestar_interesse(self):
+		_, resposta = self.abrir_resultado(salvo=False)
+
+		self.assertContains(resposta, "Manifestar interesse")
+		self.assertNotContains(resposta, "Inscrever-se")

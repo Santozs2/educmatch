@@ -75,12 +75,10 @@
 
                 <div class="destaque__acoes">
                     {% if destaque.curso.id in interesses_salvos %}
-                    <form method="post" action="{% url 'interesse-remover' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="curso_id" value="{{ destaque.curso.id }}">
-                        <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">
-                        <button class="botao botao--contorno botao--bloco" type="submit">Remover da minha lista</button>
-                    </form>
+                    <a class="botao botao--bloco" href="{{ destaque.url_inscricao }}" target="_blank" rel="noopener noreferrer">
+                        Inscrever-se
+                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                    </a>
                     {% else %}
                     <form method="post" action="{% url 'interesse-salvar' %}">
                         {% csrf_token %}
