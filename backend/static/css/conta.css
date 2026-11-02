@@ -128,6 +128,22 @@
   margin: 0;
 }
 
+/* Curso nas listas: o mesmo desenho em toda linha, qualquer que seja o tamanho do nome ou da área. */
+.linha--curso {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.linha--curso .linha__info,
+.linha--curso .linha__chips {
+  grid-column: 1;
+}
+
+.linha--curso form {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
 /* ---------- Perfil ---------- */
 
 .perfil__numeros {
