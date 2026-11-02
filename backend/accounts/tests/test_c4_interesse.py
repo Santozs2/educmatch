@@ -37,11 +37,6 @@ class C4SnapshotTest(BaseEducMatch):
         self.assertAlmostEqual(item.afinidade_snapshot, primeiro.score)
         self.assertTrue(item.era_principal)
 
-    @override_settings(ESCOLA={
-        "nome": "SENAI",
-        "endereco": "R. Antônio de Godoy, 5405 - Vila São José, São José do Rio Preto - SP, 15090-250",
-        "telefone": "",
-    })
     def test_salvar_direciona_para_a_pagina_do_curso_no_senai(self):
         primeiro = self.tentativa.recomendacoes.get(rank_final=1)
 
@@ -49,6 +44,11 @@ class C4SnapshotTest(BaseEducMatch):
 
         self.assertEqual(resposta["Location"], primeiro.curso.url_senai)
 
+    @override_settings(ESCOLA={
+        "nome": "SENAI",
+        "endereco": "R. Antônio de Godoy, 5405 - Vila São José, São José do Rio Preto - SP, 15090-250",
+        "telefone": "",
+    })
     def test_salvar_curso_sem_link_direciona_para_busca_com_curso_e_cidade(self):
         primeiro = self.tentativa.recomendacoes.get(rank_final=1)
         Curso.objects.filter(pk=primeiro.curso_id).update(url_senai="")
