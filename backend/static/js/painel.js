@@ -234,34 +234,6 @@
         aplicar();
     }
 
-    // ---------- Áreas cadastradas ----------
-    // Os dois botões fazem o mesmo: mostram a lista inteira ou voltam às primeiras.
-    const AREAS_INICIAIS = 5;
-    const cardAreas = document.querySelector("[data-areas]");
-    if (cardAreas) {
-        const extras = Array.from(cardAreas.querySelectorAll("li")).slice(AREAS_INICIAIS);
-        const alternadores = cardAreas.querySelectorAll("[data-areas-alternar]");
-
-        function mostrarAreas(todas) {
-            extras.forEach(function (area) { area.hidden = !todas; });
-            alternadores.forEach(function (botao) {
-                botao.textContent = todas ? "Ver menos" : botao.dataset.areasAlternar;
-                botao.setAttribute("aria-expanded", String(todas));
-            });
-        }
-
-        if (extras.length) {
-            alternadores.forEach(function (botao) {
-                botao.setAttribute("aria-controls", "painel-areas-lista");
-                botao.hidden = false;
-                botao.addEventListener("click", function () {
-                    mostrarAreas(extras[0].hidden);
-                });
-            });
-            mostrarAreas(false);
-        }
-    }
-
     // ---------- Consultor de cursos ----------
     // Pede a sugestão ao servidor e só preenche o formulário quando o admin
     // clica em aplicar. O texto vem da LLM: entra sempre por textContent.
