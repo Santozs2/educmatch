@@ -216,6 +216,9 @@ LLM_PROMPT_VERSION = os.environ.get("LLM_PROMPT_VERSION", "v1")
 # chamar a LLM por estes segundos: os próximos alunos vão direto para a engine
 # em vez de esperar LLM_TIMEOUT cada um. 0 desliga a pausa.
 LLM_PAUSA = int(os.environ.get("LLM_PAUSA", "30"))
+# O consultor de cursos do painel usa a mesma LLM, mas quem espera é o admin,
+# não o aluno: o timeout é próprio e uma falha dele não liga a pausa do quiz.
+LLM_TIMEOUT_CONSULTOR = float(os.environ.get("LLM_TIMEOUT_CONSULTOR", "25"))
 
 # O commit que está no ar. O deploy (deploy.yml) grava o arquivo VERSAO dentro
 # do pacote; na máquina de quem desenvolve ele não existe e a versão é "dev".

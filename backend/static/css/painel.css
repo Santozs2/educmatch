@@ -1119,6 +1119,141 @@
   }
 }
 
+/* ---------- Consultor de cursos ---------- */
+
+.painel-consultor {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px dashed var(--linha);
+  border-radius: var(--raio);
+  background: var(--fundo);
+}
+
+.painel-consultor[hidden] {
+  display: none;
+}
+
+.painel-consultor__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.painel-consultor h3 {
+  margin: 0;
+  color: var(--titulo);
+}
+
+.painel-consultor__topo p {
+  margin: 4px 0 0;
+  color: var(--texto-2);
+  font-size: 0.9rem;
+}
+
+.painel-consultor__opcional {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: var(--raio-pilula);
+  background: var(--gelo);
+  color: var(--texto-2);
+  font-size: 0.7rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.painel-consultor__resultado {
+  display: grid;
+  gap: 14px;
+}
+
+.painel-consultor__resultado:empty {
+  display: none;
+}
+
+.painel-consultor__bloco h4 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+}
+
+.painel-consultor__bloco p {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+}
+
+.painel-consultor__areas,
+.painel-consultor__semelhantes {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.painel-consultor__area {
+  padding: 12px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-botao);
+  background: var(--superficie);
+}
+
+.painel-consultor__area-topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.painel-consultor__peso,
+.painel-consultor__duplicado {
+  padding: 2px 8px;
+  border-radius: var(--raio-pilula);
+  background: var(--marca-claro);
+  color: var(--marca-escuro);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.painel-consultor__duplicado {
+  margin-left: 8px;
+}
+
+.painel-consultor__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.painel-consultor__aplicar {
+  min-height: 36px;
+  font-size: 0.8rem;
+}
+
+.painel-consultor__semelhantes li {
+  font-size: 0.9rem;
+}
+
+.painel-consultor__aviso {
+  color: var(--alerta);
+  font-weight: 600;
+}
+
+.painel-consultor__erro {
+  color: var(--erro);
+}
+
+.painel-consultor__carregando {
+  color: var(--texto-2);
+}
+
+@media (max-width: 600px) {
+  .painel-consultor__topo {
+    flex-direction: column;
+  }
+}
+
 /* ---------- Alto contraste ---------- */
 
 :root.alto-contraste .painel-card {

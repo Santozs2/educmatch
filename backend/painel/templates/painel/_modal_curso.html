@@ -21,6 +21,20 @@
             {% endfor %}
         </div>
 
+        {% if consultor_ligado %}
+        {# Opcional e só com JS: o consultor sugere, o admin aplica e salva. Sem ele, o cadastro é o de sempre. #}
+        <section class="painel-consultor" aria-labelledby="{{ modal_id }}-consultor-titulo" data-consultor data-url="{% url 'painel-consultor-curso' %}" data-curso="{{ curso_form.instance.pk|default_if_none:'' }}" hidden>
+            <div class="painel-consultor__topo">
+                <div>
+                    <h3 id="{{ modal_id }}-consultor-titulo"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Consultor de IA <span class="painel-consultor__opcional">opcional</span></h3>
+                    <p>Sugere áreas, pesos, nome e descrição a partir do que você escreveu. Nada muda sem você aplicar e salvar.</p>
+                </div>
+                <button type="button" class="botao botao--secundario" data-consultor-pedir>Pedir sugestão</button>
+            </div>
+            <div class="painel-consultor__resultado" data-consultor-resultado aria-live="polite"></div>
+        </section>
+        {% endif %}
+
         <section class="painel-pesos" aria-labelledby="{{ modal_id }}-pesos-titulo">
             <div>
                 <h3 id="{{ modal_id }}-pesos-titulo">Pesos por área</h3>
