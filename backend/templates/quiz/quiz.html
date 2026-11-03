@@ -51,7 +51,8 @@
 
         <div class="quiz-passo__topo">
             {% if forloop.first %}
-            <a class="voltar" href="{% url 'quiz-inicio' %}">Voltar</a>
+            {# Dentro do quiz, voltar da 1ª pergunta é voltar para a abertura dele, não para a página anterior. #}
+            <a class="voltar" href="{% url 'quiz-inicio' %}" data-voltar="fixo">Voltar</a>
             {% else %}
             <a class="voltar" href="#questao-{{ forloop.counter0 }}">Voltar</a>
             {% endif %}
