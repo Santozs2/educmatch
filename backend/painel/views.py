@@ -235,6 +235,31 @@ def reativar_area(request, pk):
 
 @require_POST
 @staff_member_required
+def excluir_area(request, pk):
+    with transaction.atomic():
+        area = get_object_or_404(Area.objects.select_for_update(), pk=pk)
+        vinculada = (
+            area.cursos.exists()
+            or area.area_peso.exists()
+            or area.pesos.exists()
+        )
+        if vinculada:
+            messages.error(
+                request,
+                f"Não foi possível excluir a área {area.nome}: há cursos ou pesos do quiz vinculados. "
+                "Desative-a para preservar esses dados.",
+            )
+            return redirect("painel-areas")
+
+        nome = area.nome
+        area.delete()
+
+    messages.success(request, f"A área {nome} foi excluída com sucesso.")
+    return redirect("painel-areas")
+
+
+@require_POST
+@staff_member_required
 def consultor_curso(request):
     """O consultor de cursos: só devolve a sugestão em JSON, nunca grava nada."""
     if not settings.LLM_ENABLED:
@@ -353,11 +378,20 @@ def _render_areas(request, area_form=None, area_em_edicao=None, form_edicao=None
             linha["em_primeiro"] = None
 
     instancias = {area.pk: area for area in Area.objects.filter(pk__in=[linha["id"] for linha in linhas])}
+    areas_excluiveis = set(
+        Area.objects.filter(
+            pk__in=instancias,
+            cursos__isnull=True,
+            area_peso__isnull=True,
+            pesos__isnull=True,
+        ).values_list("pk", flat=True).distinct()
+    )
     for linha in linhas:
         pendente = area_em_edicao is not None and linha["id"] == area_em_edicao.pk
         linha["form"] = form_edicao if pendente else NovaArea(
             instance=instancias[linha["id"]], auto_id=f"area-{linha['id']}-%s"
         )
+        linha["pode_excluir"] = linha["id"] in areas_excluiveis
         linha["modal_id"] = f"painel-editar-area-{linha['id']}"
         linha["form_action"] = reverse("painel-editar-area", args=[linha["id"]])
         linha["aberto"] = pendente

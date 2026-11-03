@@ -27,6 +27,21 @@ class GestaoDeAreasTest(BasePainel):
         self.assertContains(resposta, "Fora do quiz")
         self.assertGreaterEqual(resposta.context["resumo"]["fora_do_quiz"], 1)
 
+    def test_lista_de_areas_tem_busca_e_filtros(self):
+        area = Area.objects.create(nome="Energia Solar", slug="energia-solar", descricao="Fotovoltaica.")
+        Area.objects.create(nome="Área Inativa", slug="area-inativa", descricao="", is_active=False)
+
+        resposta = self.client.get(reverse("painel-areas"))
+
+        self.assertContains(resposta, 'data-cursos-ferramentas data-tipo-linha="área"')
+        self.assertContains(resposta, 'data-cursos-filtro="situacao"')
+        self.assertContains(resposta, 'data-cursos-filtro="quiz"')
+        self.assertContains(
+            resposta,
+            f'data-busca="{area.nome} {area.slug} {area.descricao}" data-situacao="Ativa" data-quiz="Não"',
+        )
+        self.assertContains(resposta, 'data-situacao="Inativa"')
+
     def test_conta_cursos_ativos_principais_e_com_peso(self):
         area = Area.objects.create(nome="Energia Solar", slug="energia-solar", descricao="Fotovoltaica.")
         principal = self.criar_curso(area_principal=area)
@@ -113,6 +128,44 @@ class GestaoDeAreasTest(BasePainel):
         self.client.post(reverse("painel-desativar-area", args=[area.pk]))
 
         self.assertTrue(Peso_curso.objects.filter(curso=curso, area=area).exists())
+        self.assertTrue(Area.objects.filter(pk=area.pk).exists())
+
+    def test_excluir_area_sem_vinculos(self):
+        area = Area.objects.create(nome="Área sem vínculos", slug="area-sem-vinculos", descricao="")
+        resposta = self.client.post(reverse("painel-excluir-area", args=[area.pk]))
+
+        self.assertRedirects(resposta, reverse("painel-areas"), fetch_redirect_response=False)
+        self.assertFalse(Area.objects.filter(pk=area.pk).exists())
+        self.assertContains(self.client.get(reverse("painel-areas")), "A área Área sem vínculos foi excluída com sucesso.")
+
+    def test_nao_excluir_area_com_cursos_vinculados(self):
+        area = Area.objects.create(nome="Área em uso", slug="area-em-uso", descricao="")
+        curso = self.criar_curso(area_principal=area)
+
+        pagina = self.client.get(reverse("painel-areas"))
+        linha = next(item for item in pagina.context["areas"] if item["id"] == area.pk)
+        self.assertFalse(linha["pode_excluir"])
+        self.assertContains(pagina, f'aria-label="Excluir {area.nome}: em uso, não excluível"')
+
+        resposta = self.client.post(reverse("painel-excluir-area", args=[area.pk]))
+
+        self.assertRedirects(resposta, reverse("painel-areas"), fetch_redirect_response=False)
+        self.assertTrue(Area.objects.filter(pk=area.pk).exists())
+        self.assertTrue(curso.__class__.objects.filter(pk=curso.pk).exists())
+        self.assertContains(
+            self.client.get(reverse("painel-areas")),
+            "há cursos ou pesos do quiz vinculados",
+        )
+
+    def test_excluir_area_so_por_post_e_staff(self):
+        area = Area.objects.create(nome="Área protegida", slug="area-protegida", descricao="")
+        self.assertEqual(self.client.get(reverse("painel-excluir-area", args=[area.pk])).status_code, 405)
+
+        self.client.logout()
+        self.client.force_login(self.criar_usuario())
+        resposta = self.client.post(reverse("painel-excluir-area", args=[area.pk]))
+
+        self.assertEqual(resposta.status_code, 302)
         self.assertTrue(Area.objects.filter(pk=area.pk).exists())
 
     def test_acoes_so_por_post_e_staff(self):
