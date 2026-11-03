@@ -120,13 +120,12 @@
         if (cursoModal.dataset.abrir === "true") abrirModalCurso();
     });
 
-    // ---------- Tabela de cursos ----------
-    // Todas as linhas já vêm no HTML (e cada uma tem seu modal de edição); aqui só
-    // decidimos quais aparecem. Sem JS, a tabela mostra todos os cursos.
+    // ---------- Tabelas filtráveis ----------
+    // Todas as linhas já vêm no HTML; sem JS, a tabela mostra a lista completa.
     const POR_PAGINA = 10;
-    const linhasCurso = Array.from(document.querySelectorAll("tr[data-curso]"));
+    const linhasFiltraveis = Array.from(document.querySelectorAll("tr[data-linha-filtravel]"));
     const ferramentas = document.querySelector("[data-cursos-ferramentas]");
-    if (ferramentas && linhasCurso.length) {
+    if (ferramentas && linhasFiltraveis.length) {
         const busca = ferramentas.querySelector("[data-cursos-busca]");
         const filtros = Array.from(ferramentas.querySelectorAll("[data-cursos-filtro]"));
         const menuFiltros = ferramentas.querySelector("[data-cursos-filtros]");
@@ -142,12 +141,16 @@
             return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
         }
 
+        // Opções que já vêm no HTML ficam (e valem mesmo sem linha com aquele valor);
+        // as que faltam saem dos dados da tabela.
         filtros.forEach(function (select) {
             const chave = select.dataset.cursosFiltro;
-            const valores = new Set(linhasCurso.map(function (linha) { return linha.dataset[chave]; }));
-            Array.from(valores).sort(function (a, b) { return a.localeCompare(b, "pt-BR"); }).forEach(function (valor) {
-                select.add(new Option(valor, valor));
-            });
+            const existentes = new Set(Array.from(select.options).map(function (opcao) { return opcao.value; }));
+            const valores = new Set(linhasFiltraveis.map(function (linha) { return linha.dataset[chave]; }));
+            Array.from(valores).filter(function (valor) { return !existentes.has(valor); })
+                .sort(function (a, b) { return a.localeCompare(b, "pt-BR"); }).forEach(function (valor) {
+                    select.add(new Option(valor, valor));
+                });
         });
 
         function criarBotaoPagina(conteudo, rotulo, pagina, seta) {
@@ -180,7 +183,7 @@
         function aplicar() {
             const termo = normalizar(busca.value.trim());
             const ativos = filtros.filter(function (select) { return select.value; });
-            const encontradas = linhasCurso.filter(function (linha) {
+            const encontradas = linhasFiltraveis.filter(function (linha) {
                 return normalizar(linha.dataset.busca).includes(termo) && ativos.every(function (select) {
                     return linha.dataset[select.dataset.cursosFiltro] === select.value;
                 });
@@ -191,13 +194,15 @@
             const fim = Math.min(inicio + POR_PAGINA, encontradas.length);
             const visiveis = new Set(encontradas.slice(inicio, fim));
 
-            linhasCurso.forEach(function (linha) { linha.hidden = !visiveis.has(linha); });
+            linhasFiltraveis.forEach(function (linha) { linha.hidden = !visiveis.has(linha); });
             vazio.hidden = encontradas.length > 0;
             rotuloFiltros.textContent = ativos.length ? "Filtros (" + ativos.length + ")" : "Filtros";
             if (!encontradas.length) {
-                resumo.textContent = "Nenhum curso encontrado";
+                resumo.textContent = ferramentas.dataset.textoVazio;
             } else {
-                const nome = encontradas.length === 1 ? " curso" : " cursos";
+                const nome = encontradas.length === 1
+                    ? " " + ferramentas.dataset.tipoLinha
+                    : " " + ferramentas.dataset.tipoLinhas;
                 resumo.textContent = "Mostrando " + (inicio + 1) + " a " + fim + " de " + encontradas.length + nome;
             }
             desenharPaginas(totalPaginas);
