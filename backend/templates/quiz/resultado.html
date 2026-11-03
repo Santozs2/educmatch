@@ -83,7 +83,7 @@
                         <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                     </a>
                     {% else %}
-                    <form method="post" action="{% url 'interesse-salvar' %}">
+                    <form method="post" action="{% url 'interesse-salvar' %}"{% if user.is_authenticated %} data-interesse data-url-senai="{{ destaque.url_inscricao }}"{% endif %}>
                         {% csrf_token %}
                         <input type="hidden" name="curso_id" value="{{ destaque.curso.id }}">
                         <input type="hidden" name="tentativa_id" value="{{ tentativa.pk }}">

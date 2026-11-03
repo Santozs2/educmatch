@@ -97,6 +97,13 @@ class BotaoDeInscricaoTest(BaseEducMatch):
 		self.assertNotContains(resposta, "Inscrever-se")
 		self.assertContains(resposta, "Manifestar interesse neste curso")
 
+	def test_manifestar_interesse_salva_sem_sair_da_pagina(self):
+		"""interesse.js: o SENAI abre em outra aba e a página recarrega com "Inscrever-se"."""
+		curso, resposta = self.abrir_detalhe(salvo=False)
+
+		self.assertContains(resposta, f'data-interesse data-url-senai="{escape(url_curso_senai(curso))}"')
+		self.assertContains(resposta, "js/interesse.js")
+
 	def test_aprendiz_e_graduacao_nao_prometem_inscricao(self):
 		for nivel in ("aprendiz", "graduacao"):
 			with self.subTest(nivel=nivel):
@@ -119,6 +126,22 @@ class BotaoDeInscricaoNoResultadoTest(BaseEducMatch):
 		if salvo:
 			registrar_interesse(usuario, curso, tentativa)
 		return curso, self.client.get(reverse("quiz-resultado", args=[tentativa.pk]))
+
+	def test_manifestar_interesse_no_resultado_salva_sem_sair_da_pagina(self):
+		curso, resposta = self.abrir_resultado(salvo=False)
+
+		self.assertContains(resposta, f'data-interesse data-url-senai="{escape(url_curso_senai(curso))}"')
+
+	def test_sem_login_o_form_segue_para_a_tela_de_entrar(self):
+		tentativa = self.criar_tentativa()
+		sessao = self.client.session
+		sessao["minhas_tentativas"] = [tentativa.pk]
+		sessao.save()
+
+		resposta = self.client.get(reverse("quiz-resultado", args=[tentativa.pk]))
+
+		self.assertContains(resposta, "Manifestar interesse")
+		self.assertNotContains(resposta, "data-interesse")
 
 	def test_curso_na_lista_troca_remover_por_inscrever_se(self):
 		curso, resposta = self.abrir_resultado(salvo=True)

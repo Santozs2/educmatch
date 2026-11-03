@@ -53,7 +53,7 @@
                 <button class="botao botao--contorno botao--bloco" type="submit">Remover da minha lista</button>
             </form>
             {% else %}
-            <form method="post" action="{% url 'interesse-salvar' %}">
+            <form method="post" action="{% url 'interesse-salvar' %}"{% if user.is_authenticated %} data-interesse data-url-senai="{{ url_inscricao }}"{% endif %}>
                 {% csrf_token %}
                 <input type="hidden" name="curso_id" value="{{ curso.id }}">
                 {% if tentativa_id %}<input type="hidden" name="tentativa_id" value="{{ tentativa_id }}">{% endif %}
