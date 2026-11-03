@@ -1,17 +1,23 @@
 import csv
+import logging
+from dataclasses import asdict
 from urllib.parse import urlencode
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from avaliacao.models import LinkDeAvaliacao
 from catalogo.models import Area, Curso
-from painel import metricas, metricas_avaliacao, privacidade
+from painel import consultor, metricas, metricas_avaliacao, privacidade
 from painel.forms import NovoCurso, NovoLinkDeAvaliacao, PesosCursoFormSet, NovaArea
+from quiz.llm import LLMError, LLMInvalidOutput
 from quiz.models import QuestionarioLink, Tentativa_de_resposta
+
+logger = logging.getLogger(__name__)
 
 
 def _links_ativos(request):
@@ -188,6 +194,30 @@ def criar_area(request):
 
 @require_POST
 @staff_member_required
+def consultor_curso(request):
+    """O consultor de cursos: só devolve a sugestão em JSON, nunca grava nada."""
+    if not settings.LLM_ENABLED:
+        return JsonResponse({"erro": "O consultor está desligado neste ambiente."}, status=404)
+    ignorar = request.POST.get("curso_id", "")
+    try:
+        sugestao = consultor.consultar(
+            request.POST.get("nome_curso", ""),
+            request.POST.get("descricao", ""),
+            ignorar_id=int(ignorar) if ignorar.isdigit() else None,
+        )
+    except consultor.EntradaInvalida as erro:
+        return JsonResponse({"erro": str(erro)}, status=400)
+    except LLMInvalidOutput as erro:
+        logger.warning("Consultor: saída da LLM recusada: %s", erro)
+        return JsonResponse({"erro": "A IA respondeu fora do formato. Tente de novo."}, status=502)
+    except LLMError as erro:
+        logger.warning("Consultor: LLM indisponível: %s", erro)
+        return JsonResponse({"erro": "A IA não respondeu agora. Tente de novo em instantes."}, status=503)
+    return JsonResponse(asdict(sugestao))
+
+
+@require_POST
+@staff_member_required
 def remover_curso(request, pk):
     curso = get_object_or_404(Curso, pk=pk)
     curso.is_active = False
@@ -264,6 +294,7 @@ def _render_cursos(
         "area_form": area_form or NovaArea(),
         "area_form_action": reverse("painel-criar-area"),
         "area_modal_aberto": bool(area_form and area_form.errors),
+        "consultor_ligado": settings.LLM_ENABLED,
     })
     return render(request, "painel/cursos.html", contexto)
 

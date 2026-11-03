@@ -68,6 +68,6 @@ class OpenAICompatProvider:
         )
 
 
-def gemini():
+def gemini(timeout=None):
     """O mesmo provedor, já apontado para o Gemini se LLM_BASE_URL estiver vazio."""
-    return OpenAICompatProvider(base_url=settings.LLM_BASE_URL or GEMINI_BASE_URL)
+    return OpenAICompatProvider(base_url=settings.LLM_BASE_URL or GEMINI_BASE_URL, timeout=timeout)
