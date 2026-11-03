@@ -9,16 +9,18 @@
             <button type="button" class="botao botao--suave botao--icone" data-fechar-curso aria-label="Fechar modal"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
         </header>
 
-        {% if area_form.non_field_errors %}<div class="painel-form-erros">{{ area_form.non_field_errors }}</div>{% endif %}
-        <div class="painel-curso-campos">
-            {% for field in area_form %}
-            <div class="painel-curso-campo{% if field.name == 'descricao' %} painel-curso-campo--largo{% endif %}">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-                {% for error in field.errors %}<span class="painel-form-erro">{{ error }}</span>{% endfor %}
+        <div class="painel-modal__conteudo">
+            {% if area_form.non_field_errors %}<div class="painel-form-erros">{{ area_form.non_field_errors }}</div>{% endif %}
+            <div class="painel-curso-campos">
+                {% for field in area_form %}
+                <div class="painel-curso-campo{% if field.name == 'descricao' %} painel-curso-campo--largo{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<span class="painel-form-erro">{{ error }}</span>{% endfor %}
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
 
         <footer class="painel-modal__acoes">
