@@ -179,6 +179,11 @@ def editar_curso(request, pk):
     )
 
 
+@staff_member_required
+def areas(request):
+    return _render_areas(request)
+
+
 @require_POST
 @staff_member_required
 def criar_area(request):
@@ -186,10 +191,46 @@ def criar_area(request):
     if form.is_valid():
         area = form.save()
         messages.success(request, f"Área {area.nome} criada com sucesso.")
-        return redirect("painel-cursos")
+        return redirect("painel-areas")
 
     messages.error(request, "Revise os campos destacados antes de salvar a área.")
-    return _render_cursos(request, area_form=form)
+    return _render_areas(request, area_form=form)
+
+
+@require_POST
+@staff_member_required
+def editar_area(request, pk):
+    """Muda nome e descrição. O slug fica: é a chave do matching e do histórico."""
+    area = get_object_or_404(Area, pk=pk)
+    form = NovaArea(request.POST, instance=area, auto_id=f"area-{area.pk}-%s")
+    if form.is_valid():
+        area = form.save()
+        messages.success(request, f"Área {area.nome} atualizada com sucesso.")
+        return redirect("painel-areas")
+
+    messages.error(request, "Revise os campos destacados antes de salvar a área.")
+    return _render_areas(request, area_em_edicao=area, form_edicao=form)
+
+
+@require_POST
+@staff_member_required
+def desativar_area(request, pk):
+    """Some dos formulários e do consultor; o histórico e os pesos já gravados ficam."""
+    area = get_object_or_404(Area, pk=pk)
+    area.is_active = False
+    area.save(update_fields=["is_active"])
+    messages.success(request, f"Área {area.nome} desativada.")
+    return redirect("painel-areas")
+
+
+@require_POST
+@staff_member_required
+def reativar_area(request, pk):
+    area = get_object_or_404(Area, pk=pk)
+    area.is_active = True
+    area.save(update_fields=["is_active"])
+    messages.success(request, f"Área {area.nome} reativada.")
+    return redirect("painel-areas")
 
 
 @require_POST
@@ -213,6 +254,9 @@ def consultor_curso(request):
     except LLMError as erro:
         logger.warning("Consultor: LLM indisponível: %s", erro)
         return JsonResponse({"erro": "A IA não respondeu agora. Tente de novo em instantes."}, status=503)
+    except Exception:  # um bug nosso volta como JSON, não como página de erro 500
+        logger.exception("Consultor: erro inesperado")
+        return JsonResponse({"erro": "Erro inesperado no consultor. O detalhe está no log do servidor."}, status=500)
     return JsonResponse(asdict(sugestao))
 
 
@@ -233,7 +277,6 @@ def _render_cursos(
     curso_em_edicao=None,
     form_edicao=None,
     pesos_edicao=None,
-    area_form=None,
 ):
     inicio, contexto = _contexto_base(request, "cursos")
     inicio = None
@@ -244,7 +287,6 @@ def _render_cursos(
     linhas = metricas.desempenho_por_curso(inicio)
     if contexto["tem_massa"]:
         linhas = privacidade.suprimir_campos(linhas, ("em_primeiro", "no_top5"))
-        contexto["demanda_por_area"] = privacidade.suprimir_pequenos(metricas.demanda_por_area(inicio))
     else:
         for linha in linhas:
             linha["em_primeiro"] = linha["no_top5"] = None
@@ -290,13 +332,50 @@ def _render_cursos(
             curso_form and (curso_form.errors or pesos_formset.errors)
         ),
         "cursos_edicao": cursos_edicao,
-        "areas": [area for area in areas if area.is_active],
-        "area_form": area_form or NovaArea(),
-        "area_form_action": reverse("painel-criar-area"),
-        "area_modal_aberto": bool(area_form and area_form.errors),
         "consultor_ligado": settings.LLM_ENABLED,
     })
     return render(request, "painel/cursos.html", contexto)
+
+
+def _render_areas(request, area_form=None, area_em_edicao=None, form_edicao=None):
+    """A gestão de áreas. Como em Cursos, os números são do histórico inteiro."""
+    _, contexto = _contexto_base(request, "areas")
+    contexto["sem_filtro_periodo"] = True
+    total_historico = metricas.total_de_tentativas(None)
+    contexto["total_de_tentativas"] = total_historico
+    contexto["tem_massa"] = privacidade.periodo_tem_massa_suficiente(total_historico)
+
+    linhas = metricas.gestao_de_areas(None)
+    if contexto["tem_massa"]:
+        linhas = privacidade.suprimir_campos(linhas, ("em_primeiro",))
+    else:
+        for linha in linhas:
+            linha["em_primeiro"] = None
+
+    instancias = {area.pk: area for area in Area.objects.filter(pk__in=[linha["id"] for linha in linhas])}
+    for linha in linhas:
+        pendente = area_em_edicao is not None and linha["id"] == area_em_edicao.pk
+        linha["form"] = form_edicao if pendente else NovaArea(
+            instance=instancias[linha["id"]], auto_id=f"area-{linha['id']}-%s"
+        )
+        linha["modal_id"] = f"painel-editar-area-{linha['id']}"
+        linha["form_action"] = reverse("painel-editar-area", args=[linha["id"]])
+        linha["aberto"] = pendente
+
+    ativas = [linha for linha in linhas if linha["is_active"]]
+    contexto.update({
+        "areas": linhas,
+        "resumo": {
+            "ativas": len(ativas),
+            "inativas": len(linhas) - len(ativas),
+            "sem_cursos": sum(1 for linha in ativas if not linha["principais"]),
+            "fora_do_quiz": sum(1 for linha in ativas if not linha["alternativas"]),
+        },
+        "area_form": area_form or NovaArea(),
+        "area_form_action": reverse("painel-criar-area"),
+        "area_modal_aberto": bool(area_form and area_form.errors),
+    })
+    return render(request, "painel/areas.html", contexto)
 
 
 @staff_member_required

@@ -203,6 +203,35 @@ def cobertura_de_areas():
     )
     
     
+def gestao_de_areas(inicio):
+    """Todas as áreas, ativas primeiro, com o que a gestão precisa ver de cada uma.
+
+    principais: cursos ativos com ela como área principal. com_peso: cursos ativos
+    que pontuam nela no matching. alternativas: alternativas do quiz que pesam
+    nela (zero = os alunos nunca pontuam ali). em_primeiro: quantas vezes foi a
+    área mais forte de um 1º lugar.
+    """
+    ativas = Q(pesos__alternativa__questao__is_active=True, pesos__peso__gt=0)
+    linhas = list(
+        Area.objects
+        .annotate(
+            principais=Count("cursos", filter=Q(cursos__is_active=True), distinct=True),
+            com_peso=Count(
+                "area_peso__curso",
+                filter=Q(area_peso__curso__is_active=True, area_peso__peso__gt=0),
+                distinct=True,
+            ),
+            alternativas=Count("pesos__alternativa", filter=ativas, distinct=True),
+        )
+        .values("id", "nome", "slug", "descricao", "is_active", "principais", "com_peso", "alternativas")
+        .order_by("-is_active", "nome")
+    )
+    primeiro = {linha["area"]: linha["total"] for linha in demanda_por_area(inicio, limite=None)}
+    for linha in linhas:
+        linha["em_primeiro"] = primeiro.get(linha["slug"], 0)
+    return linhas
+
+
 def desempenho_por_curso(inicio):
     """Cada curso ativo com quantas vezes ficou em 1º e quantas entrou no Top 5."""
     periodo = _no_periodo(inicio, "recomendacoes__tentativa__criado_em")

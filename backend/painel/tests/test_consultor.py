@@ -193,6 +193,22 @@ class RotaDoConsultorTest(BasePainel):
 
         fabrica.assert_called_once_with(timeout=25)
 
+    @LIGADO
+    def test_cache_quebrado_nao_impede_a_consulta(self):
+        with mock.patch("painel.consultor.cache") as quebrado, self.assertLogs("painel.consultor", "ERROR"):
+            quebrado.get.side_effect = quebrado.set.side_effect = RuntimeError("no such table: educmatch_cache")
+            resposta = self.pedir()
+
+        self.assertEqual(resposta.status_code, 200)
+
+    @LIGADO
+    def test_erro_inesperado_volta_json_500(self):
+        with mock.patch("painel.consultor.consultar", side_effect=RuntimeError("bug")),                 self.assertLogs("painel.views", "ERROR"):
+            resposta = self.pedir()
+
+        self.assertEqual(resposta.status_code, 500)
+        self.assertIn("log do servidor", resposta.json()["erro"])
+
     @override_settings(LLM_ENABLED=False)
     def test_com_a_ia_desligada_volta_404(self):
         self.assertEqual(self.pedir().status_code, 404)

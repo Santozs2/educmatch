@@ -233,6 +233,22 @@ def chave_do_cache(prompt):
     return "llm:consultor:" + hashlib.sha256(bruto.encode("utf-8")).hexdigest()
 
 
+def _ler_cache(chave):
+    """O cache só economiza cota: se ele falhar (tabela sem createcachetable), a consulta segue."""
+    try:
+        return cache.get(chave)
+    except Exception:
+        logger.exception("Consultor: cache indisponível na leitura")
+        return None
+
+
+def _gravar_cache(chave, valor):
+    try:
+        cache.set(chave, valor, timeout=CACHE_SEGUNDOS)
+    except Exception:
+        logger.exception("Consultor: cache indisponível na gravação")
+
+
 def consultar(nome, descricao, ignorar_id=None):
     """A sugestão do consultor, ou LLMError / EntradaInvalida com o motivo.
 
@@ -246,7 +262,7 @@ def consultar(nome, descricao, ignorar_id=None):
     prompt = montar_prompt(contexto)
     chave = chave_do_cache(prompt)
 
-    guardada = cache.get(chave)
+    guardada = _ler_cache(chave)
     if guardada:
         texto, modelo = guardada["texto"], guardada["modelo"]
     else:
@@ -254,7 +270,7 @@ def consultar(nome, descricao, ignorar_id=None):
         texto, modelo = resposta.text, resposta.model
     dados = saida_valida(texto, contexto)
     if not guardada:
-        cache.set(chave, {"texto": texto, "modelo": modelo}, timeout=CACHE_SEGUNDOS)
+        _gravar_cache(chave, {"texto": texto, "modelo": modelo})
 
     por_slug = {area["slug"]: area for area in contexto["areas"]}
     return Sugestao(
