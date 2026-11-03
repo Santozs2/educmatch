@@ -77,6 +77,23 @@ class ContextoTest(BasePainel):
         with self.assertRaises(consultor.EntradaInvalida):
             consultor.montar_contexto("Elétrica", "curto")
 
+    def test_prompt_nao_depende_da_ordem_em_que_o_banco_devolve_os_pesos(self):
+        """O prompt é a chave do cache: pesos empatados não podem trocar de lugar."""
+        curso = Curso.objects.filter(is_active=True).first()
+        a, b = Area.objects.filter(is_active=True).exclude(pk=curso.area_principal_id)[:2]
+        Peso_curso.objects.filter(curso=curso).delete()
+        Peso_curso.objects.create(curso=curso, area=b, peso=3)
+        Peso_curso.objects.create(curso=curso, area=a, peso=3)
+        contexto = consultor.montar_contexto(curso.nome_curso, curso.descricao)
+        primeiro = consultor.montar_prompt(contexto)
+
+        with mock.patch.object(Peso_curso._meta, "ordering", ["peso"]):
+            de_novo = consultor.montar_prompt(consultor.montar_contexto(curso.nome_curso, curso.descricao))
+
+        self.assertEqual(primeiro, de_novo)
+        pesos = next(c["pesos"] for c in contexto["semelhantes"] if c["id"] == curso.pk)
+        self.assertEqual(list(pesos), sorted(pesos))
+
     def test_prompt_leva_as_areas_e_o_curso_mas_nao_os_ids(self):
         Area.objects.create(nome="Energia Solar", slug="energia-solar", descricao="Sistemas fotovoltaicos.")
         contexto = consultor.montar_contexto("Eletricista", DESCRICAO)

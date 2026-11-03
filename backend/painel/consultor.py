@@ -92,7 +92,8 @@ def cursos_semelhantes(nome, descricao, ignorar_id=None):
         )
         if nota >= CORTE_SEMELHANCA or mesmo_nome:
             achados.append((curso, round(nota, 3), mesmo_nome))
-    achados.sort(key=lambda item: (item[2], item[1]), reverse=True)
+    # Desempate pelo id: o prompt é a chave do cache e precisa sair igual a cada pedido.
+    achados.sort(key=lambda item: (item[2], item[1], -item[0].pk), reverse=True)
     return achados[:SEMELHANTES]
 
 
@@ -139,7 +140,8 @@ def montar_contexto(nome, descricao, ignorar_id=None):
                 "nome": curso.nome_curso,
                 "descricao": curso.descricao[:400],
                 "area_principal": curso.area_principal.slug,
-                "pesos": {p.area.slug: int(p.peso) for p in curso.curso_peso.all() if p.area},
+                # Ordenado pelo slug: com pesos empatados, o banco devolve as linhas em qualquer ordem.
+                "pesos": dict(sorted((p.area.slug, int(p.peso)) for p in curso.curso_peso.all() if p.area)),
                 "semelhanca": nota,
                 "possivel_duplicado": duplicado,
             }
