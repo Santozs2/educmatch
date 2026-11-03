@@ -18,9 +18,14 @@ PROVIDERS = {
 }
 
 
-def get_provider() -> LLMProvider:
-    """O provedor escolhido em LLM_PROVIDER, no .env."""
+def get_provider(timeout=None) -> LLMProvider:
+    """O provedor escolhido em LLM_PROVIDER, no .env.
+
+    timeout troca o LLM_TIMEOUT só nesta instância: o consultor do painel pode
+    esperar mais que o aluno no quiz.
+    """
     try:
-        return PROVIDERS[settings.LLM_PROVIDER]()
+        fabrica = PROVIDERS[settings.LLM_PROVIDER]
     except KeyError:
         raise LLMUnavailable(f"provedor não implementado: {settings.LLM_PROVIDER!r}") from None
+    return fabrica() if timeout is None else fabrica(timeout=timeout)

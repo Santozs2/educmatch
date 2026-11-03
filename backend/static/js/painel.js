@@ -234,33 +234,157 @@
         aplicar();
     }
 
-    // ---------- Áreas cadastradas ----------
-    // Os dois botões fazem o mesmo: mostram a lista inteira ou voltam às primeiras.
-    const AREAS_INICIAIS = 5;
-    const cardAreas = document.querySelector("[data-areas]");
-    if (cardAreas) {
-        const extras = Array.from(cardAreas.querySelectorAll("li")).slice(AREAS_INICIAIS);
-        const alternadores = cardAreas.querySelectorAll("[data-areas-alternar]");
-
-        function mostrarAreas(todas) {
-            extras.forEach(function (area) { area.hidden = !todas; });
-            alternadores.forEach(function (botao) {
-                botao.textContent = todas ? "Ver menos" : botao.dataset.areasAlternar;
-                botao.setAttribute("aria-expanded", String(todas));
-            });
-        }
-
-        if (extras.length) {
-            alternadores.forEach(function (botao) {
-                botao.setAttribute("aria-controls", "painel-areas-lista");
-                botao.hidden = false;
-                botao.addEventListener("click", function () {
-                    mostrarAreas(extras[0].hidden);
-                });
-            });
-            mostrarAreas(false);
-        }
+    // ---------- Consultor de cursos ----------
+    // Pede a sugestão ao servidor e só preenche o formulário quando o admin
+    // clica em aplicar. O texto vem da LLM: entra sempre por textContent.
+    function elemento(tag, classe, texto) {
+        const el = document.createElement(tag);
+        if (classe) el.className = classe;
+        if (texto) el.textContent = texto;
+        return el;
     }
+
+    // Botões do mesmo grupo trocam o mesmo campo: aplicar um libera os outros.
+    function botaoAplicar(rotulo, aoClicar, grupo) {
+        const botao = elemento("button", "botao botao--suave painel-consultor__aplicar", rotulo);
+        botao.type = "button";
+        if (grupo) botao.dataset.grupo = grupo;
+        botao.dataset.rotulo = rotulo;
+        botao.addEventListener("click", function () {
+            aoClicar();
+            if (grupo) {
+                botao.closest("[data-consultor-resultado]").querySelectorAll('[data-grupo="' + grupo + '"]').forEach(function (outro) {
+                    outro.textContent = outro.dataset.rotulo;
+                    outro.disabled = false;
+                });
+            }
+            botao.textContent = "Aplicado";
+            botao.disabled = true;
+        });
+        return botao;
+    }
+
+    function preencherPeso(form, areaId, peso) {
+        const linhas = Array.from(form.querySelectorAll(".painel-pesos__linha"));
+        const area = function (linha) { return linha.querySelector('select[name$="-area"]'); };
+        const linha = linhas.find(function (l) { return area(l) && area(l).value === String(areaId); })
+            || linhas.find(function (l) { return area(l) && !area(l).value; });
+        if (!linha) return false;
+        area(linha).value = String(areaId);
+        linha.querySelector('input[name$="-peso"]').value = peso;
+        const remover = linha.querySelector('input[name$="-DELETE"]');
+        if (remover) remover.checked = false;
+        return true;
+    }
+
+    document.querySelectorAll("[data-consultor]").forEach(function (painel) {
+        const form = painel.closest("form");
+        const pedir = painel.querySelector("[data-consultor-pedir]");
+        const resultado = painel.querySelector("[data-consultor-resultado]");
+        const campo = function (nome) { return form.querySelector('[name="' + nome + '"]'); };
+
+        function mostrarErro(mensagem) {
+            resultado.textContent = "";
+            resultado.append(elemento("p", "painel-consultor__erro", mensagem));
+        }
+
+        function bloco(titulo) {
+            const caixa = elemento("div", "painel-consultor__bloco");
+            caixa.append(elemento("h4", "", titulo));
+            resultado.append(caixa);
+            return caixa;
+        }
+
+        function desenhar(dados) {
+            resultado.textContent = "";
+
+            const areas = bloco("Áreas recomendadas");
+            if (dados.nenhuma_area_adequada) {
+                areas.append(elemento("p", "painel-consultor__aviso",
+                    "Nenhuma área atual cobre bem este curso. A mais próxima vem abaixo." +
+                    (dados.nova_area_sugerida ? " Considere criar a área “" + dados.nova_area_sugerida + "”." : "")));
+            }
+            const lista = elemento("ol", "painel-consultor__areas");
+            dados.areas.forEach(function (area) {
+                const item = elemento("li", "painel-consultor__area");
+                const topo = elemento("div", "painel-consultor__area-topo");
+                topo.append(elemento("b", "", area.nome), elemento("span", "painel-consultor__peso", "peso " + area.peso));
+                item.append(topo, elemento("p", "", area.justificativa));
+                if (!area.tem_pesos_no_quiz) {
+                    item.append(elemento("p", "painel-consultor__aviso",
+                        "Esta área ainda não tem pesos no quiz: os alunos não pontuam nela."));
+                }
+                const acoes = elemento("div", "painel-consultor__acoes");
+                acoes.append(
+                    botaoAplicar("Usar como área principal", function () { campo("area_principal").value = String(area.id); }, "principal"),
+                    botaoAplicar("Adicionar aos pesos", function () {
+                        if (!preencherPeso(form, area.id, area.peso)) {
+                            window.alert("Não há linha de peso livre. Remova uma linha ou salve e edite o curso.");
+                        }
+                    })
+                );
+                item.append(acoes);
+                lista.append(item);
+            });
+            areas.append(lista);
+
+            if (dados.nome_sugerido && dados.nome_sugerido !== campo("nome_curso").value.trim()) {
+                const nome = bloco("Nome sugerido");
+                nome.append(elemento("p", "", dados.nome_sugerido),
+                    botaoAplicar("Usar este nome", function () { campo("nome_curso").value = dados.nome_sugerido; }));
+            }
+            if (dados.descricao_sugerida && dados.descricao_sugerida !== campo("descricao").value.trim()) {
+                const descricao = bloco("Descrição sugerida");
+                descricao.append(elemento("p", "", dados.descricao_sugerida),
+                    botaoAplicar("Usar esta descrição", function () { campo("descricao").value = dados.descricao_sugerida; }));
+            }
+            if (dados.observacoes) {
+                bloco("Para conferir").append(elemento("p", "", dados.observacoes));
+            }
+            if (dados.semelhantes.length) {
+                const semelhantes = bloco("Cursos parecidos no catálogo");
+                const itens = elemento("ul", "painel-consultor__semelhantes");
+                dados.semelhantes.forEach(function (curso) {
+                    const item = elemento("li", "", curso.nome + " — " + curso.area);
+                    if (curso.possivel_duplicado) item.append(elemento("span", "painel-consultor__duplicado", "possível duplicado"));
+                    itens.append(item);
+                });
+                semelhantes.append(itens);
+            }
+        }
+
+        pedir.addEventListener("click", function () {
+            const corpo = new FormData();
+            corpo.append("csrfmiddlewaretoken", campo("csrfmiddlewaretoken").value);
+            corpo.append("nome_curso", campo("nome_curso").value);
+            corpo.append("descricao", campo("descricao").value);
+            corpo.append("curso_id", painel.dataset.curso);
+
+            pedir.disabled = true;
+            pedir.textContent = "Analisando...";
+            resultado.textContent = "";
+            resultado.append(elemento("p", "painel-consultor__carregando", "O consultor está lendo o catálogo. Pode levar alguns segundos."));
+            fetch(painel.dataset.url, { method: "POST", body: corpo, credentials: "same-origin" })
+                .then(function (resposta) {
+                    return resposta.json().catch(function () { return {}; }).then(function (dados) {
+                        if (!resposta.ok) throw new Error(dados.erro || "Não foi possível consultar agora.");
+                        // Sessão vencida: o login volta como HTML, sem as áreas.
+                        if (!dados.areas) throw new Error("Sua sessão expirou. Recarregue a página e tente de novo.");
+                        return dados;
+                    });
+                })
+                .then(desenhar)
+                .catch(function (erro) {
+                    mostrarErro(erro instanceof TypeError ? "Sem conexão com o servidor. Tente de novo." : erro.message);
+                })
+                .finally(function () {
+                    pedir.disabled = false;
+                    pedir.textContent = "Pedir de novo";
+                });
+        });
+
+        painel.hidden = false;
+    });
 
     // ---------- QR e copiar ----------
     // O qrcode.min.js só é carregado nas telas de links, antes deste arquivo.

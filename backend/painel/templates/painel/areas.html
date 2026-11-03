@@ -1,0 +1,100 @@
+{% extends "painel/base_painel.html" %}
+{% block titulo_painel %}Áreas{% endblock %}
+{% block titulo_pagina %}Áreas{% endblock %}
+{% block subtitulo %}As áreas de formação que classificam os cursos e que o quiz mede{% endblock %}
+{% block acoes %}
+<button class="botao" type="button" data-abrir-curso="painel-criar-area"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nova área</button>
+{% endblock %}
+
+{% block painel %}
+{% if not tem_massa %}{% include "painel/_sem_massa.html" %}{% endif %}
+<div class="painel-kpis">
+    <article class="painel-card painel-kpi">
+        <h2>Áreas ativas</h2>
+        <p class="painel-kpi__valor">{{ resumo.ativas }}</p>
+    </article>
+    <article class="painel-card painel-kpi">
+        <h2>Inativas</h2>
+        <p class="painel-kpi__valor">{{ resumo.inativas }}</p>
+    </article>
+    <article class="painel-card painel-kpi{% if resumo.sem_cursos %} painel-card--destaque{% endif %}">
+        <h2>Ativas sem curso <span class="painel-ajuda" tabindex="0" data-dica="Nenhum curso ativo tem esta área como principal.">?</span></h2>
+        <p class="painel-kpi__valor">{{ resumo.sem_cursos }}</p>
+    </article>
+    <article class="painel-card painel-kpi{% if resumo.fora_do_quiz %} painel-card--destaque{% endif %}">
+        <h2>Fora do quiz <span class="painel-ajuda" tabindex="0" data-dica="Nenhuma alternativa do quiz pesa nesta área: os alunos nunca pontuam nela e os cursos dela quase não são recomendados.">?</span></h2>
+        <p class="painel-kpi__valor">{{ resumo.fora_do_quiz }}</p>
+    </article>
+</div>
+
+<div class="painel-grade">
+    <article class="painel-card">
+        <div class="painel-cursos__topo">
+            <h2 class="painel-cursos__titulo">Áreas cadastradas ({{ areas|length }})</h2>
+        </div>
+        <div class="painel-tabela painel-tabela--cursos painel-tabela--areas">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Área</th>
+                        <th scope="col" class="numero">Cursos <span class="painel-ajuda" tabindex="0" data-dica="Cursos ativos com esta área como principal.">?</span></th>
+                        <th scope="col" class="numero">Com peso <span class="painel-ajuda" tabindex="0" data-dica="Cursos ativos que pontuam nesta área no matching (peso maior que 0).">?</span></th>
+                        <th scope="col" class="numero">No quiz <span class="painel-ajuda" tabindex="0" data-dica="Alternativas de questões ativas que pesam nesta área.">?</span></th>
+                        <th scope="col" class="numero">Em 1º <span class="painel-ajuda" tabindex="0" data-dica="Quantas vezes foi a área mais forte do curso em 1º lugar, no histórico.">?</span></th>
+                        <th scope="col">Situação</th>
+                        <th scope="col" class="numero">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for area in areas %}
+                    <tr{% if not area.is_active %} class="painel-areas__inativa"{% endif %}>
+                        <td data-rotulo="Área">
+                            <div class="painel-cursos__nome">
+                                <span class="painel-cursos__icone" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span>
+                                <div class="painel-areas__texto">
+                                    <b>{{ area.nome }}</b>
+                                    <span class="painel-areas__slug">{{ area.slug }}</span>
+                                    {% if area.descricao %}<p class="painel-areas__descricao" title="{{ area.descricao }}">{{ area.descricao }}</p>{% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="numero" data-rotulo="Cursos">{{ area.principais }}</td>
+                        <td class="numero" data-rotulo="Com peso">{{ area.com_peso }}</td>
+                        <td class="numero" data-rotulo="No quiz">{{ area.alternativas }}</td>
+                        <td class="numero" data-rotulo="Em 1º">{% if tem_massa %}{% include "painel/_celula.html" with valor=area.em_primeiro suprimido=area.em_primeiro_suprimido %}{% else %}—{% endif %}</td>
+                        <td data-rotulo="Situação">
+                            <div class="painel-areas__selos">
+                                {% if area.is_active %}<span class="painel-selo painel-selo--sucesso">Ativa</span>{% else %}<span class="painel-selo">Inativa</span>{% endif %}
+                                {% if area.is_active and not area.alternativas %}<span class="painel-selo painel-selo--alerta">Fora do quiz</span>{% endif %}
+                                {% if area.is_active and not area.principais %}<span class="painel-selo painel-selo--alerta">Sem curso</span>{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="painel-acoes-curso">
+                                <button class="botao botao--suave botao--icone" type="button" data-abrir-curso="{{ area.modal_id }}" aria-label="Editar {{ area.nome }}"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                                {% if area.is_active %}
+                                <form method="post" action="{% url 'painel-desativar-area' area.id %}" data-confirmar="Desativar {{ area.nome }}? Ela some dos formulários e do consultor de IA.{% if area.principais %} {{ area.principais }} curso{{ area.principais|pluralize }} ativo{{ area.principais|pluralize }} continua{{ area.principais|pluralize:'m' }} com ela como área principal.{% endif %} Os pesos já gravados e o histórico ficam." data-perigo>
+                                    {% csrf_token %}
+                                    <button class="botao botao--suave botao--icone" type="submit" aria-label="Desativar {{ area.nome }}"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i></button>
+                                </form>
+                                {% else %}
+                                <form method="post" action="{% url 'painel-reativar-area' area.id %}" data-confirmar="Reativar {{ area.nome }}? Ela volta aos formulários e ao consultor de IA.">
+                                    {% csrf_token %}
+                                    <button class="botao botao--suave botao--icone" type="submit" aria-label="Reativar {{ area.nome }}"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i></button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}<tr><td colspan="7">Nenhuma área cadastrada.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</div>
+
+{% include "painel/_modal_area.html" with modal_id="painel-criar-area" modal_titulo="Nova área" form_action=area_form_action area_form=area_form modal_aberto=area_modal_aberto %}
+{% for area in areas %}
+{% include "painel/_modal_area.html" with modal_id=area.modal_id modal_titulo="Editar área" modal_descricao="O slug não muda: ele é a chave do matching e do histórico." form_action=area.form_action area_form=area.form modal_aberto=area.aberto %}
+{% endfor %}
+{% endblock %}

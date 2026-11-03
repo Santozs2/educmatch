@@ -22,7 +22,10 @@
             <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Avaliações
         </a>
         <a class="mais__item" href="{% url 'painel-cursos' %}?{{ periodo_qs }}" {% if secao == "cursos" %}aria-current="page"{% endif %}>
-            <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Cursos e Áreas
+            <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Cursos
+        </a>
+        <a class="mais__item" href="{% url 'painel-areas' %}?{{ periodo_qs }}" {% if secao == "areas" %}aria-current="page"{% endif %}>
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> Áreas
         </a>
         <a class="mais__item" href="{% url 'painel-interesse' %}?{{ periodo_qs }}" {% if secao == "interesse" %}aria-current="page"{% endif %}>
             <i class="fa-solid fa-heart" aria-hidden="true"></i> Lista de interesse

@@ -129,7 +129,7 @@ class MetricasDoInicioTest(BasePainel):
         self.assertIsNone(resposta.context["aderencia"]["taxa"])
 
 class TelasDeCadastroTest(BasePainel):
-    """Etapa 2: Cursos e Áreas, Links de acesso e Lista de interesse."""
+    """Etapa 2: Cursos, Áreas, Links de acesso e Lista de interesse."""
 
     TELAS = ("painel-cursos", "painel-links", "painel-interesse")
 
@@ -206,10 +206,8 @@ class TelasDeCadastroTest(BasePainel):
         resposta = self.client.get(reverse("painel-cursos"), {"periodo": "diario"})
 
         linha = next(linha for linha in resposta.context["cursos"] if linha["id"] == curso.pk)
-        demanda = next(linha for linha in resposta.context["demanda_por_area"] if linha["area"] == area.slug)
         self.assertEqual(linha["em_primeiro"], 2)
         self.assertEqual(linha["no_top5"], 2)
-        self.assertEqual(demanda["total"], 2)
         self.assertContains(resposta, "Histórico completo")
         self.assertNotContains(resposta, "Aplicar")
 
@@ -345,7 +343,7 @@ class TelasDeCadastroTest(BasePainel):
             {"nome": "Elétrica Industrial", "descricao": "Área criada pelo painel"},
         )
 
-        self.assertRedirects(resposta, reverse("painel-cursos"))
+        self.assertRedirects(resposta, reverse("painel-areas"))
         area = Area.objects.get(nome="Elétrica Industrial")
         self.assertEqual(area.slug, "eletrica-industrial")
 
@@ -371,30 +369,26 @@ class TelasDeCadastroTest(BasePainel):
             reverse("painel-criar-area"), {"nome": "Saúde / Bem estar", "descricao": "Segunda"}
         )
 
-        self.assertRedirects(resposta, reverse("painel-cursos"))
+        self.assertRedirects(resposta, reverse("painel-areas"))
         slugs = sorted(Area.objects.filter(nome__startswith="Saúde").values_list("slug", flat=True))
         self.assertEqual(slugs, ["saude-bem-estar", "saude-bem-estar-2"])
 
-    def test_area_criada_aparece_na_tela_de_cursos(self):
+    def test_area_criada_aparece_na_tela_de_areas(self):
         self.client.force_login(self.staff)
         self.client.post(reverse("painel-criar-area"), {"nome": "Logística", "descricao": "Nova"})
 
-        resposta = self.client.get(reverse("painel-cursos"))
+        resposta = self.client.get(reverse("painel-areas"))
 
         self.assertContains(resposta, "Logística")
-        self.assertContains(resposta, "logistica")
+        self.assertContains(resposta, '<span class="painel-areas__slug">logistica</span>')
 
-    def test_lista_de_areas_vem_inteira_sem_depender_de_js(self):
+    def test_tela_de_cursos_nao_tem_mais_a_gestao_de_areas(self):
         self.client.force_login(self.staff)
-        for i in range(7):
-            Area.objects.create(nome=f"Área {i}", slug=f"area-{i}", descricao="Nova")
 
         resposta = self.client.get(reverse("painel-cursos"))
 
-        for area in Area.objects.filter(is_active=True):
-            self.assertContains(resposta, f'<span class="painel-areas__slug">{area.slug}</span>')
-        self.assertContains(resposta, 'data-areas-alternar="Ver todas" hidden')
-        self.assertContains(resposta, 'data-areas-alternar="Ver todas as áreas" hidden')
+        self.assertNotContains(resposta, 'id="painel-criar-area"')
+        self.assertContains(resposta, f'href="{reverse("painel-areas")}?')
 
     def test_criar_area_exige_staff(self):
         resposta = self.client.post(
