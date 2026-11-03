@@ -100,3 +100,19 @@ class TelasDoAlunoTest(BaseEducMatch):
         self.assertContains(self.client.get(reverse("quiz-resultado", args=[pelo_link.pk])), "link da escola")
         self.assertIsNone(depois.questionario_link)
         self.assertNotContains(self.client.get(reverse("quiz-resultado", args=[depois.pk])), "link da escola")
+
+
+class VoltarTest(BaseEducMatch):
+    """O "Voltar" usa o histórico (voltar.js); o href fica como destino de reserva."""
+
+    def test_toda_pagina_carrega_o_voltar_js(self):
+        resposta = self.client.get(reverse("entrar"))
+
+        self.assertContains(resposta, "js/voltar.js")
+        self.assertContains(resposta, 'class="voltar"')
+
+    def test_voltar_da_primeira_pergunta_continua_indo_para_a_abertura_do_quiz(self):
+        resposta = self.client.get(reverse("quiz-inicio"))
+
+        self.assertContains(resposta, f'<a class="voltar" href="{reverse("quiz-inicio")}" data-voltar="fixo">Voltar</a>')
+        self.assertContains(resposta, '<a class="voltar" href="#questao-1">Voltar</a>')
