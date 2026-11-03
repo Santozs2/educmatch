@@ -165,6 +165,21 @@ class TelasDeCadastroTest(BasePainel):
         self.assertContains(resposta, "Histórico completo")
         self.assertNotContains(resposta, "Aplicar")
 
+    def test_tabela_de_cursos_traz_o_que_a_busca_e_os_filtros_usam(self):
+        self.client.force_login(self.staff)
+        area = Area.objects.filter(is_active=True).first()
+        self.criar_curso(nome_curso="Curso de filtro", area_principal=area, nivel="graduacao")
+
+        resposta = self.client.get(reverse("painel-cursos"))
+
+        self.assertContains(
+            resposta,
+            f'data-busca="Curso de filtro {area.nome}" data-area="{area.nome}" data-nivel="Graduação">',
+        )
+        # Sem JS a tabela continua inteira, sem controles que não funcionariam.
+        self.assertContains(resposta, "data-cursos-ferramentas hidden")
+        self.assertContains(resposta, "data-cursos-rodape hidden")
+
     def test_novo_curso_abre_modal_no_painel(self):
         self.client.force_login(self.staff)
 
@@ -368,6 +383,18 @@ class TelasDeCadastroTest(BasePainel):
 
         self.assertContains(resposta, "Logística")
         self.assertContains(resposta, "logistica")
+
+    def test_lista_de_areas_vem_inteira_sem_depender_de_js(self):
+        self.client.force_login(self.staff)
+        for i in range(7):
+            Area.objects.create(nome=f"Área {i}", slug=f"area-{i}", descricao="Nova")
+
+        resposta = self.client.get(reverse("painel-cursos"))
+
+        for area in Area.objects.filter(is_active=True):
+            self.assertContains(resposta, f'<span class="painel-areas__slug">{area.slug}</span>')
+        self.assertContains(resposta, 'data-areas-alternar="Ver todas" hidden')
+        self.assertContains(resposta, 'data-areas-alternar="Ver todas as áreas" hidden')
 
     def test_criar_area_exige_staff(self):
         resposta = self.client.post(
