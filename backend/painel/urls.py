@@ -13,6 +13,7 @@ urlpatterns = [
     path("areas/<int:pk>/editar/", views.editar_area, name="painel-editar-area"),
     path("areas/<int:pk>/desativar/", views.desativar_area, name="painel-desativar-area"),
     path("areas/<int:pk>/reativar/", views.reativar_area, name="painel-reativar-area"),
+    path("areas/<int:pk>/excluir/", views.excluir_area, name="painel-excluir-area"),
     path("links/", views.links, name="painel-links"),
     path("interesse/", views.interesse, name="painel-interesse"),
     path("gerar-link/", views.gerar_link, name="painel-gerar-link"),

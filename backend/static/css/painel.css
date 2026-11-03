@@ -823,6 +823,11 @@
   color: var(--texto-2);
 }
 
+.painel-tabela--areas .botao--icone:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .painel-areas__inativa .painel-cursos__nome {
   opacity: 0.6;
 }

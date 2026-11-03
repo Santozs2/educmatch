@@ -31,6 +31,27 @@
     <article class="painel-card">
         <div class="painel-cursos__topo">
             <h2 class="painel-cursos__titulo">Áreas cadastradas ({{ areas|length }})</h2>
+            <div class="painel-cursos__ferramentas" data-cursos-ferramentas data-tipo-linha="área" data-tipo-linhas="áreas" data-texto-vazio="Nenhuma área encontrada" hidden>
+                <div class="painel-cursos__busca">
+                    <label class="visualmente-oculto" for="areas-busca">Buscar área</label>
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input class="painel-campo" id="areas-busca" type="search" placeholder="Buscar área..." autocomplete="off" data-cursos-busca>
+                </div>
+                <details class="painel-cursos__filtros" data-cursos-filtros>
+                    <summary class="botao"><i class="fa-solid fa-filter" aria-hidden="true"></i> <span data-cursos-filtros-rotulo>Filtros</span></summary>
+                    <div class="painel-cursos__menu">
+                        <div class="painel-curso-campo">
+                            <label for="areas-filtro-situacao">Situação</label>
+                            <select class="painel-campo" id="areas-filtro-situacao" data-cursos-filtro="situacao"><option value="">Todas</option><option value="Ativa">Ativa</option><option value="Inativa">Inativa</option></select>
+                        </div>
+                        <div class="painel-curso-campo">
+                            <label for="areas-filtro-quiz">Presença no quiz</label>
+                            <select class="painel-campo" id="areas-filtro-quiz" data-cursos-filtro="quiz"><option value="">Todas</option><option value="Sim">No quiz</option><option value="Não">Fora do quiz</option></select>
+                        </div>
+                        <button class="botao botao--neutro botao--bloco" type="button" data-cursos-limpar>Limpar filtros</button>
+                    </div>
+                </details>
+            </div>
         </div>
         <div class="painel-tabela painel-tabela--cursos painel-tabela--areas">
             <table>
@@ -47,7 +68,7 @@
                 </thead>
                 <tbody>
                     {% for area in areas %}
-                    <tr{% if not area.is_active %} class="painel-areas__inativa"{% endif %}>
+                    <tr data-linha-filtravel data-busca="{{ area.nome }} {{ area.slug }} {{ area.descricao }}" data-situacao="{% if area.is_active %}Ativa{% else %}Inativa{% endif %}" data-quiz="{% if area.alternativas %}Sim{% else %}Não{% endif %}"{% if not area.is_active %} class="painel-areas__inativa"{% endif %}>
                         <td data-rotulo="Área">
                             <div class="painel-cursos__nome">
                                 <span class="painel-cursos__icone" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span>
@@ -83,12 +104,26 @@
                                     <button class="botao botao--suave botao--icone" type="submit" aria-label="Reativar {{ area.nome }}"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i></button>
                                 </form>
                                 {% endif %}
+                                {% if area.pode_excluir %}
+                                <form method="post" action="{% url 'painel-excluir-area' area.id %}" data-confirmar="Excluir permanentemente a área {{ area.nome }}? Essa ação não pode ser desfeita." data-perigo>
+                                    {% csrf_token %}
+                                    <button class="botao botao--suave botao--icone" type="submit" aria-label="Excluir {{ area.nome }}" title="Excluir área"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                                </form>
+                                {% else %}
+                                {# Em uso: excluir apagaria cursos em cascata. A lixeira fica, desligada, para a coluna não mudar de largura. #}
+                                <button class="botao botao--suave botao--icone" type="button" disabled title="Em uso · não excluível: tem cursos ou pesos ligados. Desative a área para tirá-la dos formulários." aria-label="Excluir {{ area.nome }}: em uso, não excluível"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
                     {% empty %}<tr><td colspan="7">Nenhuma área cadastrada.</td></tr>{% endfor %}
+                    <tr data-cursos-vazio hidden><td colspan="7">Nenhuma área encontrada.</td></tr>
                 </tbody>
             </table>
+        </div>
+        <div class="painel-cursos__rodape" data-cursos-rodape hidden>
+            <p class="painel-cursos__resumo" role="status" data-cursos-resumo></p>
+            <nav class="painel-cursos__paginas" aria-label="Páginas de áreas" data-cursos-paginas></nav>
         </div>
     </article>
 </div>

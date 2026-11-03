@@ -13,7 +13,7 @@
         {# Sem JS a tabela mostra todos os cursos: busca, filtros e páginas só aparecem com ele. #}
         <div class="painel-cursos__topo">
             <h2 class="painel-cursos__titulo">Cursos ativos ({{ cursos|length }})</h2>
-            <div class="painel-cursos__ferramentas" data-cursos-ferramentas hidden>
+            <div class="painel-cursos__ferramentas" data-cursos-ferramentas hidden data-tipo-linha="curso" data-tipo-linhas="cursos" data-texto-vazio="Nenhum curso encontrado">
                 <div class="painel-cursos__busca">
                     <label class="visualmente-oculto" for="cursos-busca">Buscar curso ou área</label>
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -50,7 +50,7 @@
                 </thead>
                 <tbody>
                     {% for curso in cursos %}
-                    <tr data-curso data-busca="{{ curso.nome_curso }} {{ curso.area }}" data-area="{{ curso.area }}" data-nivel="{{ curso.nivel_nome }}">
+                    <tr data-curso data-linha-filtravel data-busca="{{ curso.nome_curso }} {{ curso.area }}" data-area="{{ curso.area }}" data-nivel="{{ curso.nivel_nome }}">
                         <td data-rotulo="Curso">
                             <div class="painel-cursos__nome">
                                 <span class="painel-cursos__icone" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
