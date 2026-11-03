@@ -213,6 +213,9 @@ def consultor_curso(request):
     except LLMError as erro:
         logger.warning("Consultor: LLM indisponível: %s", erro)
         return JsonResponse({"erro": "A IA não respondeu agora. Tente de novo em instantes."}, status=503)
+    except Exception:  # um bug nosso volta como JSON, não como página de erro 500
+        logger.exception("Consultor: erro inesperado")
+        return JsonResponse({"erro": "Erro inesperado no consultor. O detalhe está no log do servidor."}, status=500)
     return JsonResponse(asdict(sugestao))
 
 
