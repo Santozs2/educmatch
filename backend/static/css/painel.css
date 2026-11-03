@@ -256,13 +256,6 @@
   grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
 }
 
-.painel-coluna {
-  display: grid;
-  gap: 16px;
-  align-content: start;
-  min-width: 0;
-}
-
 .painel-card {
   min-width: 0;
   padding: 18px;
@@ -521,6 +514,354 @@
 
 .painel-acoes-curso form {
   margin: 0;
+}
+
+/* Tabela de cursos: busca, filtros e páginas */
+
+.painel-cursos__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.painel-cursos__titulo {
+  margin: 0;
+  color: var(--tinta);
+  font-size: 1.05rem;
+}
+
+.painel-cursos__ferramentas {
+  display: flex;
+  flex: 1 1 320px;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.painel-cursos__ferramentas[hidden],
+.painel-cursos__rodape[hidden],
+.painel-cursos__paginas[hidden] {
+  display: none;
+}
+
+.painel-cursos__busca {
+  position: relative;
+  flex: 0 1 300px;
+  min-width: 0;
+}
+
+.painel-cursos__busca i {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  color: var(--texto-3);
+  font-size: 0.85rem;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.painel-cursos__busca input {
+  width: 100%;
+  padding-left: 38px;
+  border: 1px solid var(--linha);
+  background: var(--superficie);
+  font-weight: 400;
+}
+
+.painel-cursos__filtros {
+  position: relative;
+  flex: none;
+}
+
+.painel-cursos__filtros summary {
+  border-color: var(--linha);
+  background: var(--superficie);
+  color: var(--tinta);
+  list-style: none;
+  cursor: pointer;
+}
+
+.painel-cursos__filtros summary::-webkit-details-marker {
+  display: none;
+}
+
+.painel-cursos__filtros summary:hover,
+.painel-cursos__filtros[open] summary {
+  border-color: var(--marca);
+  background: var(--marca-clarinho);
+  color: var(--marca-escuro);
+  box-shadow: none;
+}
+
+.painel-cursos__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 12px;
+  width: 280px;
+  padding: 14px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+}
+
+.painel-tabela--cursos {
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+}
+
+.painel-tabela--cursos tr[hidden] {
+  display: none;
+}
+
+.painel-tabela--cursos th.numero,
+.painel-tabela--cursos td.numero {
+  text-align: center;
+}
+
+.painel-tabela--cursos th {
+  white-space: nowrap;
+}
+
+.painel-tabela--cursos td {
+  padding-block: 12px;
+  color: var(--texto-2);
+}
+
+.painel-tabela--cursos tbody tr {
+  transition: background var(--dur-rapida) var(--ease-padrao);
+}
+
+.painel-tabela--cursos tbody tr:hover {
+  background: var(--fundo);
+}
+
+.painel-cursos__nome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+}
+
+.painel-cursos__nome b {
+  color: var(--tinta);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.painel-cursos__icone {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--raio-botao);
+  background: var(--marca-claro);
+  color: var(--marca);
+  font-size: 0.8rem;
+}
+
+.painel-tabela--cursos .painel-acoes-curso {
+  justify-content: center;
+}
+
+.painel-tabela--cursos .botao--icone {
+  width: 36px;
+  min-height: 36px;
+}
+
+.painel-cursos__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.painel-cursos__resumo {
+  margin: 0;
+  color: var(--texto-3);
+  font-size: var(--pequeno);
+}
+
+.painel-cursos__paginas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.painel-cursos__pagina {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid transparent;
+  border-radius: var(--raio-botao);
+  background: var(--superficie);
+  color: var(--tinta);
+  font: inherit;
+  font-size: var(--pequeno);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--dur-rapida) var(--ease-padrao),
+    color var(--dur-rapida) var(--ease-padrao);
+}
+
+.painel-cursos__pagina:hover:not(:disabled) {
+  background: var(--marca-clarinho);
+  color: var(--marca-escuro);
+}
+
+.painel-cursos__pagina[aria-current="page"] {
+  background: var(--marca-claro);
+  color: var(--marca);
+  font-weight: 700;
+}
+
+.painel-cursos__pagina--seta {
+  border-color: var(--linha);
+}
+
+.painel-cursos__pagina:disabled {
+  color: var(--texto-3);
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .painel-cursos__ferramentas {
+    flex-basis: 100%;
+  }
+
+  .painel-cursos__busca {
+    flex: 1 1 auto;
+  }
+
+  .painel-tabela--cursos {
+    border: 0;
+  }
+
+  /* Classe dobrada: o painel-abas.css carrega depois e tem regras de mesmo peso. */
+  /* O nome do curso já é o título do cartão: não repete o rótulo "Curso". */
+  .painel-tabela.painel-tabela--cursos td[data-rotulo="Curso"]::before {
+    content: none;
+  }
+
+  .painel-tabela.painel-tabela--cursos td[data-rotulo="Curso"] {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .painel-tabela--cursos td.numero {
+    text-align: right;
+  }
+
+  .painel-tabela--cursos .painel-acoes-curso {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .painel-tabela.painel-tabela--cursos td:not([data-rotulo]) form {
+    width: auto;
+  }
+
+  .painel-tabela.painel-tabela--cursos td:not([data-rotulo]) .botao--icone {
+    width: var(--alvo);
+    min-height: var(--alvo);
+    margin: 0;
+  }
+
+  .painel-cursos__rodape {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+/* Áreas cadastradas: as primeiras e, ao pedir, a lista inteira */
+
+.painel-areas__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.painel-areas__ver,
+.painel-areas__todas {
+  color: var(--marca);
+  font: inherit;
+  font-size: var(--pequeno);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.painel-areas__ver {
+  flex: none;
+  min-height: var(--alvo);
+  padding: 0 4px;
+  border: 0;
+  background: none;
+}
+
+.painel-areas__ver:hover {
+  color: var(--marca-escuro);
+  text-decoration: underline;
+}
+
+.painel-areas__ver[hidden],
+.painel-areas__todas[hidden] {
+  display: none;
+}
+
+.painel-areas {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--pequeno);
+}
+
+.painel-areas li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  color: var(--tinta);
+  font-weight: 500;
+}
+
+.painel-areas li[hidden] {
+  display: none;
+}
+
+.painel-areas__slug {
+  color: var(--texto-3);
+  font-weight: 400;
+  text-align: right;
+}
+
+.painel-areas__todas {
+  width: 100%;
+  min-height: var(--alvo);
+  margin-top: 10px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-botao);
+  background: var(--superficie);
+  transition: background var(--dur-rapida) var(--ease-padrao);
+}
+
+.painel-areas__todas:hover {
+  background: var(--marca-clarinho);
 }
 
 /* Funil da lista de interesse e QR dos links */

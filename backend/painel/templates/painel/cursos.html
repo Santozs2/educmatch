@@ -9,29 +9,58 @@
 
 {% block painel %}
 {% if not tem_massa %}{% include "painel/_sem_massa.html" %}{% endif %}
-<div class="painel-grade painel-grade--2-1">
+<div class="painel-grade">
     <article class="painel-card">
-        <h2 class="painel-card__titulo">Cursos ativos ({{ cursos|length }})</h2>
-        <div class="painel-tabela">
+        {# Sem JS a tabela mostra todos os cursos: busca, filtros e páginas só aparecem com ele. #}
+        <div class="painel-cursos__topo">
+            <h2 class="painel-cursos__titulo">Cursos ativos ({{ cursos|length }})</h2>
+            <div class="painel-cursos__ferramentas" data-cursos-ferramentas hidden>
+                <div class="painel-cursos__busca">
+                    <label class="visualmente-oculto" for="cursos-busca">Buscar curso ou área</label>
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input class="painel-campo" id="cursos-busca" type="search" placeholder="Buscar curso ou área..." autocomplete="off" data-cursos-busca>
+                </div>
+                <details class="painel-cursos__filtros" data-cursos-filtros>
+                    <summary class="botao"><i class="fa-solid fa-filter" aria-hidden="true"></i> <span data-cursos-filtros-rotulo>Filtros</span></summary>
+                    <div class="painel-cursos__menu">
+                        <div class="painel-curso-campo">
+                            <label for="cursos-filtro-area">Área</label>
+                            <select class="painel-campo" id="cursos-filtro-area" data-cursos-filtro="area"><option value="">Todas</option></select>
+                        </div>
+                        <div class="painel-curso-campo">
+                            <label for="cursos-filtro-nivel">Nível</label>
+                            <select class="painel-campo" id="cursos-filtro-nivel" data-cursos-filtro="nivel"><option value="">Todos</option></select>
+                        </div>
+                        <button class="botao botao--neutro botao--bloco" type="button" data-cursos-limpar>Limpar filtros</button>
+                    </div>
+                </details>
+            </div>
+        </div>
+        <div class="painel-tabela painel-tabela--cursos">
             <table>
                 <thead>
                     <tr>
                         <th scope="col">Curso</th>
                         <th scope="col">Área</th>
                         <th scope="col" class="numero">Duração</th>
-                        <th scope="col">Turma</th>
+                        <th scope="col" class="numero">Turma</th>
                         <th scope="col" class="numero">Em 1º</th>
                         <th scope="col" class="numero">No Top 5</th>
-                        <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+                        <th scope="col" class="numero">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for curso in cursos %}
-                    <tr>
-                        <td data-rotulo="Curso">{{ curso.nome_curso }}</td>
+                    <tr data-curso data-busca="{{ curso.nome_curso }} {{ curso.area }}" data-area="{{ curso.area }}" data-nivel="{{ curso.nivel_nome }}">
+                        <td data-rotulo="Curso">
+                            <div class="painel-cursos__nome">
+                                <span class="painel-cursos__icone" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
+                                <b>{{ curso.nome_curso }}</b>
+                            </div>
+                        </td>
                         <td data-rotulo="Área">{{ curso.area }}</td>
                         <td class="numero" data-rotulo="Duração">{{ curso.duracao }}{% if curso.unidade_carga == "horas_aula" %}h/aula{% else %}h{% endif %}</td>
-                        <td data-rotulo="Turma">{% if curso.inicio_dia %}{{ curso.inicio_dia|date:"d/m" }}–{{ curso.fim_dia|date:"d/m"|default:"?" }}{% else %}—{% endif %}</td>
+                        <td class="numero" data-rotulo="Turma">{% if curso.inicio_dia %}{{ curso.inicio_dia|date:"d/m" }}–{{ curso.fim_dia|date:"d/m"|default:"?" }}{% else %}—{% endif %}</td>
                         <td class="numero" data-rotulo="Em 1º">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.em_primeiro suprimido=curso.em_primeiro_suprimido %}{% else %}—{% endif %}</td>
                         <td class="numero" data-rotulo="No Top 5">{% if tem_massa %}{% include "painel/_celula.html" with valor=curso.no_top5 suprimido=curso.no_top5_suprimido %}{% else %}—{% endif %}</td>
                         <td>
@@ -39,26 +68,36 @@
                                 <button class="botao botao--suave botao--icone" type="button" data-abrir-curso="painel-editar-curso-{{ curso.id }}" aria-label="Editar {{ curso.nome_curso }}"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
                                 <form method="post" action="{% url 'painel-remover-curso' curso.id %}" data-confirmar="Remover {{ curso.nome_curso }} do catálogo ativo? O histórico será preservado." data-perigo>
                                     {% csrf_token %}
-                                    <button class="botao botao--perigo botao--icone" type="submit" aria-label="Remover {{ curso.nome_curso }}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                                    <button class="botao botao--suave botao--icone" type="submit" aria-label="Remover {{ curso.nome_curso }}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                                 </form>
                             </div>
                         </td>
                     </tr>
                     {% empty %}<tr><td colspan="7">Nenhum curso ativo.</td></tr>{% endfor %}
+                    <tr data-cursos-vazio hidden><td colspan="7">Nenhum curso encontrado.</td></tr>
                 </tbody>
             </table>
         </div>
+        <div class="painel-cursos__rodape" data-cursos-rodape hidden>
+            <p class="painel-cursos__resumo" role="status" data-cursos-resumo></p>
+            <nav class="painel-cursos__paginas" aria-label="Páginas de cursos" data-cursos-paginas></nav>
+        </div>
     </article>
+</div>
 
-    {# Os dois cards de area dividem a coluna estreita do grid 2fr/1fr. #}
-    <div class="painel-coluna">
-    <article class="painel-card">
-        <h2 class="painel-card__titulo">Áreas cadastradas ({{ areas|length }})</h2>
-        <ul class="painel-lista">
+<div class="painel-grade painel-grade--2">
+    {# Sem JS a lista vem inteira: os botões só aparecem quando há o que recolher. #}
+    <article class="painel-card" data-areas>
+        <div class="painel-areas__topo">
+            <h2 class="painel-cursos__titulo">Áreas cadastradas ({{ areas|length }})</h2>
+            <button class="painel-areas__ver" type="button" data-areas-alternar="Ver todas" hidden>Ver todas</button>
+        </div>
+        <ul class="painel-areas" id="painel-areas-lista">
             {% for area in areas %}
-            <li><span>{{ area.nome }}</span><b>{{ area.slug }}</b></li>
+            <li><span>{{ area.nome }}</span><span class="painel-areas__slug">{{ area.slug }}</span></li>
             {% empty %}<li>Nenhuma área cadastrada.</li>{% endfor %}
         </ul>
+        <button class="painel-areas__todas" type="button" data-areas-alternar="Ver todas as áreas" hidden>Ver todas as áreas</button>
     </article>
 
     <article class="painel-card">
@@ -73,7 +112,6 @@
         <p class="painel-vazio">Aparece quando o período tiver {{ k_minimo }} testes ou mais.</p>
         {% endif %}
     </article>
-    </div>
 </div>
 
 {% include "painel/_modal_area.html" with modal_id="painel-criar-area" modal_titulo="Nova área" form_action=area_form_action area_form=area_form modal_aberto=area_modal_aberto %}

@@ -219,37 +219,48 @@ def _render_cursos(
         for linha in linhas:
             linha["em_primeiro"] = linha["no_top5"] = None
 
+    # Uma consulta só para todos os selects da página: são 8 por curso.
+    areas = list(Area.objects.all())
     cursos = Curso.objects.filter(pk__in=[linha["id"] for linha in linhas]).prefetch_related("curso_peso")
     cursos_edicao = []
     for curso in cursos:
         pendente = curso_em_edicao is not None and curso.pk == curso_em_edicao.pk
         prefixo = f"curso_peso-{curso.pk}"
+        form = form_edicao if pendente else NovoCurso(
+            instance=curso,
+            auto_id=f"curso-{curso.pk}-%s",
+        )
+        pesos = pesos_edicao if pendente else PesosCursoFormSet(
+            instance=curso,
+            prefix=prefixo,
+            auto_id=f"{prefixo}-%s",
+        )
+        form.usar_areas(areas)
+        pesos.usar_areas(areas)
         cursos_edicao.append({
             "curso": curso,
             "modal_id": f"painel-editar-curso-{curso.pk}",
             "form_action": reverse("painel-editar-curso", args=[curso.pk]),
             "aberto": pendente,
-            "form": form_edicao if pendente else NovoCurso(
-                instance=curso,
-                auto_id=f"curso-{curso.pk}-%s",
-            ),
-            "pesos_formset": pesos_edicao if pendente else PesosCursoFormSet(
-                instance=curso,
-                prefix=prefixo,
-                auto_id=f"{prefixo}-%s",
-            ),
+            "form": form,
+            "pesos_formset": pesos,
         })
+
+    criar_form = curso_form or NovoCurso()
+    criar_pesos = pesos_formset or PesosCursoFormSet()
+    criar_form.usar_areas(areas)
+    criar_pesos.usar_areas(areas)
 
     contexto.update({
         "cursos": linhas,
-        "curso_form": curso_form or NovoCurso(),
-        "pesos_formset": pesos_formset or PesosCursoFormSet(),
+        "curso_form": criar_form,
+        "pesos_formset": criar_pesos,
         "curso_form_action": reverse("painel-cursos"),
         "criar_modal_aberto": bool(
             curso_form and (curso_form.errors or pesos_formset.errors)
         ),
         "cursos_edicao": cursos_edicao,
-        "areas": Area.objects.filter(is_active=True),
+        "areas": [area for area in areas if area.is_active],
         "area_form": area_form or NovaArea(),
         "area_form_action": reverse("painel-criar-area"),
         "area_modal_aberto": bool(area_form and area_form.errors),

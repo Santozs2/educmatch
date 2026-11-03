@@ -1,13 +1,16 @@
+import re
 from datetime import timedelta
 from pathlib import Path
 
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Interesse
-from catalogo.models import Area, Curso
+from catalogo.models import Area, Curso, Peso_curso
 from painel import metricas
-from painel.forms import NovoCurso, PesoCursoForm
+from painel.forms import NovoCurso, PesoCursoForm, areas_escolhiveis
 from painel.tests.base import BasePainel
 from quiz.models import QuestionarioLink, Tentativa_de_resposta
 
@@ -161,6 +164,21 @@ class TelasDeCadastroTest(BasePainel):
         self.assertEqual(linhas[0]["total"], 2)
         self.assertContains(resposta, "Histórico completo")
         self.assertNotContains(resposta, "Aplicar")
+
+    def test_tabela_de_cursos_traz_o_que_a_busca_e_os_filtros_usam(self):
+        self.client.force_login(self.staff)
+        area = Area.objects.filter(is_active=True).first()
+        self.criar_curso(nome_curso="Curso de filtro", area_principal=area, nivel="graduacao")
+
+        resposta = self.client.get(reverse("painel-cursos"))
+
+        self.assertContains(
+            resposta,
+            f'data-busca="Curso de filtro {area.nome}" data-area="{area.nome}" data-nivel="Graduação">',
+        )
+        # Sem JS a tabela continua inteira, sem controles que não funcionariam.
+        self.assertContains(resposta, "data-cursos-ferramentas hidden")
+        self.assertContains(resposta, "data-cursos-rodape hidden")
 
     def test_novo_curso_abre_modal_no_painel(self):
         self.client.force_login(self.staff)
@@ -366,6 +384,18 @@ class TelasDeCadastroTest(BasePainel):
         self.assertContains(resposta, "Logística")
         self.assertContains(resposta, "logistica")
 
+    def test_lista_de_areas_vem_inteira_sem_depender_de_js(self):
+        self.client.force_login(self.staff)
+        for i in range(7):
+            Area.objects.create(nome=f"Área {i}", slug=f"area-{i}", descricao="Nova")
+
+        resposta = self.client.get(reverse("painel-cursos"))
+
+        for area in Area.objects.filter(is_active=True):
+            self.assertContains(resposta, f'<span class="painel-areas__slug">{area.slug}</span>')
+        self.assertContains(resposta, 'data-areas-alternar="Ver todas" hidden')
+        self.assertContains(resposta, 'data-areas-alternar="Ver todas as áreas" hidden')
+
     def test_criar_area_exige_staff(self):
         resposta = self.client.post(
             reverse("painel-criar-area"), {"nome": "Sem permissão", "descricao": "x"}
@@ -451,3 +481,146 @@ class AreaInativaNoPainelTest(BasePainel):
 
     def test_cobertura_ignora_area_inativa(self):
         self.assertNotIn("costura", [linha["slug"] for linha in metricas.cobertura_de_areas()])
+
+
+def _opcoes(campo):
+    """Os values dos <option> que o select desenha de fato."""
+    return re.findall(r'<option value="([^"]*)"', str(campo))
+
+
+def _esperadas(area_atual_id=None):
+    return [""] + [str(pk) for pk in areas_escolhiveis(area_atual_id).values_list("pk", flat=True)]
+
+
+def _selecionada(campo):
+    return re.findall(r'<option value="([^"]*)" selected', str(campo))
+
+
+class ConsultasDaTelaDeCursosTest(BasePainel):
+    """A tela desenha um modal de edição por curso, então não pode consultar por select."""
+
+    # Com o catálogo real (47 cursos ativos) são 11. Antes da lista única de áreas eram 535.
+    LIMITE_DE_CONSULTAS = 15
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.criar_staff())
+        self.antiga = Area.objects.create(nome="Costura", slug="costura", descricao="Antiga", is_active=False)
+        self.outra = Area.objects.create(nome="Bordado", slug="bordado", descricao="Antiga", is_active=False)
+        self.ativa = Area.objects.filter(is_active=True).first()
+
+    def _edicao(self, resposta, curso):
+        return next(e for e in resposta.context["cursos_edicao"] if e["curso"].pk == curso.pk)
+
+    def _consultas_da_tela(self):
+        with CaptureQueriesContext(connection) as consultas:
+            self.assertEqual(self.client.get(reverse("painel-cursos")).status_code, 200)
+        return len(consultas)
+
+    def test_tela_fica_abaixo_do_limite_com_o_catalogo_real(self):
+        self.assertGreaterEqual(Curso.objects.filter(is_active=True).count(), 47)
+
+        self.assertLessEqual(self._consultas_da_tela(), self.LIMITE_DE_CONSULTAS)
+
+    def test_consultas_nao_crescem_com_o_numero_de_cursos(self):
+        antes = self._consultas_da_tela()
+        for i in range(5):
+            curso = self.criar_curso(nome_curso=f"Curso extra {i}")
+            Peso_curso.objects.create(curso=curso, area=self.ativa, peso=3)
+
+        self.assertEqual(self._consultas_da_tela(), antes)
+
+    def test_inativa_so_aparece_no_registro_que_a_usa(self):
+        curso = self.criar_curso(area_principal=self.antiga)
+        peso = Peso_curso.objects.create(curso=curso, area=self.outra, peso=5)
+        vizinho = self.criar_curso(nome_curso="Vizinho")
+
+        resposta = self.client.get(reverse("painel-cursos"))
+
+        edicao = self._edicao(resposta, curso)
+        self.assertEqual(_opcoes(edicao["form"]["area_principal"]), _esperadas(self.antiga.pk))
+        self.assertEqual(_selecionada(edicao["form"]["area_principal"]), [str(self.antiga.pk)])
+        linha_do_peso, *linhas_extras = edicao["pesos_formset"].forms
+        self.assertEqual(linha_do_peso.instance, peso)
+        self.assertEqual(_opcoes(linha_do_peso["area"]), _esperadas(self.outra.pk))
+        self.assertEqual(_selecionada(linha_do_peso["area"]), [str(self.outra.pk)])
+        self.assertEqual(len(linhas_extras), 7)
+        for linha in linhas_extras:
+            self.assertEqual(_opcoes(linha["area"]), _esperadas())
+
+        do_vizinho = self._edicao(resposta, vizinho)
+        self.assertEqual(_opcoes(do_vizinho["form"]["area_principal"]), _esperadas(self.ativa.pk))
+        self.assertEqual(_opcoes(resposta.context["curso_form"]["area_principal"]), _esperadas())
+        self.assertEqual(_opcoes(resposta.context["pesos_formset"].forms[0]["area"]), _esperadas())
+
+    def test_edicao_recusada_mantem_a_area_antiga_entre_as_opcoes(self):
+        """Validar troca a área da instância; a opção antiga não pode sumir ao redesenhar."""
+        curso = self.criar_curso(area_principal=self.antiga)
+        prefixo = f"curso_peso-{curso.pk}"
+
+        resposta = self.client.post(
+            reverse("painel-editar-curso", args=[curso.pk]),
+            {
+                "nome_curso": "",
+                "descricao": "x",
+                "area_principal": self.ativa.pk,
+                "nivel": "livre",
+                "modalidade": "Presencial",
+                "duracao": 10,
+                "unidade_carga": curso.unidade_carga,
+                f"{prefixo}-TOTAL_FORMS": 0,
+                f"{prefixo}-INITIAL_FORMS": 0,
+            },
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        campo = self._edicao(resposta, curso)["form"]["area_principal"]
+        self.assertEqual(_opcoes(campo), _esperadas(self.antiga.pk))
+        self.assertEqual(_selecionada(campo), [str(self.ativa.pk)])
+
+    def test_area_inativa_de_outro_registro_continua_recusada_no_post(self):
+        resposta = self.client.post(
+            reverse("painel-cursos"),
+            {
+                "nome_curso": "Curso novo",
+                "descricao": "x",
+                "area_principal": self.antiga.pk,
+                "nivel": "livre",
+                "modalidade": "Presencial",
+                "duracao": 10,
+                "unidade_carga": Curso._meta.get_field("unidade_carga").default,
+                "curso_peso-TOTAL_FORMS": 0,
+                "curso_peso-INITIAL_FORMS": 0,
+            },
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn("area_principal", resposta.context["curso_form"].errors)
+        self.assertFalse(Curso.objects.filter(nome_curso="Curso novo").exists())
+
+    def test_salvar_a_edicao_de_um_peso_existente_ainda_funciona(self):
+        curso = self.criar_curso()
+        peso = Peso_curso.objects.create(curso=curso, area=self.ativa, peso=2)
+        prefixo = f"curso_peso-{curso.pk}"
+
+        resposta = self.client.post(
+            reverse("painel-editar-curso", args=[curso.pk]),
+            {
+                "nome_curso": curso.nome_curso,
+                "descricao": curso.descricao,
+                "area_principal": curso.area_principal_id,
+                "nivel": curso.nivel,
+                "modalidade": curso.modalidade,
+                "duracao": curso.duracao,
+                "unidade_carga": curso.unidade_carga,
+                f"{prefixo}-TOTAL_FORMS": 1,
+                f"{prefixo}-INITIAL_FORMS": 1,
+                f"{prefixo}-0-id": peso.pk,
+                f"{prefixo}-0-area": self.ativa.pk,
+                f"{prefixo}-0-peso": 4,
+            },
+        )
+
+        self.assertRedirects(resposta, reverse("painel-cursos"))
+        peso.refresh_from_db()
+        self.assertEqual(peso.peso, 4)

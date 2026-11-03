@@ -206,7 +206,7 @@ def cobertura_de_areas():
 def desempenho_por_curso(inicio):
     """Cada curso ativo com quantas vezes ficou em 1º e quantas entrou no Top 5."""
     periodo = _no_periodo(inicio, "recomendacoes__tentativa__criado_em")
-    return list(
+    linhas = list(
         Curso.objects
         .filter(is_active=True)
         .annotate(
@@ -214,11 +214,15 @@ def desempenho_por_curso(inicio):
             no_top5=Count("recomendacoes", filter=periodo, distinct=True),
         )
         .values(
-            "id", "nome_curso", "duracao", "unidade_carga", "inicio_dia", "fim_dia",
+            "id", "nome_curso", "duracao", "unidade_carga", "inicio_dia", "fim_dia", "nivel",
             "em_primeiro", "no_top5", area=F("area_principal__nome"),
         )
         .order_by("area", "nome_curso")
     )
+    niveis = dict(Curso.NIVEIS)
+    for linha in linhas:
+        linha["nivel_nome"] = niveis.get(linha["nivel"], linha["nivel"])
+    return linhas
 
 
 def testes_por_link(limite=20):
