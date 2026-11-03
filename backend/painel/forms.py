@@ -1,6 +1,6 @@
 from django import forms
 from django.db.models import Q
-from django.forms import inlineformset_factory
+from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.utils.text import slugify
 
 from avaliacao.models import LinkDeAvaliacao
@@ -10,6 +10,17 @@ from catalogo.models import Area, Curso, Peso_curso
 def areas_escolhiveis(area_atual_id=None):
     """Só áreas ativas. A que o registro já usa fica, para editar não trocar a área dele."""
     return Area.objects.filter(Q(is_active=True) | Q(pk=area_atual_id))
+
+
+def opcoes_de_area(campo, areas, area_atual_id):
+    """A regra de areas_escolhiveis aplicada a Area.objects.all() já carregado, sem nova consulta."""
+    opcoes = [] if campo.empty_label is None else [("", campo.empty_label)]
+    opcoes += [
+        (area.pk, campo.label_from_instance(area))
+        for area in areas
+        if area.is_active or area.pk == area_atual_id
+    ]
+    return opcoes
 
 
 class NovoCurso(forms.ModelForm):
@@ -41,9 +52,16 @@ class NovoCurso(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["area_principal"].queryset = areas_escolhiveis(self.instance.area_principal_id)
+        # Guardada aqui: validar um POST troca a área da instância pela enviada.
+        self.area_atual_id = self.instance.area_principal_id
+        self.fields["area_principal"].queryset = areas_escolhiveis(self.area_atual_id)
         for campo in self.fields.values():
             campo.widget.attrs["class"] = "painel-campo"
+
+    def usar_areas(self, areas):
+        """Só muda o que o select desenha: a validação continua no queryset."""
+        campo = self.fields["area_principal"]
+        campo.choices = opcoes_de_area(campo, areas, self.area_atual_id)
 
 
 class NovaArea(forms.ModelForm):
@@ -104,7 +122,12 @@ class PesoCursoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["area"].queryset = areas_escolhiveis(self.instance.area_id)
+        self.area_atual_id = self.instance.area_id
+        self.fields["area"].queryset = areas_escolhiveis(self.area_atual_id)
+
+    def usar_areas(self, areas):
+        campo = self.fields["area"]
+        campo.choices = opcoes_de_area(campo, areas, self.area_atual_id)
 
     def has_changed(self):
         """Linha sem área é linha em branco.
@@ -118,10 +141,24 @@ class PesoCursoForm(forms.ModelForm):
         return super().has_changed()
 
 
+class BasePesosCursoFormSet(BaseInlineFormSet):
+    def get_queryset(self):
+        """Com prefetch_related("curso_peso") no curso, as linhas não voltam ao banco."""
+        prefetch = getattr(self.instance, "_prefetched_objects_cache", {})
+        if not hasattr(self, "_queryset") and "curso_peso" in prefetch:
+            self._queryset = prefetch["curso_peso"]
+        return super().get_queryset()
+
+    def usar_areas(self, areas):
+        for form in self.forms:
+            form.usar_areas(areas)
+
+
 PesosCursoFormSet = inlineformset_factory(
     Curso,
     Peso_curso,
     form=PesoCursoForm,
+    formset=BasePesosCursoFormSet,
     fields=("area", "peso"),
     extra=7,
     can_delete=True,
