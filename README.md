@@ -74,6 +74,8 @@ flowchart LR
     J --> I
 ```
 
+> O mesmo fluxo em imagem, para slides e para o texto do TCC: [`docs/fluxo-recomendacao.svg`](docs/fluxo-recomendacao.svg).
+
 ### 1. Engine (`quiz/engine.py`): determinística
 
 Cada alternativa do quiz soma pesos a uma ou mais áreas, e as respostas viram um **vetor de perfil**. Esse vetor é comparado por **similaridade de cosseno** com o vetor de cada curso (`Peso_curso`). Para cada tentativa, a engine devolve:
@@ -113,7 +115,8 @@ educmatch/
 │  ├─ catalogo-senai/ planilha de pesos dos cursos para revisão da escola
 │  ├─ experimento/   CSVs do experimento engine x LLM
 │  ├─ specs/         plano e passo a passo de cada fase
-│  └─ DER.png        modelo de dados
+│  ├─ DER.png        modelo de dados
+│  └─ fluxo-recomendacao.svg  as duas camadas da recomendação
 └─ .github/workflows/ test.yml (CI) e deploy.yml (CD)
 ```
 
@@ -322,6 +325,7 @@ Na raiz do repositório, o `requirements.txt` só inclui o de `backend/`, porque
 | [`docs/experimento/`](docs/experimento/) | Resultados do experimento engine × LLM |
 | [`docs/catalogo-senai/`](docs/catalogo-senai/) | Planilha de pesos dos cursos para a escola revisar |
 | [`docs/DER.png`](docs/DER.png) | Modelo de dados |
+| [`docs/fluxo-recomendacao.svg`](docs/fluxo-recomendacao.svg) | Fluxo da recomendação: engine e camada opcional de LLM |
 
 > As notas de `docs/` foram escritas no Obsidian: os links `[[...]]` e os blocos `> [!info]` aparecem formatados lá.
 

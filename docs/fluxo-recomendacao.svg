@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1650 300" width="1650" height="300" role="img" aria-labelledby="titulo desc" font-family="'Segoe UI', -apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="14">
+  <title id="titulo">Como funciona a recomendação do EducMatch</title>
+  <desc id="desc">Duas camadas. As respostas do quiz viram um vetor de perfil por área, que a engine compara por similaridade de cosseno com o vetor de cada curso, gerando o top 5, o tie_set e a banda de confiança. Se a LLM estiver ligada e disponível, ela explica e pode reordenar dentro do empate; se a resposta for válida, vai para o aluno. Se a LLM estiver desligada ou a resposta for inválida, o fallback entrega o resultado da engine.</desc>
+
+  <defs>
+    <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#c9ccd1"/>
+    </marker>
+    <style>
+      .no { fill: #1f2228; stroke: #c9ccd1; stroke-width: 1.4; }
+      .txt { fill: #e8e8e8; text-anchor: middle; dominant-baseline: middle; }
+      .linha { fill: none; stroke: #c9ccd1; stroke-width: 1.4; marker-end: url(#seta); }
+      .rotulo-bg { fill: #3a3d44; }
+      .rotulo { fill: #e8e8e8; font-size: 12px; text-anchor: middle; dominant-baseline: middle; }
+    </style>
+  </defs>
+
+  <rect width="1650" height="300" fill="#121418"/>
+
+  <!-- ligações (desenhadas antes dos nós) -->
+  <path class="linha" d="M160,110 H193"/>
+  <path class="linha" d="M345,110 H376"/>
+  <path class="linha" d="M345,224 H475 V144"/>
+  <path class="linha" d="M572,110 H588"/>
+  <path class="linha" d="M760,110 H788"/>
+  <path class="linha" d="M950,110 H998"/>
+  <path class="linha" d="M1190,110 H1223"/>
+  <path class="linha" d="M1375,110 H1438"/>
+  <path class="linha" d="M1300,168 V211"/>
+  <path class="linha" d="M870,172 V240 H1193"/>
+  <path class="linha" d="M1405,240 H1530 V139"/>
+
+  <!-- rótulos das ligações -->
+  <rect class="rotulo-bg" x="958" y="100" width="32" height="20" rx="3"/>
+  <text class="rotulo" x="974" y="110">sim</text>
+  <rect class="rotulo-bg" x="1391" y="100" width="32" height="20" rx="3"/>
+  <text class="rotulo" x="1407" y="110">sim</text>
+  <rect class="rotulo-bg" x="1283" y="180" width="34" height="20" rx="3"/>
+  <text class="rotulo" x="1300" y="190">não</text>
+  <rect class="rotulo-bg" x="1013" y="230" width="34" height="20" rx="3"/>
+  <text class="rotulo" x="1030" y="240">não</text>
+
+  <!-- Respostas do quiz -->
+  <rect class="no" x="20" y="88" width="140" height="44" rx="3"/>
+  <text class="txt" x="90" y="110">Respostas do quiz</text>
+
+  <!-- Vetor de perfil -->
+  <rect class="no" x="195" y="83" width="150" height="54" rx="3"/>
+  <text class="txt" x="270" y="110"><tspan x="270" dy="-9">Vetor de perfil</tspan><tspan x="270" dy="18">peso por área</tspan></text>
+
+  <!-- Vetor de cada curso (banco) -->
+  <path class="no" d="M195,198 V250 A75,9 0 0 0 345,250 V198"/>
+  <ellipse class="no" cx="270" cy="198" rx="75" ry="9"/>
+  <text class="txt" x="270" y="228">Vetor de cada curso</text>
+
+  <!-- Engine -->
+  <polygon class="no" points="378,110 402,78 548,78 572,110 548,142 402,142"/>
+  <text class="txt" x="475" y="110"><tspan x="475" dy="-9">Engine</tspan><tspan x="475" dy="18">similaridade de cosseno</tspan></text>
+
+  <!-- Top 5 -->
+  <rect class="no" x="590" y="83" width="170" height="54" rx="3"/>
+  <text class="txt" x="675" y="110"><tspan x="675" dy="-9">Top 5 + tie_set</tspan><tspan x="675" dy="18">+ banda de confiança</tspan></text>
+
+  <!-- LLM ligada? -->
+  <polygon class="no" points="870,48 950,110 870,172 790,110"/>
+  <text class="txt" x="870" y="110"><tspan x="870" dy="-9">LLM ligada</tspan><tspan x="870" dy="18">e disponível?</tspan></text>
+
+  <!-- LLM explica -->
+  <rect class="no" x="1000" y="83" width="190" height="54" rx="3"/>
+  <text class="txt" x="1095" y="110"><tspan x="1095" dy="-9">LLM explica e pode</tspan><tspan x="1095" dy="18">reordenar dentro do empate</tspan></text>
+
+  <!-- Resposta válida? -->
+  <polygon class="no" points="1300,52 1375,110 1300,168 1225,110"/>
+  <text class="txt" x="1300" y="110"><tspan x="1300" dy="-9">Resposta</tspan><tspan x="1300" dy="18">válida?</tspan></text>
+
+  <!-- Fallback -->
+  <rect class="no" x="1195" y="213" width="210" height="54" rx="3"/>
+  <text class="txt" x="1300" y="240">Fallback: resultado da engine</text>
+
+  <!-- Resultado -->
+  <rect class="no" x="1440" y="83" width="180" height="54" rx="3"/>
+  <text class="txt" x="1530" y="110">Resultado para o aluno</text>
+</svg>
