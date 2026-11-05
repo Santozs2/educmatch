@@ -5,7 +5,7 @@ from quiz.models import Alternativa, Peso_alternativa, Questao
 
 # Mudar o texto de uma alternativa apaga as respostas dela (CASCADE). Depois que
 # houver respostas, troca de alternativa pede uma nova versão, nunca edição.
-VERSAO_QUIZ = 2
+VERSAO_QUIZ = 3
 
 # pesos de 0 a 5. Área ausente = peso 0.
 QUESTOES = [
@@ -97,16 +97,18 @@ QUESTOES = [
             {"texto": "Uma joia delicada feita por mim", "peso": {"moda-joalheria": 5}},
             {"texto": "Um prédio com pintura e acabamento impecáveis", "peso": {"construcao-mobiliario": 5}},
             {"texto": "Um ar-condicionado voltando a gelar", "peso": {"refrigeracao-climatizacao": 5}},
+            {"texto": "Um aplicativo que eu mesmo(a) programei funcionando", "peso": {"ti": 4}},
         ],
     },
     {
         "texto": "Com qual destes materiais você prefere lidar no dia a dia?",
         "order": 10,
         "alternativa": [
-            {"texto": "Metais preciosos e peças pequenas", "peso": {"moda-joalheria": 5, "metalurgia-soldagem": 1}},
-            {"texto": "Relatórios e planilhas", "peso": {"administracao-gestao": 4, "ti": 1}},
-            {"texto": "Tintas, massas e texturas", "peso": {"construcao-mobiliario": 5}},
-            {"texto": "Compressores, gás refrigerante e dutos", "peso": {"refrigeracao-climatizacao": 5}},
+            {"texto": "Relatórios e planilhas", "peso": {"administracao-gestao": 5, "ti": 1}},
+            {"texto": "Caixas, etiquetas e notas de mercadorias", "peso": {"logistica-transporte": 5, "administracao-gestao": 1}},
+            {"texto": "Motores, freios e suspensão", "peso": {"automotiva": 5, "fabricacao-mecanica": 1}},
+            {"texto": "Cabos, disjuntores e painéis de comando", "peso": {"automacao-energia": 4, "construcao-mobiliario": 1, "refrigeracao-climatizacao": 1}},
+            {"texto": "Peças pequenas e medidas de precisão", "peso": {"fabricacao-mecanica": 4, "moda-joalheria": 2}},
         ],
     },
 ]
